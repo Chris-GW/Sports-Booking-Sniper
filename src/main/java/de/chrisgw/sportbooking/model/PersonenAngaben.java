@@ -22,8 +22,6 @@ public class PersonenAngaben {
 
     // needed for payment required SportAngebot
     private String iban;
-    private String bic;
-    private String bankName;
     private String kontoInhaber;
 
 

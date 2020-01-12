@@ -1,14 +1,10 @@
 package de.chrisgw.sportbooking.gui;
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.GridLayout.Alignment;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
-import com.googlecode.lanterna.input.KeyStroke;
-import de.chrisgw.sportbooking.gui.bind.ComboBoxPropertyInput;
-import de.chrisgw.sportbooking.gui.bind.PropertyInput;
-import de.chrisgw.sportbooking.gui.bind.TextBoxPropertyInput;
+import de.chrisgw.sportbooking.gui.bind.ConcealableComponent;
+import de.chrisgw.sportbooking.gui.bind.ModalField;
+import de.chrisgw.sportbooking.gui.bind.ModalForm;
 import de.chrisgw.sportbooking.model.PersonAngabenValidator;
 import de.chrisgw.sportbooking.model.PersonKategorie;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
@@ -17,200 +13,153 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyValues;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.beans.PropertyDescriptor;
 
+import static com.googlecode.lanterna.gui2.Borders.doubleLine;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.*;
 import static com.googlecode.lanterna.gui2.GridLayout.createHorizontallyFilledLayoutData;
-import static org.apache.commons.lang3.StringUtils.capitalize;
+import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
+import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newComboBoxField;
+import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newTextBoxField;
 
 
 @Slf4j
 public class PersonenAngabenWindow extends DialogWindow {
 
-    private DataBinder dataBinder;
-    private Map<String, Label> propertyInputLabels = new LinkedHashMap<>();
-    private Map<String, PropertyInput> propertyInputs = new LinkedHashMap<>();
 
-    private TerminalSize inputSize = new TerminalSize(35, 1);
-    private Panel formularGridPanel;
-    private Label focusedInformationLabel;
+    private ModalForm modalForm = new ModalForm();
 
 
     public PersonenAngabenWindow() {
         super("Personenangaben");
-
-        Panel contentPane = new Panel();
-        createFormularPanel().addTo(contentPane);
-        contentPane.addComponent(new EmptySpace());
-        createLowerButtonPanel().addTo(contentPane);
-        this.focusedInformationLabel = new Label("").addTo(contentPane);
-        addBasePaneListener(basePanelListener());
-
-        this.dataBinder = createDataBinder();
-        setComponent(contentPane);
+        createContentPane();
     }
 
-    private BasePaneListener<Window> basePanelListener() {
-        return new BasePaneListener<>() {
 
-            @Override
-            public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
-                log.debug("onInput {}", keyStroke);
-            }
-
-            @Override
-            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-                log.debug("onUnhandledInput {}", keyStroke);
-            }
-
-        };
+    private void createContentPane() {
+        Panel contentPane = new Panel();
+        createFormularPanel().addTo(contentPane);
+        createLowerButtonPanel().withBorder(doubleLine()).addTo(contentPane);
+        setComponent(contentPane);
     }
 
 
     private Panel createFormularPanel() {
-        formularGridPanel = new Panel(new GridLayout(2));
+        Panel formularGridPanel = new Panel(new GridLayout(2));
 
-        createTextBoxInput("vorname");
-        createTextBoxInput("nachname");
-        createGenderComboBox();
+        newTextBoxField("vorname").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("nachname").addTo(modalForm).addToGrid(formularGridPanel);
+        newComboBoxField("gender", Gender.values()).withLabel("Geschlecht")
+                .addTo(modalForm)
+                .addToGrid(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
-        createTextBoxInput("email");
-        createTextBoxInput("telefon");
-        createTextBoxInput("street", "Straße");
-        createTextBoxInput("ort");
+        newTextBoxField("street").withLabel("Straße").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("ort").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("email").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("telefon").addTo(modalForm).addToGrid(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
-        createPersonenKategorieComboBox();
-        createTextBoxInput("matrikelnummer", "Matrikelnr.");
-        createTextBoxInput("mitarbeiterNummer", "Mitarbeiternr.");
+        createPersonenKategorieFields(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
-        createTextBoxInput("iban", "IBAN");
-        createTextBoxInput("kontoInhaber", "Kontoinhaber");
+        newTextBoxField("iban").withLabel("IBAN").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("kontoInhaber").addTo(modalForm).addToGrid(formularGridPanel);
         return formularGridPanel;
     }
 
-    private DataBinder createDataBinder() {
-        DataBinder dataBinder = new DataBinder(new PersonenAngaben());
-        dataBinder.setAllowedFields(propertyInputs.keySet().toArray(new String[0]));
-        dataBinder.addValidators(new PersonAngabenValidator());
-        return dataBinder;
-    }
+    private void createPersonenKategorieFields(Panel formularGridPanel) {
+        ComboBox<PersonKategorie> kategorieComboBox = newComboBoxField("personKategorie", PersonKategorie.values()) //
+                .withLabel("Kategorie") //
+                .addTo(modalForm) //
+                .addToGrid(formularGridPanel) //
+                .getInputField();
 
+        ModalField<TextBox, String> matrikelnummerField = newTextBoxField("matrikelnummer") //
+                .withLabel("Matrikelnr.") //
+                .addTo(modalForm);
+        ModalField<TextBox, String> mitarbeiterNummerField = newTextBoxField("mitarbeiterNummer") //
+                .withLabel("Mitarbeiternr.") //
+                .addTo(modalForm);
 
-    private void createTextBoxInput(String propertyName) {
-        createTextBoxInput(propertyName, capitalize(propertyName));
-    }
-
-    private void createTextBoxInput(String propertyName, String labelText) {
-        propertyInputLabels.put(propertyName, new Label(labelText).addTo(formularGridPanel));
-        TextBox textBox = new TextBox().setPreferredSize(inputSize).addTo(formularGridPanel);
-        propertyInputs.put(propertyName, new TextBoxPropertyInput(propertyName, textBox));
-    }
-
-
-    private void createGenderComboBox() {
-        String propertyName = "gender";
-        propertyInputLabels.put(propertyName, new Label("Geschlecht").addTo(formularGridPanel));
-        ComboBox<Gender> genderComboBox = new ComboBox<>(Gender.values()) //
-                .setPreferredSize(inputSize) //
+        ConcealableComponent label = new ConcealableComponent().addTo(formularGridPanel);
+        ConcealableComponent input = new ConcealableComponent() //
+                .setLayoutData(createHorizontallyFilledLayoutData(1)) //
                 .addTo(formularGridPanel);
-        propertyInputs.put(propertyName, new ComboBoxPropertyInput<>(propertyName, genderComboBox));
-    }
-
-
-    private void createPersonenKategorieComboBox() {
-        String propertyName = "personKategorie";
-        propertyInputLabels.put(propertyName, new Label("Kategorie").addTo(formularGridPanel));
-        ComboBox<PersonKategorie> personKategorieComboBox = new ComboBox<>(PersonKategorie.values()) //
-                .setPreferredSize(inputSize) //
-                .addListener(this::onPersonenKategorieChange) //
+        ConcealableComponent errorLabel = new ConcealableComponent() //
+                .setLayoutData(createHorizontallyFilledLayoutData(2)) //
                 .addTo(formularGridPanel);
-        propertyInputs.put(propertyName, new ComboBoxPropertyInput<>(propertyName, personKategorieComboBox));
-    }
 
-    private void onPersonenKategorieChange(int selectedIndex, int previousSelection) {
-        PersonKategorie selectedPersonKategorie = (PersonKategorie) propertyInputs.get("personKategorie")
-                .getPropertyValue();
-        getInputComponent("matrikelnummer", TextBox.class).setEnabled(selectedPersonKategorie.requiresMatrikelnummer());
-        getInputComponent("mitarbeiterNummer", TextBox.class).setEnabled(
-                selectedPersonKategorie.requiresMitarbeiterNummer());
+        kategorieComboBox.addListener((selectedIndex, previousSelection) -> {
+            if (selectedIndex >= 0 && kategorieComboBox.getItem(selectedIndex).requiresMatrikelnummer()) {
+                label.setComponent(matrikelnummerField.getLabel());
+                input.setComponent(matrikelnummerField.getInputField());
+                errorLabel.setComponent(matrikelnummerField.getConcealableErrorLabel());
+            } else if (selectedIndex >= 0 && kategorieComboBox.getItem(selectedIndex).requiresMitarbeiterNummer()) {
+                label.setComponent(mitarbeiterNummerField.getLabel());
+                input.setComponent(mitarbeiterNummerField.getInputField());
+                errorLabel.setComponent(mitarbeiterNummerField.getConcealableErrorLabel());
+            } else {
+                label.setComponent(null);
+                input.setComponent(null);
+                errorLabel.setComponent(null);
+            }
+        });
     }
 
 
     private Panel createLowerButtonPanel() {
-        Button closeBtn = new Button("Close", this::close);
+        Button closeBtn = new Button("Cancel", this::close).setLayoutData(
+                GridLayout.createLayoutData(BEGINNING, BEGINNING, true, false));
+        Button restBtn = new Button("Reset", this::resetPersonenAngaben).setLayoutData(
+                GridLayout.createLayoutData(CENTER, BEGINNING, true, false));
         Button saveBtn = new Button("Save", this::savePersonenAngaben).setLayoutData(
-                GridLayout.createLayoutData(Alignment.END, Alignment.BEGINNING, true, true));
-        return Panels.horizontal(closeBtn, saveBtn);
+                GridLayout.createLayoutData(END, BEGINNING, true, false));
+        return Panels.grid(3, closeBtn, restBtn, saveBtn).setLayoutData(LinearLayout.createLayoutData(Fill));
+    }
+
+
+    private void resetPersonenAngaben() {
+        bindPersonenAngaben(new PersonenAngaben());
     }
 
 
     private void savePersonenAngaben() {
-        dataBinder.bind(readPropertyValues());
-        dataBinder.validate();
-        BindingResult bindingResult = dataBinder.getBindingResult();
-        for (PropertyInput propertyInput : propertyInputs.values()) {
-            setPropertyInputBindingResult(propertyInput, bindingResult);
-        }
+        BindingResult bindingResult = bindModalData();
 
         if (!bindingResult.hasErrors()) {
-            // TODO save
+            // TODO savePersonenAngaben
             System.out.println("save personenangaben");
             this.close();
         }
     }
 
-    private void setPropertyInputBindingResult(PropertyInput propertyInput, BindingResult bindingResult) {
-        propertyInput.setBindingResult(bindingResult);
-        Label label = getInputLabel(propertyInput.getPropertyName());
-        if (propertyInput.hasFieldErrors()) {
-            label.setForegroundColor(ANSI.WHITE).setBackgroundColor(ANSI.RED);
-        } else {
-            label.setForegroundColor(null).setBackgroundColor(null);
-        }
-    }
-
-    private PropertyValues readPropertyValues() {
-        return propertyInputs.values()
-                .stream()
-                .map(PropertyInput::toPropertyValues)
-                .collect(MutablePropertyValues::new, MutablePropertyValues::addPropertyValues,
-                        MutablePropertyValues::addPropertyValues);
-    }
-
-
-    private Label getInputLabel(String propertyName) {
-        return propertyInputLabels.get(propertyName);
-    }
-
-    private Interactable getInputComponent(String propertyName) {
-        return getInputComponent(propertyName, Interactable.class);
-    }
-
-    private <T extends Interactable> T getInputComponent(String propertyName, Class<T> clazz) {
-        return clazz.cast(propertyInputs.get(propertyName).getInputComponent());
-    }
-
 
     public PersonenAngaben personenAngaben() {
-        return (PersonenAngaben) dataBinder.getTarget();
+        return (PersonenAngaben) bindModalData().getTarget();
     }
 
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private BindingResult bindModalData() {
+        DataBinder dataBinder = new DataBinder(new PersonenAngaben());
+        dataBinder.addValidators(new PersonAngabenValidator());
+        return modalForm.bindData(dataBinder);
+    }
+
+
     public void bindPersonenAngaben(PersonenAngaben personenAngaben) {
         BeanWrapper beanWrapper = new BeanWrapperImpl(personenAngaben);
-        for (PropertyInput propertyInput : propertyInputs.values()) {
-            Object propertyValue = beanWrapper.getPropertyValue(propertyInput.getPropertyName());
-            propertyInput.setPropertyValue(propertyValue);
+        MutablePropertyValues propertyValues = new MutablePropertyValues();
+        for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
+            String propertyName = propertyDescriptor.getName();
+            Object propertyValue = beanWrapper.getPropertyValue(propertyName);
+            propertyValues.addPropertyValue(propertyName, propertyValue);
         }
+        modalForm.writePropertyValues(propertyValues);
     }
+
 
 }
