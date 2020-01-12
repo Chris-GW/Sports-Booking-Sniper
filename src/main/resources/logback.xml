@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration >
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>rwth-sport-booking-sniper.log</file>
+    <append>false</append>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{10} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+
+  <root level="WARN">
+    <appender-ref ref="FILE"/>
+  </root>
+  <logger name="org.springframework" level="WARN"/>
+  <logger name="com.gargoylesoftware.htmlunit.DefaultCssErrorHandler" level="ERROR"/>
+
+  <logger name="de.vhrisgw.sportbooking" level="INFO"/>
+  <logger name="de.chrisgw.sportbooking.gui" level="DEBUG"/>
+  <logger name="de.vhrisgw.sportbooking.SportBookingApplication" level="INFO"/>
+  <logger name="de.vhrisgw.sportbooking.service.SportBookingSniperService" level="DEBUG"/>
+  <logger name="de.vhrisgw.sportbooking.service.AachenSportBookingService" level="DEBUG"/>
+</configuration>
