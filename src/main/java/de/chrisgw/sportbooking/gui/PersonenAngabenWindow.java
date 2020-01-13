@@ -1,7 +1,11 @@
 package de.chrisgw.sportbooking.gui;
 
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.gui.bind.ConcealableComponent;
 import de.chrisgw.sportbooking.gui.bind.ModalField;
 import de.chrisgw.sportbooking.gui.bind.ModalForm;
@@ -9,6 +13,7 @@ import de.chrisgw.sportbooking.model.PersonAngabenValidator;
 import de.chrisgw.sportbooking.model.PersonKategorie;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
+import de.chrisgw.sportbooking.service.SavedApplicationDataService.PersonenAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -17,32 +22,45 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 
 import java.beans.PropertyDescriptor;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.googlecode.lanterna.gui2.Borders.doubleLine;
-import static com.googlecode.lanterna.gui2.GridLayout.Alignment.*;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.END;
 import static com.googlecode.lanterna.gui2.GridLayout.createHorizontallyFilledLayoutData;
+import static com.googlecode.lanterna.gui2.GridLayout.createLayoutData;
 import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
+import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newComboBoxField;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newTextBoxField;
 
 
 @Slf4j
-public class PersonenAngabenWindow extends DialogWindow {
+public class PersonenAngabenWindow extends DialogWindow implements WindowListener, PersonenAngabenListener {
 
 
+    private final boolean forceValidPersonenAngaben;
+    private PersonenAngaben personenAngaben;
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenWindow() {
+    public PersonenAngabenWindow(PersonenAngaben personenAngaben) {
+        this(personenAngaben, false);
+    }
+
+    public PersonenAngabenWindow(PersonenAngaben personenAngaben, boolean forceValidPersonenAngaben) {
         super("Personenangaben");
+        this.forceValidPersonenAngaben = forceValidPersonenAngaben;
         createContentPane();
+        bindPersonenAngaben(personenAngaben);
     }
 
 
     private void createContentPane() {
         Panel contentPane = new Panel();
-        createFormularPanel().addTo(contentPane);
-        createLowerButtonPanel().withBorder(doubleLine()).addTo(contentPane);
+        contentPane.addComponent(createFormularPanel());
+        contentPane.addComponent(createLowerButtonPanel(), createLayoutData(Fill));
+        addWindowListener(this);
         setComponent(contentPane);
     }
 
@@ -112,13 +130,20 @@ public class PersonenAngabenWindow extends DialogWindow {
 
 
     private Panel createLowerButtonPanel() {
-        Button closeBtn = new Button("Cancel", this::close).setLayoutData(
-                GridLayout.createLayoutData(BEGINNING, BEGINNING, true, false));
-        Button restBtn = new Button("Reset", this::resetPersonenAngaben).setLayoutData(
-                GridLayout.createLayoutData(CENTER, BEGINNING, true, false));
-        Button saveBtn = new Button("Save", this::savePersonenAngaben).setLayoutData(
-                GridLayout.createLayoutData(END, BEGINNING, true, false));
-        return Panels.grid(3, closeBtn, restBtn, saveBtn).setLayoutData(LinearLayout.createLayoutData(Fill));
+        Panel lowerButtonPanel = new Panel();
+        if (!forceValidPersonenAngaben) {
+            new Button(LocalizedString.Cancel.toString(), this::close) //
+                    .setLayoutData(createLayoutData(BEGINNING, BEGINNING, true, false)) //
+                    .addTo(lowerButtonPanel);
+        }
+        new Button("Reset", this::resetPersonenAngaben) //
+                .setLayoutData(createLayoutData(BEGINNING, BEGINNING, true, false)) //
+                .addTo(lowerButtonPanel);
+        new Button("Save", this::savePersonenAngaben) //
+                .setLayoutData(createLayoutData(END, BEGINNING, true, false)) //
+                .addTo(lowerButtonPanel);
+        lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()));
+        return lowerButtonPanel.setLayoutData(createLayoutData(Fill));
     }
 
 
@@ -128,29 +153,23 @@ public class PersonenAngabenWindow extends DialogWindow {
 
 
     private void savePersonenAngaben() {
-        BindingResult bindingResult = bindModalData();
+        BindingResult bindingResult = bindPersonenAngabenModalData();
 
         if (!bindingResult.hasErrors()) {
-            // TODO savePersonenAngaben
-            System.out.println("save personenangaben");
+            this.personenAngaben = (PersonenAngaben) bindingResult.getTarget();
             this.close();
         }
     }
 
 
-    public PersonenAngaben personenAngaben() {
-        return (PersonenAngaben) bindModalData().getTarget();
-    }
-
-
-    private BindingResult bindModalData() {
+    private BindingResult bindPersonenAngabenModalData() {
         DataBinder dataBinder = new DataBinder(new PersonenAngaben());
         dataBinder.addValidators(new PersonAngabenValidator());
         return modalForm.bindData(dataBinder);
     }
 
 
-    public void bindPersonenAngaben(PersonenAngaben personenAngaben) {
+    private void bindPersonenAngaben(PersonenAngaben personenAngaben) {
         BeanWrapper beanWrapper = new BeanWrapperImpl(personenAngaben);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
@@ -161,5 +180,47 @@ public class PersonenAngabenWindow extends DialogWindow {
         modalForm.writePropertyValues(propertyValues);
     }
 
+
+    public Optional<PersonenAngaben> getPersonenAngaben() {
+        return Optional.ofNullable(personenAngaben);
+    }
+
+
+    @Override
+    public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
+        // noop
+    }
+
+    @Override
+    public void onMoved(Window window, TerminalPosition oldPosition, TerminalPosition newPosition) {
+        // noop
+    }
+
+    @Override
+    public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
+        if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 's') {
+            savePersonenAngaben();
+            deliverEvent.set(false);
+        } else if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'r') {
+            resetPersonenAngaben();
+            deliverEvent.set(false);
+        } else if (!forceValidPersonenAngaben && KeyType.Escape.equals(keyStroke.getKeyType())) {
+            close();
+            deliverEvent.set(false);
+        } else {
+            deliverEvent.set(true);
+        }
+    }
+
+    @Override
+    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
+        // noop
+    }
+
+    @Override
+    public void onChangedPersonenAngaben(SavedApplicationData savedApplicationData,
+            PersonenAngaben changedPersonenAngaben) {
+        bindPersonenAngaben(changedPersonenAngaben);
+    }
 
 }

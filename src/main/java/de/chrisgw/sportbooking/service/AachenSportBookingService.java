@@ -126,18 +126,20 @@ public class AachenSportBookingService implements SportBookingService {
         return sportAngebot;
     }
 
-    private double readSportAngebotPreis(Element tableRow) {
+    private SportAngebotPreis readSportAngebotPreis(Element tableRow) {
         Elements preisForKategorie = tableRow.select(".bs_tt1, .bs_tt2");
         Pattern preisPattern = Pattern.compile("\\d+(,\\d+)?");
 
+        long[] preis = new long[4];
         for (int i = 0; i < preisForKategorie.size(); i++) {
             String preisText = preisForKategorie.get(i).text();
             Matcher preisMatcher = preisPattern.matcher(preisText);
             if (preisMatcher.find()) {
-                return Double.parseDouble(preisMatcher.group(0).replaceAll(",", "."));
+                // FIXME readSportAngebotPreis
+                preis[i] = Math.round(Double.parseDouble(preisMatcher.group(1)) * 100);
             }
         }
-        return 0.0;
+        return new SportAngebotPreis(preis[0], preis[1], preis[2], preis[3]);
     }
 
     private String selectBsKursId(Element tableRow) {

@@ -4,6 +4,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.math.BigInteger;
+
 
 public class SportBuchungsBestaetigung {
 
@@ -18,6 +20,13 @@ public class SportBuchungsBestaetigung {
 
     public SportBuchungsBestaetigung() {
 
+    }
+
+
+    public BigInteger getPreis() {
+        PersonKategorie personKategorie = personenAngaben.getPersonKategorie();
+        SportAngebot sportAngebot = sportTermin.getSportAngebot();
+        return sportAngebot.preisFor(personKategorie);
     }
 
 

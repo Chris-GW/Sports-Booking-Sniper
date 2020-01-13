@@ -1,25 +1,18 @@
 package de.chrisgw.sportbooking;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.model.SportBuchungStrategieImpl.FixedPeriodTimeBuchungStrategie;
+import de.chrisgw.sportbooking.service.SavedApplicationDataService;
 import de.chrisgw.sportbooking.service.SportBookingService;
 import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static de.chrisgw.sportbooking.SportBookingApplication.PERSONEN_ANGABEN_PATH;
 
 
 public class SportBookingApplicationTest {
@@ -37,7 +30,7 @@ public class SportBookingApplicationTest {
 
     public static void main(String[] args) {
         try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-                SportBookingApplicationConfiguration.class)) {
+                SportBookingApplication.class)) {
             SportBookingApplicationTest testApplication = new SportBookingApplicationTest(applicationContext);
             System.setProperty("webdriver.chrome.driver", "C:\\01_Programmieren\\chromedriver.exe");
 
@@ -87,14 +80,13 @@ public class SportBookingApplicationTest {
         System.out.println(sportBuchungsBestaetigung);
     }
 
+
     private PersonenAngaben readPersonenAngaben() {
-        try (BufferedReader fileReader = Files.newBufferedReader(PERSONEN_ANGABEN_PATH, StandardCharsets.UTF_8)) {
-            ObjectMapper objectMapper = applicationContext.getBean(ObjectMapper.class);
-            return objectMapper.readValue(fileReader, PersonenAngaben.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read PersonenAngaben of " + PERSONEN_ANGABEN_PATH, e);
-        }
+        SavedApplicationDataService savedApplicationDataService = applicationContext.getBean(
+                SavedApplicationDataService.class);
+        return savedApplicationDataService.getSavedApplicationData().getPersonenAngaben();
     }
+
 
     private SportBuchungStrategie getSportBuchungsStrategie() {
         return new FixedPeriodTimeBuchungStrategie(1, TimeUnit.MINUTES);

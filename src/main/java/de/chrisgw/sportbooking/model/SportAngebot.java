@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,7 +26,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private String ort;
     private String leitung;
 
-    private double preis;
+    private SportAngebotPreis preis = new SportAngebotPreis();
 
     private String url;
     private String bsCode;
@@ -37,7 +38,11 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
 
     public boolean isPaymentRequierd() {
-        return preis > 0.0;
+        return preis.isPaymentRequierd();
+    }
+
+    public BigInteger preisFor(PersonKategorie personKategorie) {
+        return preis.preisFor(personKategorie);
     }
 
     public boolean hasEqualKursnummer(SportAngebot otherSportAngebot) {

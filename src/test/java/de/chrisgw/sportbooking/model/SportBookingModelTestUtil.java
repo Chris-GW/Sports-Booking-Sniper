@@ -1,10 +1,10 @@
 package de.chrisgw.sportbooking.model;
 
+import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
 import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
 import de.chrisgw.sportbooking.service.SportAngebotLazyTerminLoader;
-import de.chrisgw.sportbooking.service.SportBookingService;
-import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
 import de.chrisgw.sportbooking.service.SportArtLazyAngebotLoader;
+import de.chrisgw.sportbooking.service.SportBookingService;
 import org.mockito.*;
 
 import java.time.LocalDate;
@@ -49,7 +49,7 @@ public class SportBookingModelTestUtil {
         sportAngebot.setDetails("Angebot Montags");
         sportAngebot.setLeitung("Leitung Montags");
         sportAngebot.setOrt("Ort Montags");
-        sportAngebot.setPreis(25.0);
+        sportAngebot.setPreis(new SportAngebotPreis(2500));
         sportAngebot.setSportTermine(createSportTermine(sportAngebot, LocalDate.of(2016, 10, 24)));
         return sportAngebot;
     }
@@ -66,7 +66,7 @@ public class SportBookingModelTestUtil {
         sportAngebot.setDetails("Angebot Freitags");
         sportAngebot.setLeitung("Leitung Freitags");
         sportAngebot.setOrt("Ort Freitags");
-        sportAngebot.setPreis(15.0);
+        sportAngebot.setPreis(new SportAngebotPreis(1500));
         sportAngebot.setSportTermine(createSportTermine(sportAngebot, LocalDate.of(2016, 10, 21)));
         return sportAngebot;
     }
@@ -84,7 +84,7 @@ public class SportBookingModelTestUtil {
         sportAngebot.setDetails("Angebot Lazy ");
         sportAngebot.setLeitung("Leitung Lazy ");
         sportAngebot.setOrt("Ort Lazy ");
-        sportAngebot.setPreis(15.5);
+        sportAngebot.setPreis(new SportAngebotPreis(1505));
 
         SportBookingService sportBookingService = Mockito.mock(SportBookingService.class);
         Set<Object> sportTermine = new HashSet<>();
