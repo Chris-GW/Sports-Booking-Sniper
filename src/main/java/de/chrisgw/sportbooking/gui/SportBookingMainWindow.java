@@ -7,7 +7,7 @@ import de.chrisgw.sportbooking.service.SavedApplicationDataService;
 import de.chrisgw.sportbooking.service.SportBookingService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import java.util.Arrays;
 
 import static com.googlecode.lanterna.gui2.Borders.doubleLine;
 import static com.googlecode.lanterna.gui2.Direction.HORIZONTAL;
@@ -32,7 +32,7 @@ public class SportBookingMainWindow extends BasicWindow {
     public SportBookingMainWindow(SportBookingService sportBookingService,
             SavedApplicationDataService savedApplicationDataService) {
         super("Buchungsbot - RWTH Hochschulsport");
-        setHints(List.of(Hint.FULL_SCREEN, Hint.NO_DECORATIONS, Hint.NO_POST_RENDERING));
+        setHints(Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS, Hint.NO_POST_RENDERING));
         this.sportBookingService = sportBookingService;
         this.savedApplicationDataService = savedApplicationDataService;
 
@@ -72,7 +72,11 @@ public class SportBookingMainWindow extends BasicWindow {
     private void addSportNewBuchungJob() {
         SportArt sportArt = new SportArt("Badminton Level Spielbetrieb", "http://badminton-spielbetrieb.de");
         SportAngebot sportAngebot = createMontagsSportAngebot(sportArt);
-        SportTermin sportTermin = sportAngebot.getSportTermine().stream().unordered().findAny().orElseThrow();
+        SportTermin sportTermin = sportAngebot.getSportTermine()
+                .stream()
+                .unordered()
+                .findAny()
+                .orElseThrow(RuntimeException::new);
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob(sportTermin, createPersonenAngaben());
         savedApplicationDataService.addSportBuchungsJob(sportBuchungsJob);
     }
@@ -80,7 +84,11 @@ public class SportBookingMainWindow extends BasicWindow {
     private void addNewSportBuchungsBestaetigung() {
         SportArt sportArt = new SportArt("Badminton Level 2", "http://badminton-level-2.de");
         SportAngebot sportAngebot = createFreitagsSportAngebot(sportArt);
-        SportTermin sportTermin = sportAngebot.getSportTermine().stream().unordered().findAny().orElseThrow();
+        SportTermin sportTermin = sportAngebot.getSportTermine()
+                .stream()
+                .unordered()
+                .findAny()
+                .orElseThrow(RuntimeException::new);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = createSportBuchungsBestaetigung(sportTermin);
         savedApplicationDataService.addFinishedSportBuchung(sportBuchungsBestaetigung);
     }

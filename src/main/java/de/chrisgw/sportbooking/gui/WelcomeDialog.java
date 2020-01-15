@@ -4,14 +4,14 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 
-import java.util.List;
+import java.util.Arrays;
 
 
 public class WelcomeDialog extends DialogWindow {
 
     public WelcomeDialog() {
         super("Willkommen zum \"Buchungsbot - RWTH Hochschulsport\"");
-        setHints(List.of(Hint.MODAL, Hint.CENTERED, Hint.FIT_TERMINAL_WINDOW));
+        setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED, Hint.FIT_TERMINAL_WINDOW));
 
         Panel buttonPanel = new Panel();
         buttonPanel.setLayoutManager(new GridLayout(1).setHorizontalSpacing(1));

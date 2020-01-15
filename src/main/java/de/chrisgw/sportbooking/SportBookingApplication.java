@@ -116,7 +116,7 @@ public class SportBookingApplication {
 
             PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(savedApplicationDataService, true);
             textGUI.addWindowAndWait(personenAngabenWindow);
-            PersonenAngaben personenAngaben = personenAngabenWindow.getPersonenAngaben().orElseThrow();
+            PersonenAngaben personenAngaben = personenAngabenWindow.getPersonenAngaben().orElseThrow(RuntimeException::new);
             savedApplicationDataService.updatePersonenAngaben(personenAngaben);
             savedApplicationDataService.setFirstVisite(false);
         }
