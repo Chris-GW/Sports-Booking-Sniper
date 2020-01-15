@@ -111,7 +111,7 @@ public class SportBookingApplication {
 
     private static void showFirstVisiteDialog(WindowBasedTextGUI textGUI,
             SavedApplicationDataService savedApplicationDataService) {
-        if (savedApplicationDataService.getSavedApplicationData().isFirstVisite()) {
+        if (savedApplicationDataService.isFirstVisite()) {
             new WelcomeDialog().showDialog(textGUI);
 
             PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(savedApplicationDataService, true);

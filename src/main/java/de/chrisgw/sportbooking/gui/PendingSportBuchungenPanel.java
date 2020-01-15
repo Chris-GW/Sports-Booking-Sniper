@@ -36,7 +36,7 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
         pendingJobsTabel.setVisibleRows(4);
         pendingJobsTabel.setVisibleColumns(3);
         pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
-        savedApplicationDataService.getSavedApplicationData().getPendingBuchungsJobs().forEach(this::addPendingJob);
+        getPendingBuchungsJobs().forEach(this::addPendingJob);
 
         addComponent(pendingJobsTabel, createLayoutData(Fill));
     }
@@ -46,7 +46,7 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
         if (selectedRow < 0) {
             return;
         }
-        SportBuchungsJob sportBuchungsJob = getPendingJobs().get(selectedRow);
+        SportBuchungsJob sportBuchungsJob = getPendingBuchungsJobs().get(selectedRow);
 
         new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
                 .setDescription("Aktion bitte auswählen")
@@ -69,7 +69,7 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
 
     @Override
     public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        refreshPendingJob(sportBuchungsJob);
+        refreshPendingBuchungsJob(sportBuchungsJob);
     }
 
 
@@ -109,13 +109,13 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
     }
 
 
-    private void refreshPendingJob(SportBuchungsJob sportBuchungsJob) {
-
+    private void refreshPendingBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        // TOTO refreshPendingJob
     }
 
 
-    public List<SportBuchungsJob> getPendingJobs() {
-        return savedApplicationDataService.getSavedApplicationData().getPendingBuchungsJobs();
+    public List<SportBuchungsJob> getPendingBuchungsJobs() {
+        return savedApplicationDataService.getPendingBuchungsJobs();
     }
 
 

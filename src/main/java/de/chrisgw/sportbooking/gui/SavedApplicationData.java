@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 @Data
@@ -17,6 +18,7 @@ public class SavedApplicationData {
 
     private boolean firstVisite = true;
     private LocalDateTime saveTime = LocalDateTime.now();
+    private Locale language = Locale.getDefault();
     private PersonenAngaben personenAngaben = new PersonenAngaben();
 
     private List<SportAngebot> watchedSportAngebote = new ArrayList<>();

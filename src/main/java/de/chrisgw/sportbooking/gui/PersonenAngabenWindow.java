@@ -41,24 +41,24 @@ import static java.util.Objects.requireNonNull;
 public class PersonenAngabenWindow extends DialogWindow implements WindowListener, PersonenAngabenListener {
 
 
-    private final SavedApplicationDataService savedApplicationDataService;
+    private final SavedApplicationDataService applicationDataService;
     private final boolean forceValidPersonenAngaben;
     private PersonenAngaben personenAngaben;
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenWindow(SavedApplicationDataService savedApplicationDataService) {
-        this(savedApplicationDataService, false);
+    public PersonenAngabenWindow(SavedApplicationDataService applicationDataService) {
+        this(applicationDataService, false);
     }
 
-    public PersonenAngabenWindow(SavedApplicationDataService savedApplicationDataService,
+    public PersonenAngabenWindow(SavedApplicationDataService applicationDataService,
             boolean forceValidPersonenAngaben) {
         super("Personenangaben");
-        this.savedApplicationDataService = requireNonNull(savedApplicationDataService);
-        this.savedApplicationDataService.addPersonenAngabenListener(this);
+        this.applicationDataService = requireNonNull(applicationDataService);
+        this.applicationDataService.addPersonenAngabenListener(this);
         this.forceValidPersonenAngaben = forceValidPersonenAngaben;
         createContentPane();
-        setPersonenAngaben(savedApplicationDataService.getSavedApplicationData().getPersonenAngaben());
+        setPersonenAngaben(applicationDataService.getPersonenAngaben());
         setCloseWindowWithEscape(true);
     }
 
@@ -195,7 +195,7 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
 
     @Override
     public void close() {
-        savedApplicationDataService.removePersonenAngabenListener(this);
+        applicationDataService.removePersonenAngabenListener(this);
         super.close();
 
     }

@@ -88,7 +88,7 @@ public class SportBookingApplicationTest {
     private PersonenAngaben readPersonenAngaben() {
         SavedApplicationDataService savedApplicationDataService = applicationContext.getBean(
                 SavedApplicationDataService.class);
-        return savedApplicationDataService.getSavedApplicationData().getPersonenAngaben();
+        return savedApplicationDataService.getPersonenAngaben();
     }
 
 

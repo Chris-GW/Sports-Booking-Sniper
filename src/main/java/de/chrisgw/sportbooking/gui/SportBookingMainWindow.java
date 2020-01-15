@@ -2,12 +2,16 @@ package de.chrisgw.sportbooking.gui;
 
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.menu.Menu;
+import com.googlecode.lanterna.gui2.menu.MenuBar;
+import com.googlecode.lanterna.gui2.menu.MenuItem;
 import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.service.SavedApplicationDataService;
 import de.chrisgw.sportbooking.service.SportBookingService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import static com.googlecode.lanterna.gui2.Borders.doubleLine;
 import static com.googlecode.lanterna.gui2.Direction.HORIZONTAL;
@@ -15,13 +19,14 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.END;
 import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 import static com.googlecode.lanterna.gui2.GridLayout.createLayoutData;
 import static de.chrisgw.sportbooking.SportBookingApplicationTest.*;
+import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
 @Slf4j
 public class SportBookingMainWindow extends BasicWindow {
 
     private final SportBookingService sportBookingService;
-    private final SavedApplicationDataService savedApplicationDataService;
+    private final SavedApplicationDataService applicationDataService;
 
     private PendingSportBuchungenPanel pendingSportBuchungenPanel;
     private FinishedSportBuchungenPanel finishedSportBookingPanel;
@@ -30,18 +35,72 @@ public class SportBookingMainWindow extends BasicWindow {
 
 
     public SportBookingMainWindow(SportBookingService sportBookingService,
-            SavedApplicationDataService savedApplicationDataService) {
+            SavedApplicationDataService applicationDataService) {
         super("Buchungsbot - RWTH Hochschulsport");
         setHints(Arrays.asList(Hint.FULL_SCREEN, Hint.NO_DECORATIONS, Hint.NO_POST_RENDERING));
         this.sportBookingService = sportBookingService;
-        this.savedApplicationDataService = savedApplicationDataService;
+        this.applicationDataService = applicationDataService;
 
         Panel contentPanel = new Panel(new BorderLayout());
-        contentPanel.addComponent(createButtonTopPanel(savedApplicationDataService), Location.TOP);
-        contentPanel.addComponent(createCenterPanel(savedApplicationDataService), Location.CENTER);
-        contentPanel.addComponent(createButtonBottomPanel(savedApplicationDataService), Location.BOTTOM);
+        contentPanel.addComponent(createTopMenuBar(), Location.TOP);
+        contentPanel.addComponent(createCenterPanel(applicationDataService), Location.CENTER);
+        contentPanel.addComponent(createButtonBottomPanel(applicationDataService), Location.BOTTOM);
         setComponent(contentPanel);
     }
+
+
+    private MenuBar createTopMenuBar() {
+        MenuBar menuBar = new MenuBar();
+        menuBar.add(createSportBuchungMenu());
+        menuBar.add(createPersonenAngabenMenu()).add(createLanguageMenu());
+        return menuBar;
+    }
+
+    private Menu createSportBuchungMenu() {
+        Menu menu = new Menu("SportBuchung");
+        menu.add(new MenuItem("new SportBuchung",
+                () -> new PersonenAngabenWindow(this.applicationDataService).showDialog(getTextGUI())));
+        return menu;
+    }
+
+    private Menu createPersonenAngabenMenu() {
+        Menu personenAngabenMenu = new Menu("Personenangaben") {
+
+            @Override
+            public String getLabel() {
+                PersonenAngaben personenAngaben = applicationDataService.getPersonenAngaben();
+                return personenAngaben.getName();
+            }
+        };
+
+        personenAngabenMenu.add(new MenuItem("edit PersonenAngaben", () -> {
+            new PersonenAngabenWindow(applicationDataService).showDialog(getTextGUI());
+        }));
+        return personenAngabenMenu;
+    }
+
+    private Menu createLanguageMenu() {
+        Menu languageMenu = new Menu("Language / Sprache") {
+
+            @Override
+            public String getLabel() {
+                return formatLocale(Locale.getDefault());
+            }
+
+        };
+        languageMenu.add(createLanguageMenuItem(Locale.ENGLISH));
+        languageMenu.add(createLanguageMenuItem(Locale.GERMANY));
+        return languageMenu;
+    }
+
+    private MenuItem createLanguageMenuItem(Locale language) {
+        return new MenuItem(formatLocale(language), () -> applicationDataService.setLanguage(language));
+    }
+
+    private static String formatLocale(Locale locale) {
+        return String.format("%s (%s)", locale.getDisplayLanguage(), upperCase(locale.getLanguage()));
+    }
+
 
     private Panel createCenterPanel(SavedApplicationDataService savedApplicationDataService) {
         Panel centerPanel = new Panel(new GridLayout(1));
@@ -78,7 +137,7 @@ public class SportBookingMainWindow extends BasicWindow {
                 .findAny()
                 .orElseThrow(RuntimeException::new);
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob(sportTermin, createPersonenAngaben());
-        savedApplicationDataService.addSportBuchungsJob(sportBuchungsJob);
+        applicationDataService.addSportBuchungsJob(sportBuchungsJob);
     }
 
     private void addNewSportBuchungsBestaetigung() {
@@ -90,14 +149,14 @@ public class SportBookingMainWindow extends BasicWindow {
                 .findAny()
                 .orElseThrow(RuntimeException::new);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = createSportBuchungsBestaetigung(sportTermin);
-        savedApplicationDataService.addFinishedSportBuchung(sportBuchungsBestaetigung);
+        applicationDataService.addFinishedSportBuchung(sportBuchungsBestaetigung);
     }
 
 
     private void showPersonenAngabenModal() {
-        PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(savedApplicationDataService);
+        PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(applicationDataService);
         getTextGUI().addWindowAndWait(personenAngabenWindow);
-        personenAngabenWindow.getPersonenAngaben().ifPresent(savedApplicationDataService::updatePersonenAngaben);
+        personenAngabenWindow.getPersonenAngaben().ifPresent(applicationDataService::updatePersonenAngaben);
     }
 
 

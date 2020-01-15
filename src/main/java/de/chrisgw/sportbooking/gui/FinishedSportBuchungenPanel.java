@@ -24,21 +24,19 @@ import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
 public class FinishedSportBuchungenPanel extends Panel implements FinishedSportBuchungenListener {
 
-    private final SavedApplicationDataService savedApplicationDataService;
+    private final SavedApplicationDataService applicationDataService;
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenPanel(SavedApplicationDataService savedApplicationDataService) {
+    public FinishedSportBuchungenPanel(SavedApplicationDataService applicationDataService) {
         super(new LinearLayout(VERTICAL));
-        this.savedApplicationDataService = savedApplicationDataService;
+        this.applicationDataService = applicationDataService;
 
         finishedJobsTabel = new Table<>("#", "Sportangebot", "Details");
         finishedJobsTabel.setVisibleRows(4);
         finishedJobsTabel.setVisibleColumns(3);
         finishedJobsTabel.setSelectAction(this::onSelectFinishedJob);
-        savedApplicationDataService.getSavedApplicationData()
-                .getFinishedBuchungsJobs()
-                .forEach(this::addFinishedBuchungsJob);
+        getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
         addComponent(finishedJobsTabel, createLayoutData(Fill));
     }
@@ -67,13 +65,13 @@ public class FinishedSportBuchungenPanel extends Panel implements FinishedSportB
     @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
-        savedApplicationDataService.addFinishedSportBuchungenListener(this);
+        applicationDataService.addFinishedSportBuchungenListener(this);
     }
 
     @Override
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
-        savedApplicationDataService.removeFinishedSportBuchungenListener(this);
+        applicationDataService.removeFinishedSportBuchungenListener(this);
     }
 
     @Override
@@ -105,8 +103,8 @@ public class FinishedSportBuchungenPanel extends Panel implements FinishedSportB
     }
 
 
-    public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
-        return savedApplicationDataService.getSavedApplicationData().getFinishedBuchungsJobs();
+    private List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
+        return applicationDataService.getFinishedBuchungsJobs();
     }
 
 }

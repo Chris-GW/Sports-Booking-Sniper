@@ -3,6 +3,7 @@ package de.chrisgw.sportbooking.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.chrisgw.sportbooking.gui.SavedApplicationData;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
+import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -29,20 +31,37 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     private final ObjectMapper objectMapper;
 
     private final ReentrantLock fileLock = new ReentrantLock();
-    private SavedApplicationData savedApplicationData;
+    private SavedApplicationData applicationData;
 
     private final List<PersonenAngabenListener> personenAngabenListeners = new ArrayList<>();
     private final List<SportBuchungJobListener> pendingSportBuchungJobListeners = new ArrayList<>();
     private final List<FinishedSportBuchungenListener> finishedSportBuchungenListeners = new ArrayList<>();
 
 
-    public SavedApplicationData getSavedApplicationData() {
-        return savedApplicationData;
+    public LocalDateTime getSaveTime() {
+        return applicationData.getSaveTime();
     }
 
 
+    public Locale getLanguage() {
+        return applicationData.getLanguage();
+    }
+
+    public void setLanguage(Locale language) {
+        applicationData.setLanguage(language);
+        Locale.setDefault(language);
+        saveApplicationData();
+    }
+
+
+    // PersonenAngaben
+
+    public PersonenAngaben getPersonenAngaben() {
+        return applicationData.getPersonenAngaben();
+    }
+
     public void updatePersonenAngaben(PersonenAngaben personenAngaben) {
-        savedApplicationData.setPersonenAngaben(personenAngaben);
+        applicationData.setPersonenAngaben(personenAngaben);
         saveApplicationData();
         for (PersonenAngabenListener personenAngabenListener : personenAngabenListeners) {
             personenAngabenListener.onChangedPersonenAngaben(personenAngaben);
@@ -58,10 +77,21 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
 
+    // watched SportAngebote
+
+    public List<SportAngebot> getWatchedSportAngebote() {
+        return applicationData.getWatchedSportAngebote();
+    }
+
+
     // pending SportBuchungsJob
 
+    public List<SportBuchungsJob> getPendingBuchungsJobs() {
+        return applicationData.getPendingBuchungsJobs();
+    }
+
     public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        savedApplicationData.getPendingBuchungsJobs().add(sportBuchungsJob);
+        applicationData.getPendingBuchungsJobs().add(sportBuchungsJob);
         saveApplicationData();
         for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
             sportBuchungJobListener.onAddSportBuchungsJob(sportBuchungsJob);
@@ -69,9 +99,9 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
     public void refreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        int index = savedApplicationData.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
+        int index = applicationData.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
         if (index >= 0) {
-            savedApplicationData.getPendingBuchungsJobs().set(index, sportBuchungsJob);
+            applicationData.getPendingBuchungsJobs().set(index, sportBuchungsJob);
             saveApplicationData();
             for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
                 sportBuchungJobListener.onRefreshSportBuchungsJob(sportBuchungsJob);
@@ -90,8 +120,12 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
 
     // finished SportBuchung
 
+    public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
+        return applicationData.getFinishedBuchungsJobs();
+    }
+
     public void addFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        savedApplicationData.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
+        applicationData.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
         saveApplicationData();
         for (FinishedSportBuchungenListener finishedSportBuchungenListener : finishedSportBuchungenListeners) {
             finishedSportBuchungenListener.onAddFinishedSportBuchung(sportBuchungsBestaetigung);
@@ -107,8 +141,14 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
 
+    // firstVisite
+
+    public boolean isFirstVisite() {
+        return applicationData.isFirstVisite();
+    }
+
     public void setFirstVisite(boolean firstVisite) {
-        savedApplicationData.setFirstVisite(firstVisite);
+        applicationData.setFirstVisite(firstVisite);
         saveApplicationData();
     }
 
@@ -133,10 +173,10 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     public void saveApplicationData() {
         try {
             fileLock.lock();
-            savedApplicationData.setSaveTime(LocalDateTime.now());
+            applicationData.setSaveTime(LocalDateTime.now());
             File saveFile = savedApplicationDataResource.getFile();
-            log.trace("write personenAngaben {} to {}", savedApplicationData, saveFile);
-            objectMapper.writeValue(saveFile, savedApplicationData);
+            log.trace("write personenAngaben {} to {}", applicationData, saveFile);
+            objectMapper.writeValue(saveFile, applicationData);
         } catch (Exception e) {
             throw new RuntimeException("Could not write PersonenAngaben to file " + savedApplicationDataResource, e);
         } finally {
@@ -145,26 +185,23 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
 
-
     public void clearAll() {
-        savedApplicationData.getPendingBuchungsJobs().clear();
-        savedApplicationData.getFinishedBuchungsJobs().clear();
+        applicationData.getPendingBuchungsJobs().clear();
+        applicationData.getFinishedBuchungsJobs().clear();
         saveApplicationData();
     }
 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        savedApplicationData = loadApplicationData();
+        applicationData = loadApplicationData();
+        Locale.setDefault(applicationData.getLanguage());
     }
 
     @Override
     public void destroy() throws Exception {
         saveApplicationData();
     }
-
-
-
 
 
     public interface PersonenAngabenListener {
