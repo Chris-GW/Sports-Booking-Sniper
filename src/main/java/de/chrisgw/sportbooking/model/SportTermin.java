@@ -2,6 +2,7 @@ package de.chrisgw.sportbooking.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -45,17 +46,19 @@ public class SportTermin implements Comparable<SportTermin> {
     }
 
     public SportTerminStatus getStatus() {
-        if (LocalDateTime.now().isAfter(this.getStartZeit())) {
+        if (getStartZeit() != null && LocalDateTime.now().isAfter(getStartZeit())) {
             return SportTerminStatus.ABGELAUFEN;
         }
         return status;
     }
 
 
+    @JsonIgnore
     public LocalDate getTerminDate() {
         return startZeit.toLocalDate();
     }
 
+    @JsonIgnore
     public Duration getDuration() {
         return Duration.between(startZeit, endZeit);
     }

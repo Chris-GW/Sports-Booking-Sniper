@@ -1,6 +1,7 @@
 package de.chrisgw.sportbooking.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -55,6 +56,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
     }
 
 
+    @JsonIgnore
     public List<SportTermin> getUpcomingSportTermine() {
         return sportTermine.stream()
                 .filter(sportTermin -> sportTermin.getStartZeit().isAfter(LocalDateTime.now()))

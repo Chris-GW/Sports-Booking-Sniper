@@ -7,10 +7,10 @@ import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.service.SavedApplicationDataService;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService.FinishedSportBuchungenListener;
+import de.chrisgw.sportbooking.service.SavedApplicationDataService.SportBuchungJobListener;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,42 +22,40 @@ import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
 
-public class FinishedSportBuchungenPanel extends Panel implements FinishedSportBuchungenListener {
+public class PendingSportBuchungenPanel extends Panel implements SportBuchungJobListener {
 
     private final SavedApplicationDataService savedApplicationDataService;
-    private final Table<String> finishedJobsTabel;
+    private final Table<String> pendingJobsTabel;
 
 
-    public FinishedSportBuchungenPanel(SavedApplicationDataService savedApplicationDataService) {
+    public PendingSportBuchungenPanel(SavedApplicationDataService savedApplicationDataService) {
         super(new LinearLayout(VERTICAL));
         this.savedApplicationDataService = savedApplicationDataService;
 
-        finishedJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        finishedJobsTabel.setVisibleRows(4);
-        finishedJobsTabel.setVisibleColumns(3);
-        finishedJobsTabel.setSelectAction(this::onSelectFinishedJob);
-        savedApplicationDataService.getSavedApplicationData()
-                .getFinishedBuchungsJobs()
-                .forEach(this::addFinishedBuchungsJob);
+        pendingJobsTabel = new Table<>("#", "Sportangebot", "Details");
+        pendingJobsTabel.setVisibleRows(4);
+        pendingJobsTabel.setVisibleColumns(3);
+        pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
+        savedApplicationDataService.getSavedApplicationData().getPendingBuchungsJobs().forEach(this::addPendingJob);
 
-        addComponent(finishedJobsTabel, createLayoutData(Fill));
+        addComponent(pendingJobsTabel, createLayoutData(Fill));
     }
 
-    private void onSelectFinishedJob() {
-        int selectedRow = finishedJobsTabel.getSelectedRow();
+    private void onSelectPendingJob() {
+        int selectedRow = pendingJobsTabel.getSelectedRow();
         if (selectedRow < 0) {
             return;
         }
-        SportBuchungsBestaetigung selectedBestaetigung = getFinishedBuchungsJobs().get(selectedRow);
+        SportBuchungsJob sportBuchungsJob = getPendingJobs().get(selectedRow);
 
         new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
                 .setDescription("Aktion bitte auswählen")
                 .setCanCancel(true)
                 .addAction("Details", () -> {
-                    System.out.println("Details: " + selectedBestaetigung);
+                    System.out.println("Details: " + sportBuchungsJob);
                 })
                 .addAction("Löschen", () -> {
-                    System.out.println("Löschen: " + selectedBestaetigung);
+                    System.out.println("Löschen: " + sportBuchungsJob);
                 })
                 .build()
                 .showDialog((WindowBasedTextGUI) getTextGUI());
@@ -65,36 +63,42 @@ public class FinishedSportBuchungenPanel extends Panel implements FinishedSportB
 
 
     @Override
+    public void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        addPendingJob(sportBuchungsJob);
+    }
+
+    @Override
+    public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        refreshPendingJob(sportBuchungsJob);
+    }
+
+
+    @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
-        savedApplicationDataService.addFinishedSportBuchungenListener(this);
+        savedApplicationDataService.addSportBuchungJobListener(this);
     }
 
     @Override
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
-        savedApplicationDataService.removeFinishedSportBuchungenListener(this);
-    }
-
-    @Override
-    public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        addFinishedBuchungsJob(sportBuchungsBestaetigung);
+        savedApplicationDataService.removeSportBuchungJobListener(this);
     }
 
 
-    private void addFinishedBuchungsJob(SportBuchungsBestaetigung finishedBuchungsJob) {
+    private void addPendingJob(SportBuchungsJob sportBuchungsJob) {
         List<String> rowValues = new ArrayList<>();
-        SportTermin sportTermin = finishedBuchungsJob.getSportTermin();
+        SportTermin sportTermin = sportBuchungsJob.getSportTermin();
         SportAngebot sportAngebot = sportTermin.getSportAngebot();
         String kursnummer = sportAngebot.getKursnummer();
         String sportArtName = sportAngebot.getSportArt().getName();
-        LocalDateTime timestamp = finishedBuchungsJob.getTimestamp();
+        LocalDateTime timestamp = sportBuchungsJob.getTimestamp();
         String formatBuchungsTimestamp = DateTimeFormatter.ofPattern("dd.MM. HH:mm").format(timestamp);
 
-        rowValues.add(String.valueOf(finishedBuchungsJob.getJobId()));
+        rowValues.add(String.valueOf(sportBuchungsJob.getJobId()));
         rowValues.add(String.format("%s - %s%n%s ", kursnummer, sportArtName, formatSportTermin(sportTermin)));
         rowValues.add(sportAngebot.getDetails() + "\nGebucht am " + formatBuchungsTimestamp + " ");
-        finishedJobsTabel.getTableModel().addRow(rowValues);
+        pendingJobsTabel.getTableModel().addRow(rowValues);
     }
 
 
@@ -105,8 +109,14 @@ public class FinishedSportBuchungenPanel extends Panel implements FinishedSportB
     }
 
 
-    public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
-        return savedApplicationDataService.getSavedApplicationData().getFinishedBuchungsJobs();
+    private void refreshPendingJob(SportBuchungsJob sportBuchungsJob) {
+
     }
+
+
+    public List<SportBuchungsJob> getPendingJobs() {
+        return savedApplicationDataService.getSavedApplicationData().getPendingBuchungsJobs();
+    }
+
 
 }

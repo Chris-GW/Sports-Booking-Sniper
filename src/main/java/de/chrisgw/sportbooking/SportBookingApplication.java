@@ -10,7 +10,10 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import de.chrisgw.sportbooking.gui.SportBookingGui;
+import de.chrisgw.sportbooking.gui.PersonenAngabenWindow;
+import de.chrisgw.sportbooking.gui.SportBookingMainWindow;
+import de.chrisgw.sportbooking.gui.WelcomeDialog;
+import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,13 +56,7 @@ public class SportBookingApplication {
     }
 
 
-    // SportBookingGui
-
-    @Bean
-    public SportBookingGui sportBookingGui() throws IOException {
-        return new SportBookingGui(sportBookingService(), savedApplicationDataService(), guiScreen(),
-                windowBasedTextGUI());
-    }
+    // Lanterna GUI
 
     @Bean
     public WindowBasedTextGUI windowBasedTextGUI() throws IOException {
@@ -92,15 +89,36 @@ public class SportBookingApplication {
     // MAIN
 
     public static void main(String[] args) {
-        log.trace("Start SportBookingApplication ...");
+        System.out.println("Start SportBookingApplication ...");
         try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
                 SportBookingApplication.class)) {
             Locale.setDefault(Locale.GERMANY);
-            SportBookingGui sportbookingapplication = applicationContext.getBean(SportBookingGui.class);
-            sportbookingapplication.startGui();
+            WindowBasedTextGUI textGUI = applicationContext.getBean(WindowBasedTextGUI.class);
+            SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
+            SavedApplicationDataService savedApplicationDataService = applicationContext.getBean(
+                    SavedApplicationDataService.class);
+
+            textGUI.getScreen().startScreen();
+            showFirstVisiteDialog(textGUI, savedApplicationDataService);
+            textGUI.addWindowAndWait(new SportBookingMainWindow(sportBookingService, savedApplicationDataService));
+            textGUI.getScreen().stopScreen();
+            System.out.println("finish SportBookingApplication");
         } catch (Exception e) {
-            log.error("Exception happens", e);
+            log.error("Unexpected Exception", e);
             e.printStackTrace();
+        }
+    }
+
+    private static void showFirstVisiteDialog(WindowBasedTextGUI textGUI,
+            SavedApplicationDataService savedApplicationDataService) {
+        if (savedApplicationDataService.getSavedApplicationData().isFirstVisite()) {
+            new WelcomeDialog().showDialog(textGUI);
+
+            PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(savedApplicationDataService, true);
+            textGUI.addWindowAndWait(personenAngabenWindow);
+            PersonenAngaben personenAngaben = personenAngabenWindow.getPersonenAngaben().orElseThrow();
+            savedApplicationDataService.updatePersonenAngaben(personenAngaben);
+            savedApplicationDataService.setFirstVisite(false);
         }
     }
 

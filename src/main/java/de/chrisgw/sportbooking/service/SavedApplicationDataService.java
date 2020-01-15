@@ -3,6 +3,8 @@ package de.chrisgw.sportbooking.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.chrisgw.sportbooking.gui.SavedApplicationData;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
+import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -30,6 +32,8 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     private SavedApplicationData savedApplicationData;
 
     private final List<PersonenAngabenListener> personenAngabenListeners = new ArrayList<>();
+    private final List<SportBuchungJobListener> pendingSportBuchungJobListeners = new ArrayList<>();
+    private final List<FinishedSportBuchungenListener> finishedSportBuchungenListeners = new ArrayList<>();
 
 
     public SavedApplicationData getSavedApplicationData() {
@@ -41,7 +45,7 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
         savedApplicationData.setPersonenAngaben(personenAngaben);
         saveApplicationData();
         for (PersonenAngabenListener personenAngabenListener : personenAngabenListeners) {
-            personenAngabenListener.onChangedPersonenAngaben(savedApplicationData, personenAngaben);
+            personenAngabenListener.onChangedPersonenAngaben(personenAngaben);
         }
     }
 
@@ -51,6 +55,61 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
 
     public void removePersonenAngabenListener(PersonenAngabenListener personenAngabenListener) {
         personenAngabenListeners.remove(personenAngabenListener);
+    }
+
+
+    // pending SportBuchungsJob
+
+    public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        savedApplicationData.getPendingBuchungsJobs().add(sportBuchungsJob);
+        saveApplicationData();
+        for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
+            sportBuchungJobListener.onAddSportBuchungsJob(sportBuchungsJob);
+        }
+    }
+
+    public void refreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        int index = savedApplicationData.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
+        if (index >= 0) {
+            savedApplicationData.getPendingBuchungsJobs().set(index, sportBuchungsJob);
+            saveApplicationData();
+            for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
+                sportBuchungJobListener.onRefreshSportBuchungsJob(sportBuchungsJob);
+            }
+        }
+    }
+
+    public void addSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
+        pendingSportBuchungJobListeners.add(sportBuchungJobListener);
+    }
+
+    public void removeSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
+        pendingSportBuchungJobListeners.remove(sportBuchungJobListener);
+    }
+
+
+    // finished SportBuchung
+
+    public void addFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
+        savedApplicationData.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
+        saveApplicationData();
+        for (FinishedSportBuchungenListener finishedSportBuchungenListener : finishedSportBuchungenListeners) {
+            finishedSportBuchungenListener.onAddFinishedSportBuchung(sportBuchungsBestaetigung);
+        }
+    }
+
+    public void addFinishedSportBuchungenListener(FinishedSportBuchungenListener finishedSportBuchungenListener) {
+        finishedSportBuchungenListeners.add(finishedSportBuchungenListener);
+    }
+
+    public void removeFinishedSportBuchungenListener(FinishedSportBuchungenListener finishedSportBuchungenListener) {
+        finishedSportBuchungenListeners.remove(finishedSportBuchungenListener);
+    }
+
+
+    public void setFirstVisite(boolean firstVisite) {
+        savedApplicationData.setFirstVisite(firstVisite);
+        saveApplicationData();
     }
 
 
@@ -86,6 +145,14 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
 
+
+    public void clearAll() {
+        savedApplicationData.getPendingBuchungsJobs().clear();
+        savedApplicationData.getFinishedBuchungsJobs().clear();
+        saveApplicationData();
+    }
+
+
     @Override
     public void afterPropertiesSet() throws Exception {
         savedApplicationData = loadApplicationData();
@@ -97,10 +164,28 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
 
+
+
+
     public interface PersonenAngabenListener {
 
-        void onChangedPersonenAngaben(SavedApplicationData savedApplicationData,
-                PersonenAngaben changedPersonenAngaben);
+        void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben);
+    }
+
+
+    public interface SportBuchungJobListener {
+
+        void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
+
+        void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
+
+    }
+
+
+    public interface FinishedSportBuchungenListener {
+
+        void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung);
+
     }
 
 }

@@ -13,6 +13,7 @@ import de.chrisgw.sportbooking.model.PersonAngabenValidator;
 import de.chrisgw.sportbooking.model.PersonKategorie;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
+import de.chrisgw.sportbooking.service.SavedApplicationDataService;
 import de.chrisgw.sportbooking.service.SavedApplicationDataService.PersonenAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
@@ -33,26 +34,32 @@ import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newComboBoxField;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newTextBoxField;
+import static java.util.Objects.requireNonNull;
 
 
 @Slf4j
 public class PersonenAngabenWindow extends DialogWindow implements WindowListener, PersonenAngabenListener {
 
 
+    private final SavedApplicationDataService savedApplicationDataService;
     private final boolean forceValidPersonenAngaben;
     private PersonenAngaben personenAngaben;
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenWindow(PersonenAngaben personenAngaben) {
-        this(personenAngaben, false);
+    public PersonenAngabenWindow(SavedApplicationDataService savedApplicationDataService) {
+        this(savedApplicationDataService, false);
     }
 
-    public PersonenAngabenWindow(PersonenAngaben personenAngaben, boolean forceValidPersonenAngaben) {
+    public PersonenAngabenWindow(SavedApplicationDataService savedApplicationDataService,
+            boolean forceValidPersonenAngaben) {
         super("Personenangaben");
+        this.savedApplicationDataService = requireNonNull(savedApplicationDataService);
+        this.savedApplicationDataService.addPersonenAngabenListener(this);
         this.forceValidPersonenAngaben = forceValidPersonenAngaben;
         createContentPane();
-        bindPersonenAngaben(personenAngaben);
+        setPersonenAngaben(savedApplicationDataService.getSavedApplicationData().getPersonenAngaben());
+        setCloseWindowWithEscape(true);
     }
 
 
@@ -148,7 +155,7 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
 
 
     private void resetPersonenAngaben() {
-        bindPersonenAngaben(new PersonenAngaben());
+        setPersonenAngaben(new PersonenAngaben());
     }
 
 
@@ -169,7 +176,7 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
     }
 
 
-    private void bindPersonenAngaben(PersonenAngaben personenAngaben) {
+    public void setPersonenAngaben(PersonenAngaben personenAngaben) {
         BeanWrapper beanWrapper = new BeanWrapperImpl(personenAngaben);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
@@ -185,6 +192,13 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
         return Optional.ofNullable(personenAngaben);
     }
 
+
+    @Override
+    public void close() {
+        savedApplicationDataService.removePersonenAngabenListener(this);
+        super.close();
+
+    }
 
     @Override
     public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
@@ -218,9 +232,8 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
     }
 
     @Override
-    public void onChangedPersonenAngaben(SavedApplicationData savedApplicationData,
-            PersonenAngaben changedPersonenAngaben) {
-        bindPersonenAngaben(changedPersonenAngaben);
+    public void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben) {
+        setPersonenAngaben(changedPersonenAngaben);
     }
 
 }
