@@ -14,7 +14,7 @@ import java.util.Locale;
 
 
 @Data
-public class SavedApplicationData {
+public class SavedApplicationState {
 
     private boolean firstVisite = true;
     private LocalDateTime saveTime = LocalDateTime.now();

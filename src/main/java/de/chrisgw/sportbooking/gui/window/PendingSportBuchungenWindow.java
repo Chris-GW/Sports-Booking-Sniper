@@ -1,45 +1,55 @@
-package de.chrisgw.sportbooking.gui;
+package de.chrisgw.sportbooking.gui.window;
 
-import com.googlecode.lanterna.gui2.Container;
-import com.googlecode.lanterna.gui2.LinearLayout;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService.SportBuchungJobListener;
+import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.service.ApplicationStateDao.SportBuchungJobListener;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.lanterna.gui2.Direction.VERTICAL;
 import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
 
-public class PendingSportBuchungenPanel extends Panel implements SportBuchungJobListener {
+public class PendingSportBuchungenWindow extends BasicWindow implements SportBuchungJobListener {
 
-    private final SavedApplicationDataService savedApplicationDataService;
+    private final ApplicationStateDao applicationStateDao;
     private final Table<String> pendingJobsTabel;
 
 
-    public PendingSportBuchungenPanel(SavedApplicationDataService savedApplicationDataService) {
-        super(new LinearLayout(VERTICAL));
-        this.savedApplicationDataService = savedApplicationDataService;
+    public PendingSportBuchungenWindow(ApplicationStateDao applicationStateDao) {
+        super("Ausstehende Sportbuchungen");
+        this.applicationStateDao = applicationStateDao;
+        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
 
         pendingJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        pendingJobsTabel.setVisibleRows(4);
+        pendingJobsTabel.setVisibleRows(6);
         pendingJobsTabel.setVisibleColumns(3);
         pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
         getPendingBuchungsJobs().forEach(this::addPendingJob);
-
-        addComponent(pendingJobsTabel, createLayoutData(Fill));
+        contentPanel.addComponent(pendingJobsTabel, createLayoutData(Fill));
+        setComponent(contentPanel);
     }
+
+
+
+
+
+    @Override
+    public void draw(TextGUIGraphics graphics) {
+        super.draw(graphics);
+        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
+                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    }
+
 
     private void onSelectPendingJob() {
         int selectedRow = pendingJobsTabel.getSelectedRow();
@@ -74,15 +84,13 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
 
 
     @Override
-    public synchronized void onAdded(Container container) {
-        super.onAdded(container);
-        savedApplicationDataService.addSportBuchungJobListener(this);
-    }
-
-    @Override
-    public synchronized void onRemoved(Container container) {
-        super.onRemoved(container);
-        savedApplicationDataService.removeSportBuchungJobListener(this);
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (visible) {
+            applicationStateDao.addSportBuchungJobListener(this);
+        } else {
+            applicationStateDao.removeSportBuchungJobListener(this);
+        }
     }
 
 
@@ -115,7 +123,7 @@ public class PendingSportBuchungenPanel extends Panel implements SportBuchungJob
 
 
     public List<SportBuchungsJob> getPendingBuchungsJobs() {
-        return savedApplicationDataService.getPendingBuchungsJobs();
+        return applicationStateDao.getPendingBuchungsJobs();
     }
 
 

@@ -4,7 +4,7 @@ import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
 import de.chrisgw.sportbooking.model.SportBuchungStrategieImpl.FixedPeriodTimeBuchungStrategie;
 import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService;
+import de.chrisgw.sportbooking.service.ApplicationStateDao;
 import de.chrisgw.sportbooking.service.SportBookingService;
 import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -86,9 +86,9 @@ public class SportBookingApplicationTest {
 
 
     private PersonenAngaben readPersonenAngaben() {
-        SavedApplicationDataService savedApplicationDataService = applicationContext.getBean(
-                SavedApplicationDataService.class);
-        return savedApplicationDataService.getPersonenAngaben();
+        ApplicationStateDao applicationStateDao = applicationContext.getBean(
+                ApplicationStateDao.class);
+        return applicationStateDao.getPersonenAngaben();
     }
 
 

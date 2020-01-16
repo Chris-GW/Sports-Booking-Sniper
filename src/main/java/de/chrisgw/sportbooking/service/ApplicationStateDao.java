@@ -1,7 +1,7 @@
 package de.chrisgw.sportbooking.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.chrisgw.sportbooking.gui.SavedApplicationData;
+import de.chrisgw.sportbooking.gui.SavedApplicationState;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
@@ -25,13 +25,13 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SavedApplicationDataService implements InitializingBean, DisposableBean {
+public class ApplicationStateDao implements InitializingBean, DisposableBean {
 
     private final Resource savedApplicationDataResource;
     private final ObjectMapper objectMapper;
 
     private final ReentrantLock fileLock = new ReentrantLock();
-    private SavedApplicationData applicationData;
+    private SavedApplicationState applicationState;
 
     private final List<PersonenAngabenListener> personenAngabenListeners = new ArrayList<>();
     private final List<SportBuchungJobListener> pendingSportBuchungJobListeners = new ArrayList<>();
@@ -39,16 +39,16 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
 
 
     public LocalDateTime getSaveTime() {
-        return applicationData.getSaveTime();
+        return applicationState.getSaveTime();
     }
 
 
     public Locale getLanguage() {
-        return applicationData.getLanguage();
+        return applicationState.getLanguage();
     }
 
     public void setLanguage(Locale language) {
-        applicationData.setLanguage(language);
+        applicationState.setLanguage(language);
         Locale.setDefault(language);
         saveApplicationData();
     }
@@ -57,11 +57,11 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     // PersonenAngaben
 
     public PersonenAngaben getPersonenAngaben() {
-        return applicationData.getPersonenAngaben();
+        return applicationState.getPersonenAngaben();
     }
 
     public void updatePersonenAngaben(PersonenAngaben personenAngaben) {
-        applicationData.setPersonenAngaben(personenAngaben);
+        applicationState.setPersonenAngaben(personenAngaben);
         saveApplicationData();
         for (PersonenAngabenListener personenAngabenListener : personenAngabenListeners) {
             personenAngabenListener.onChangedPersonenAngaben(personenAngaben);
@@ -80,18 +80,18 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     // watched SportAngebote
 
     public List<SportAngebot> getWatchedSportAngebote() {
-        return applicationData.getWatchedSportAngebote();
+        return applicationState.getWatchedSportAngebote();
     }
 
 
     // pending SportBuchungsJob
 
     public List<SportBuchungsJob> getPendingBuchungsJobs() {
-        return applicationData.getPendingBuchungsJobs();
+        return applicationState.getPendingBuchungsJobs();
     }
 
     public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        applicationData.getPendingBuchungsJobs().add(sportBuchungsJob);
+        applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
         saveApplicationData();
         for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
             sportBuchungJobListener.onAddSportBuchungsJob(sportBuchungsJob);
@@ -99,9 +99,9 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     }
 
     public void refreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        int index = applicationData.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
+        int index = applicationState.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
         if (index >= 0) {
-            applicationData.getPendingBuchungsJobs().set(index, sportBuchungsJob);
+            applicationState.getPendingBuchungsJobs().set(index, sportBuchungsJob);
             saveApplicationData();
             for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
                 sportBuchungJobListener.onRefreshSportBuchungsJob(sportBuchungsJob);
@@ -121,11 +121,11 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     // finished SportBuchung
 
     public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
-        return applicationData.getFinishedBuchungsJobs();
+        return applicationState.getFinishedBuchungsJobs();
     }
 
     public void addFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        applicationData.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
+        applicationState.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
         saveApplicationData();
         for (FinishedSportBuchungenListener finishedSportBuchungenListener : finishedSportBuchungenListeners) {
             finishedSportBuchungenListener.onAddFinishedSportBuchung(sportBuchungsBestaetigung);
@@ -144,25 +144,25 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     // firstVisite
 
     public boolean isFirstVisite() {
-        return applicationData.isFirstVisite();
+        return applicationState.isFirstVisite();
     }
 
     public void setFirstVisite(boolean firstVisite) {
-        applicationData.setFirstVisite(firstVisite);
+        applicationState.setFirstVisite(firstVisite);
         saveApplicationData();
     }
 
 
-    public SavedApplicationData loadApplicationData() {
+    public SavedApplicationState loadApplicationData() {
         try {
             fileLock.lock();
             if (!savedApplicationDataResource.exists()) {
-                return new SavedApplicationData();
+                return new SavedApplicationState();
             }
             File saveFile = savedApplicationDataResource.getFile();
-            SavedApplicationData savedApplicationData = objectMapper.readValue(saveFile, SavedApplicationData.class);
-            log.trace("read savedApplicationData {} from {}", savedApplicationData, saveFile);
-            return savedApplicationData;
+            SavedApplicationState savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
+            log.trace("read savedApplicationData {} from {}", savedApplicationState, saveFile);
+            return savedApplicationState;
         } catch (IOException e) {
             throw new RuntimeException("Could not read savedApplicationData from " + savedApplicationDataResource, e);
         } finally {
@@ -173,10 +173,10 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
     public void saveApplicationData() {
         try {
             fileLock.lock();
-            applicationData.setSaveTime(LocalDateTime.now());
+            applicationState.setSaveTime(LocalDateTime.now());
             File saveFile = savedApplicationDataResource.getFile();
-            log.trace("write personenAngaben {} to {}", applicationData, saveFile);
-            objectMapper.writeValue(saveFile, applicationData);
+            log.trace("write personenAngaben {} to {}", applicationState, saveFile);
+            objectMapper.writeValue(saveFile, applicationState);
         } catch (Exception e) {
             throw new RuntimeException("Could not write PersonenAngaben to file " + savedApplicationDataResource, e);
         } finally {
@@ -186,16 +186,16 @@ public class SavedApplicationDataService implements InitializingBean, Disposable
 
 
     public void clearAll() {
-        applicationData.getPendingBuchungsJobs().clear();
-        applicationData.getFinishedBuchungsJobs().clear();
+        applicationState.getPendingBuchungsJobs().clear();
+        applicationState.getFinishedBuchungsJobs().clear();
         saveApplicationData();
     }
 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        applicationData = loadApplicationData();
-        Locale.setDefault(applicationData.getLanguage());
+        applicationState = loadApplicationData();
+        Locale.setDefault(applicationState.getLanguage());
     }
 
     @Override

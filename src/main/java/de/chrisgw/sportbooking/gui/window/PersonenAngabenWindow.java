@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.gui;
+package de.chrisgw.sportbooking.gui.window;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -13,8 +13,8 @@ import de.chrisgw.sportbooking.model.PersonAngabenValidator;
 import de.chrisgw.sportbooking.model.PersonKategorie;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService.PersonenAngabenListener;
+import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.service.ApplicationStateDao.PersonenAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -23,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 
 import java.beans.PropertyDescriptor;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,22 +42,22 @@ import static java.util.Objects.requireNonNull;
 public class PersonenAngabenWindow extends DialogWindow implements WindowListener, PersonenAngabenListener {
 
 
-    private final SavedApplicationDataService applicationDataService;
+    private final ApplicationStateDao applicationDataService;
     private final boolean forceValidPersonenAngaben;
     private PersonenAngaben personenAngaben;
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenWindow(SavedApplicationDataService applicationDataService) {
+    public PersonenAngabenWindow(ApplicationStateDao applicationDataService) {
         this(applicationDataService, false);
     }
 
-    public PersonenAngabenWindow(SavedApplicationDataService applicationDataService,
-            boolean forceValidPersonenAngaben) {
+    public PersonenAngabenWindow(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
         super("Personenangaben");
         this.applicationDataService = requireNonNull(applicationDataService);
         this.applicationDataService.addPersonenAngabenListener(this);
         this.forceValidPersonenAngaben = forceValidPersonenAngaben;
+        setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         createContentPane();
         setPersonenAngaben(applicationDataService.getPersonenAngaben());
         setCloseWindowWithEscape(true);

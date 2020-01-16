@@ -1,45 +1,53 @@
-package de.chrisgw.sportbooking.gui;
+package de.chrisgw.sportbooking.gui.window;
 
-import com.googlecode.lanterna.gui2.Container;
-import com.googlecode.lanterna.gui2.LinearLayout;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportTermin;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService;
-import de.chrisgw.sportbooking.service.SavedApplicationDataService.FinishedSportBuchungenListener;
+import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.service.ApplicationStateDao.FinishedSportBuchungenListener;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.lanterna.gui2.Direction.VERTICAL;
-import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
-import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
 
-public class FinishedSportBuchungenPanel extends Panel implements FinishedSportBuchungenListener {
+public class FinishedSportBuchungenWindow extends BasicWindow implements FinishedSportBuchungenListener {
 
-    private final SavedApplicationDataService applicationDataService;
+    private final ApplicationStateDao applicationDataService;
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenPanel(SavedApplicationDataService applicationDataService) {
-        super(new LinearLayout(VERTICAL));
+    public FinishedSportBuchungenWindow(ApplicationStateDao applicationDataService) {
+        super("Beendete Sportbuchungen");
         this.applicationDataService = applicationDataService;
+        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
 
         finishedJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        finishedJobsTabel.setVisibleRows(4);
+        finishedJobsTabel.setVisibleRows(6);
         finishedJobsTabel.setVisibleColumns(3);
         finishedJobsTabel.setSelectAction(this::onSelectFinishedJob);
         getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
+        contentPanel.addComponent(finishedJobsTabel, GridLayout.createLayoutData(FILL, BEGINNING, true, false));
 
-        addComponent(finishedJobsTabel, createLayoutData(Fill));
+        setComponent(contentPanel);
     }
+
+
+    @Override
+    public void draw(TextGUIGraphics graphics) {
+        super.draw(graphics);
+        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
+                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    }
+
 
     private void onSelectFinishedJob() {
         int selectedRow = finishedJobsTabel.getSelectedRow();
@@ -63,16 +71,15 @@ public class FinishedSportBuchungenPanel extends Panel implements FinishedSportB
 
 
     @Override
-    public synchronized void onAdded(Container container) {
-        super.onAdded(container);
-        applicationDataService.addFinishedSportBuchungenListener(this);
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (visible) {
+            applicationDataService.addFinishedSportBuchungenListener(this);
+        } else {
+            applicationDataService.removeFinishedSportBuchungenListener(this);
+        }
     }
 
-    @Override
-    public synchronized void onRemoved(Container container) {
-        super.onRemoved(container);
-        applicationDataService.removeFinishedSportBuchungenListener(this);
-    }
 
     @Override
     public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {

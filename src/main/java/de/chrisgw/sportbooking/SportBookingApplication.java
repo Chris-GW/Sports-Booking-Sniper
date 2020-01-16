@@ -6,14 +6,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import de.chrisgw.sportbooking.gui.PersonenAngabenWindow;
-import de.chrisgw.sportbooking.gui.SportBookingMainWindow;
-import de.chrisgw.sportbooking.gui.WelcomeDialog;
-import de.chrisgw.sportbooking.model.PersonenAngaben;
+import de.chrisgw.sportbooking.gui.SportBookingGui;
 import de.chrisgw.sportbooking.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,8 +41,8 @@ public class SportBookingApplication {
 
 
     @Bean
-    public SavedApplicationDataService savedApplicationDataService() {
-        return new SavedApplicationDataService(savedApplicationDataResource(), objectMapper());
+    public ApplicationStateDao savedApplicationDataService() {
+        return new ApplicationStateDao(savedApplicationDataResource(), objectMapper());
     }
 
     @Bean
@@ -57,11 +52,6 @@ public class SportBookingApplication {
 
 
     // Lanterna GUI
-
-    @Bean
-    public WindowBasedTextGUI windowBasedTextGUI() throws IOException {
-        return new MultiWindowTextGUI(guiScreen());
-    }
 
     @Bean(destroyMethod = "close")
     public Screen guiScreen() throws IOException {
@@ -93,15 +83,14 @@ public class SportBookingApplication {
         try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
                 SportBookingApplication.class)) {
             Locale.setDefault(Locale.GERMANY);
-            WindowBasedTextGUI textGUI = applicationContext.getBean(WindowBasedTextGUI.class);
-            SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
-            SavedApplicationDataService savedApplicationDataService = applicationContext.getBean(
-                    SavedApplicationDataService.class);
 
-            textGUI.getScreen().startScreen();
-            showFirstVisiteDialog(textGUI, savedApplicationDataService);
-            textGUI.addWindowAndWait(new SportBookingMainWindow(sportBookingService, savedApplicationDataService));
-            textGUI.getScreen().stopScreen();
+            SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
+            ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
+            Screen guiScreen = applicationContext.getBean(Screen.class);
+
+            guiScreen.startScreen();
+            new SportBookingGui(sportBookingService, applicationStateDao).showGui(guiScreen);
+            guiScreen.stopScreen();
             System.out.println("finish SportBookingApplication");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
@@ -109,17 +98,5 @@ public class SportBookingApplication {
         }
     }
 
-    private static void showFirstVisiteDialog(WindowBasedTextGUI textGUI,
-            SavedApplicationDataService savedApplicationDataService) {
-        if (savedApplicationDataService.isFirstVisite()) {
-            new WelcomeDialog().showDialog(textGUI);
-
-            PersonenAngabenWindow personenAngabenWindow = new PersonenAngabenWindow(savedApplicationDataService, true);
-            textGUI.addWindowAndWait(personenAngabenWindow);
-            PersonenAngaben personenAngaben = personenAngabenWindow.getPersonenAngaben().orElseThrow(RuntimeException::new);
-            savedApplicationDataService.updatePersonenAngaben(personenAngaben);
-            savedApplicationDataService.setFirstVisite(false);
-        }
-    }
 
 }
