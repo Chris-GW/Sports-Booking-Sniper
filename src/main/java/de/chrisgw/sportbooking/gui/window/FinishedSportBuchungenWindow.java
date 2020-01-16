@@ -21,31 +21,30 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
 public class FinishedSportBuchungenWindow extends BasicWindow implements FinishedSportBuchungenListener {
 
-    private final ApplicationStateDao applicationDataService;
+    private final ApplicationStateDao applicationStateDao;
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenWindow(ApplicationStateDao applicationDataService) {
+    public FinishedSportBuchungenWindow(ApplicationStateDao applicationStateDao) {
         super("Beendete Sportbuchungen");
-        this.applicationDataService = applicationDataService;
-        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
+        this.applicationStateDao = applicationStateDao;
+        this.applicationStateDao.addFinishedSportBuchungenListener(this);
 
-        finishedJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        finishedJobsTabel.setVisibleRows(6);
-        finishedJobsTabel.setVisibleColumns(3);
-        finishedJobsTabel.setSelectAction(this::onSelectFinishedJob);
+        this.finishedJobsTabel = createFinishedJobsTable();
         getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
-        contentPanel.addComponent(finishedJobsTabel, GridLayout.createLayoutData(FILL, BEGINNING, true, false));
 
+        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
+        contentPanel.addComponent(finishedJobsTabel, GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         setComponent(contentPanel);
     }
 
 
-    @Override
-    public void draw(TextGUIGraphics graphics) {
-        super.draw(graphics);
-        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    private Table<String> createFinishedJobsTable() {
+        Table<String> finishedJobsTabel = new Table<>("#", "Sportangebot", "Details");
+        finishedJobsTabel.setVisibleRows(6);
+        finishedJobsTabel.setVisibleColumns(3);
+        finishedJobsTabel.setSelectAction(this::onSelectFinishedJob);
+        return finishedJobsTabel;
     }
 
 
@@ -66,24 +65,7 @@ public class FinishedSportBuchungenWindow extends BasicWindow implements Finishe
                     System.out.println("Löschen: " + selectedBestaetigung);
                 })
                 .build()
-                .showDialog((WindowBasedTextGUI) getTextGUI());
-    }
-
-
-    @Override
-    public void setVisible(boolean visible) {
-        super.setVisible(visible);
-        if (visible) {
-            applicationDataService.addFinishedSportBuchungenListener(this);
-        } else {
-            applicationDataService.removeFinishedSportBuchungenListener(this);
-        }
-    }
-
-
-    @Override
-    public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        addFinishedBuchungsJob(sportBuchungsBestaetigung);
+                .showDialog(getTextGUI());
     }
 
 
@@ -110,8 +92,22 @@ public class FinishedSportBuchungenWindow extends BasicWindow implements Finishe
     }
 
 
+    @Override
+    public void draw(TextGUIGraphics graphics) {
+        super.draw(graphics);
+        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
+                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    }
+
+
+    @Override
+    public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
+        addFinishedBuchungsJob(sportBuchungsBestaetigung);
+    }
+
+
     private List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
-        return applicationDataService.getFinishedBuchungsJobs();
+        return applicationStateDao.getFinishedBuchungsJobs();
     }
 
 }

@@ -21,13 +21,13 @@ import static org.apache.commons.lang3.StringUtils.upperCase;
 
 public class TopMenuBarWindow extends BasicWindow {
 
-    private final ApplicationStateDao applicationDataService;
+    private final ApplicationStateDao applicationStateDao;
     private final MenuBar menuBar;
 
 
-    public TopMenuBarWindow(ApplicationStateDao applicationDataService) {
+    public TopMenuBarWindow(ApplicationStateDao applicationStateDao) {
         super();
-        this.applicationDataService = applicationDataService;
+        this.applicationStateDao = applicationStateDao;
 
         this.menuBar = new MenuBar().setLayoutData(LinearLayout.createLayoutData(Alignment.Fill))
                 .add(sportBuchungMenu())
@@ -44,7 +44,7 @@ public class TopMenuBarWindow extends BasicWindow {
     private Menu sportBuchungMenu() {
         Menu menu = new Menu("SportBuchung");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            new PersonenAngabenWindow(this.applicationDataService).showDialog(getTextGUI());
+            new PersonenAngabenWindow(this.applicationStateDao).showDialog(getTextGUI());
         }));
         return menu;
     }
@@ -83,13 +83,13 @@ public class TopMenuBarWindow extends BasicWindow {
 
             @Override
             public String getLabel() {
-                PersonenAngaben personenAngaben = applicationDataService.getPersonenAngaben();
+                PersonenAngaben personenAngaben = applicationStateDao.getPersonenAngaben();
                 return personenAngaben.getName();
             }
         };
 
         menu.add(new MenuItem("edit PersonenAngaben", () -> {
-            new PersonenAngabenWindow(applicationDataService).showDialog(getTextGUI());
+            new PersonenAngabenWindow(applicationStateDao).showDialog(getTextGUI());
         }));
         return menu;
     }
@@ -110,7 +110,7 @@ public class TopMenuBarWindow extends BasicWindow {
     }
 
     private MenuItem createLanguageMenuItem(Locale language) {
-        return new MenuItem(formatLocale(language), () -> applicationDataService.setLanguage(language));
+        return new MenuItem(formatLocale(language), () -> applicationStateDao.setLanguage(language));
     }
 
     private static String formatLocale(Locale locale) {
@@ -134,7 +134,7 @@ public class TopMenuBarWindow extends BasicWindow {
                 .findAny()
                 .orElseThrow(RuntimeException::new);
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob(sportTermin, createPersonenAngaben());
-        applicationDataService.addSportBuchungsJob(sportBuchungsJob);
+        applicationStateDao.addSportBuchungsJob(sportBuchungsJob);
     }
 
     private void addNewSportBuchungsBestaetigung() {
@@ -146,7 +146,7 @@ public class TopMenuBarWindow extends BasicWindow {
                 .findAny()
                 .orElseThrow(RuntimeException::new);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = createSportBuchungsBestaetigung(sportTermin);
-        applicationDataService.addFinishedSportBuchung(sportBuchungsBestaetigung);
+        applicationStateDao.addFinishedSportBuchung(sportBuchungsBestaetigung);
     }
 
 }

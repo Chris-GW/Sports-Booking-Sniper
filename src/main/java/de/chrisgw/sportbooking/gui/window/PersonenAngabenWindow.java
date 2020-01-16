@@ -172,6 +172,8 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
 
     private BindingResult bindPersonenAngabenModalData() {
         DataBinder dataBinder = new DataBinder(new PersonenAngaben());
+        dataBinder.setAllowedFields("vorname", "nachname", "email", "telefon", "gender", "street", "ort",
+                "personKategorie", "matrikelnummer", "mitarbeiterNummer", "iban", "kontoInhaber");
         dataBinder.addValidators(new PersonAngabenValidator());
         return modalForm.bindData(dataBinder);
     }

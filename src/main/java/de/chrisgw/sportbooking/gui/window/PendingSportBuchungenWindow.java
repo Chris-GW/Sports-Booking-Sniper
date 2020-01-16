@@ -1,7 +1,10 @@
 package de.chrisgw.sportbooking.gui.window;
 
 import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BasicWindow;
+import com.googlecode.lanterna.gui2.GridLayout;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.TextGUIGraphics;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
@@ -28,28 +31,24 @@ public class PendingSportBuchungenWindow extends BasicWindow implements SportBuc
     public PendingSportBuchungenWindow(ApplicationStateDao applicationStateDao) {
         super("Ausstehende Sportbuchungen");
         this.applicationStateDao = applicationStateDao;
-        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
+        this.applicationStateDao.addSportBuchungJobListener(this);
 
-        pendingJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        pendingJobsTabel.setVisibleRows(6);
-        pendingJobsTabel.setVisibleColumns(3);
-        pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
+        this.pendingJobsTabel = createPendingJobsTabel();
         getPendingBuchungsJobs().forEach(this::addPendingJob);
+
+        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
         contentPanel.addComponent(pendingJobsTabel, createLayoutData(Fill));
         setComponent(contentPanel);
     }
 
 
-
-
-
-    @Override
-    public void draw(TextGUIGraphics graphics) {
-        super.draw(graphics);
-        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    private Table<String> createPendingJobsTabel() {
+        Table<String> pendingJobsTabel = new Table<>("#", "Sportangebot", "Details");
+        pendingJobsTabel.setVisibleRows(6);
+        pendingJobsTabel.setVisibleColumns(3);
+        pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
+        return pendingJobsTabel;
     }
-
 
     private void onSelectPendingJob() {
         int selectedRow = pendingJobsTabel.getSelectedRow();
@@ -68,29 +67,7 @@ public class PendingSportBuchungenWindow extends BasicWindow implements SportBuc
                     System.out.println("Löschen: " + sportBuchungsJob);
                 })
                 .build()
-                .showDialog((WindowBasedTextGUI) getTextGUI());
-    }
-
-
-    @Override
-    public void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        addPendingJob(sportBuchungsJob);
-    }
-
-    @Override
-    public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        refreshPendingBuchungsJob(sportBuchungsJob);
-    }
-
-
-    @Override
-    public void setVisible(boolean visible) {
-        super.setVisible(visible);
-        if (visible) {
-            applicationStateDao.addSportBuchungJobListener(this);
-        } else {
-            applicationStateDao.removeSportBuchungJobListener(this);
-        }
+                .showDialog(getTextGUI());
     }
 
 
@@ -114,6 +91,25 @@ public class PendingSportBuchungenWindow extends BasicWindow implements SportBuc
         String startZeit = DateTimeFormatter.ofPattern("ccc dd.MM. HH:mm").format(sportTermin.getStartZeit());
         String endZeit = DateTimeFormatter.ofPattern("HH:mm").format(sportTermin.getEndZeit());
         return startZeit + "-" + endZeit;
+    }
+
+
+    @Override
+    public void draw(TextGUIGraphics graphics) {
+        super.draw(graphics);
+        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
+                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    }
+
+
+    @Override
+    public void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        addPendingJob(sportBuchungsJob);
+    }
+
+    @Override
+    public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        refreshPendingBuchungsJob(sportBuchungsJob);
     }
 
 
