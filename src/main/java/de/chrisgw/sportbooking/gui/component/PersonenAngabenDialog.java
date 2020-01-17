@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.gui.window;
+package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -39,7 +39,7 @@ import static java.util.Objects.requireNonNull;
 
 
 @Slf4j
-public class PersonenAngabenWindow extends DialogWindow implements WindowListener, PersonenAngabenListener {
+public class PersonenAngabenDialog extends DialogWindow implements WindowListener, PersonenAngabenListener {
 
 
     private final ApplicationStateDao applicationDataService;
@@ -48,11 +48,11 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenWindow(ApplicationStateDao applicationDataService) {
+    public PersonenAngabenDialog(ApplicationStateDao applicationDataService) {
         this(applicationDataService, false);
     }
 
-    public PersonenAngabenWindow(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
+    public PersonenAngabenDialog(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
         super("Personenangaben");
         this.applicationDataService = requireNonNull(applicationDataService);
         this.applicationDataService.addPersonenAngabenListener(this);
@@ -237,6 +237,13 @@ public class PersonenAngabenWindow extends DialogWindow implements WindowListene
     @Override
     public void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben) {
         setPersonenAngaben(changedPersonenAngaben);
+    }
+
+
+    @Override
+    public Optional<PersonenAngaben> showDialog(WindowBasedTextGUI textGUI) {
+        super.showDialog(textGUI);
+        return getPersonenAngaben();
     }
 
 }

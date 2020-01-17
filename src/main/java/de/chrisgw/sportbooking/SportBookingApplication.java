@@ -6,9 +6,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import de.chrisgw.sportbooking.gui.SportBookingGui;
+import de.chrisgw.sportbooking.gui.SportBookingMainWindow;
+import de.chrisgw.sportbooking.gui.component.PersonenAngabenDialog;
+import de.chrisgw.sportbooking.gui.component.WelcomeDialog;
+import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +26,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Optional;
 
 
 @Slf4j
@@ -55,7 +61,10 @@ public class SportBookingApplication {
 
     @Bean(destroyMethod = "close")
     public Screen guiScreen() throws IOException {
-        return new DefaultTerminalFactory().createScreen();
+        DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
+                .setInitialTerminalSize(new TerminalSize(90, 40))
+                .setTerminalEmulatorTitle("Sportbuchungsbot - RWTH Hochschulsport");
+        return defaultTerminalFactory.createScreen();
     }
 
 
@@ -84,18 +93,38 @@ public class SportBookingApplication {
                 SportBookingApplication.class)) {
             Locale.setDefault(Locale.GERMANY);
 
-            SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
+            SportBookingService bookingService = applicationContext.getBean(SportBookingService.class);
+            SportBookingSniperService bookingSniperService = applicationContext.getBean(
+                    SportBookingSniperService.class);
             ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
             Screen guiScreen = applicationContext.getBean(Screen.class);
 
+            MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
             guiScreen.startScreen();
-            new SportBookingGui(sportBookingService, applicationStateDao).showGui(guiScreen);
+            SportBookingMainWindow sportBookingMainWindow = new SportBookingMainWindow(bookingService,
+                    bookingSniperService, applicationStateDao);
+            windowTextGUI.addWindow(sportBookingMainWindow);
+            if (applicationStateDao.isFirstVisite()) {
+                showFirstVisiteDialog(applicationStateDao, windowTextGUI);
+            }
+            windowTextGUI.waitForWindowToClose(sportBookingMainWindow);
             guiScreen.stopScreen();
             System.out.println("finish SportBookingApplication");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
             e.printStackTrace();
         }
+    }
+
+
+    private static void showFirstVisiteDialog(ApplicationStateDao applicationStateDao,
+            MultiWindowTextGUI windowTextGUI) {
+        new WelcomeDialog().showDialog(windowTextGUI);
+
+        PersonenAngabenDialog personenAngabenDialog = new PersonenAngabenDialog(applicationStateDao, true);
+        Optional<PersonenAngaben> personenAngaben = personenAngabenDialog.showDialog(windowTextGUI);
+        applicationStateDao.updatePersonenAngaben(personenAngaben.orElseThrow(RuntimeException::new));
+        applicationStateDao.setFirstVisite(false);
     }
 
 

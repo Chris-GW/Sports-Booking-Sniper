@@ -1,9 +1,12 @@
 package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.*;
+import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.graphics.BasicTextImage;
+import com.googlecode.lanterna.graphics.ThemeDefinition;
 import com.googlecode.lanterna.gui2.AbstractComponent;
 import com.googlecode.lanterna.gui2.ComponentRenderer;
+import com.googlecode.lanterna.gui2.GUIBackdrop;
 import com.googlecode.lanterna.gui2.TextGUIGraphics;
 
 import java.util.EnumSet;
@@ -30,7 +33,7 @@ public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo
 
 
     public SportBuchungsBotLogo() {
-        this(TextColor.ANSI.DEFAULT, TextColor.ANSI.DEFAULT);
+        this(ANSI.YELLOW, ANSI.DEFAULT);
     }
 
     public SportBuchungsBotLogo(TextColor foregroundColor, TextColor backgroundColor) {
@@ -63,11 +66,17 @@ public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo
 
             @Override
             public void drawComponent(TextGUIGraphics graphics, SportBuchungsBotLogo component) {
+                ThemeDefinition guiBackdropDefinition = getTheme().getDefinition(GUIBackdrop.class);
+                graphics.applyThemeStyle(guiBackdropDefinition.getNormal());
                 graphics.drawImage(TerminalPosition.TOP_LEFT_CORNER, component.logoTextImage);
             }
 
         };
     }
 
+
+    public BasicTextImage getLogoTextImage() {
+        return logoTextImage;
+    }
 
 }

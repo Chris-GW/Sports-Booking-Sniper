@@ -1,10 +1,8 @@
-package de.chrisgw.sportbooking.gui.window;
+package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.GridLayout;
-import com.googlecode.lanterna.gui2.Panel;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
@@ -18,27 +16,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
-import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
-
-public class PendingSportBuchungenWindow extends BasicWindow implements SportBuchungJobListener {
+public class PendingSportBuchungenComponent extends Panel implements SportBuchungJobListener {
 
     private final ApplicationStateDao applicationStateDao;
     private final Table<String> pendingJobsTabel;
 
 
-    public PendingSportBuchungenWindow(ApplicationStateDao applicationStateDao) {
-        super("Ausstehende Sportbuchungen");
+    public PendingSportBuchungenComponent(ApplicationStateDao applicationStateDao) {
+        super(new BorderLayout());
         this.applicationStateDao = applicationStateDao;
         this.applicationStateDao.addSportBuchungJobListener(this);
 
         this.pendingJobsTabel = createPendingJobsTabel();
         getPendingBuchungsJobs().forEach(this::addPendingJob);
 
-        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
-        contentPanel.addComponent(pendingJobsTabel, createLayoutData(Fill));
-        setComponent(contentPanel);
+        addComponent(pendingJobsTabel, Location.CENTER);
     }
 
 
@@ -95,10 +88,15 @@ public class PendingSportBuchungenWindow extends BasicWindow implements SportBuc
 
 
     @Override
-    public void draw(TextGUIGraphics graphics) {
-        super.draw(graphics);
+    protected void onAfterDrawing(TextGUIGraphics graphics) {
         graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+                String.format("pref = %s, size = %s, vis. rows = %d", getPreferredSize(), getSize(),
+                        pendingJobsTabel.getVisibleRows()));
+    }
+
+
+    public Table<String> getPendingJobsTabel() {
+        return pendingJobsTabel;
     }
 
 
@@ -109,14 +107,14 @@ public class PendingSportBuchungenWindow extends BasicWindow implements SportBuc
 
     @Override
     public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        refreshPendingBuchungsJob(sportBuchungsJob);
-    }
-
-
-    private void refreshPendingBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         // TOTO refreshPendingJob
     }
 
+
+    @Override
+    public WindowBasedTextGUI getTextGUI() {
+        return (WindowBasedTextGUI) super.getTextGUI();
+    }
 
     public List<SportBuchungsJob> getPendingBuchungsJobs() {
         return applicationStateDao.getPendingBuchungsJobs();

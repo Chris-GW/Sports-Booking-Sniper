@@ -1,7 +1,8 @@
-package de.chrisgw.sportbooking.gui.window;
+package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import de.chrisgw.sportbooking.model.SportAngebot;
@@ -15,27 +16,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
-import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
-
-public class FinishedSportBuchungenWindow extends BasicWindow implements FinishedSportBuchungenListener {
+public class FinishedSportBuchungenComponent extends Panel implements FinishedSportBuchungenListener {
 
     private final ApplicationStateDao applicationStateDao;
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenWindow(ApplicationStateDao applicationStateDao) {
-        super("Beendete Sportbuchungen");
+    public FinishedSportBuchungenComponent(ApplicationStateDao applicationStateDao) {
+        super(new BorderLayout());
         this.applicationStateDao = applicationStateDao;
         this.applicationStateDao.addFinishedSportBuchungenListener(this);
 
         this.finishedJobsTabel = createFinishedJobsTable();
         getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
-        Panel contentPanel = new Panel(new GridLayout(1).setTopMarginSize(1).setBottomMarginSize(1));
-        contentPanel.addComponent(finishedJobsTabel, GridLayout.createLayoutData(FILL, BEGINNING, true, false));
-        setComponent(contentPanel);
+        addComponent(finishedJobsTabel, Location.CENTER);
     }
 
 
@@ -93,10 +89,10 @@ public class FinishedSportBuchungenWindow extends BasicWindow implements Finishe
 
 
     @Override
-    public void draw(TextGUIGraphics graphics) {
-        super.draw(graphics);
+    protected void onAfterDrawing(TextGUIGraphics graphics) {
         graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+                String.format("pref = %s, size = %s, vis. rows = %d",  getPreferredSize(), getSize(),
+                        finishedJobsTabel.getVisibleRows()));
     }
 
 
@@ -108,6 +104,18 @@ public class FinishedSportBuchungenWindow extends BasicWindow implements Finishe
 
     private List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
         return applicationStateDao.getFinishedBuchungsJobs();
+    }
+
+
+    @Override
+    public WindowBasedTextGUI getTextGUI() {
+        return (WindowBasedTextGUI) super.getTextGUI();
+    }
+
+
+    @Override
+    protected FinishedSportBuchungenComponent self() {
+        return this;
     }
 
 }
