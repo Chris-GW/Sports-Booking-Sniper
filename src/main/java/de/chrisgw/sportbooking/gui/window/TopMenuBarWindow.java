@@ -1,20 +1,30 @@
 package de.chrisgw.sportbooking.gui.window;
 
+import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.Symbols;
 import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.BasicWindow;
-import com.googlecode.lanterna.gui2.LinearLayout;
-import com.googlecode.lanterna.gui2.LinearLayout.Alignment;
-import com.googlecode.lanterna.gui2.Panels;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.TextColor.ANSI;
+import com.googlecode.lanterna.graphics.SimpleTheme;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
+import com.googlecode.lanterna.input.KeyType;
+import de.chrisgw.sportbooking.gui.component.CheckBoxMenuItem;
+import de.chrisgw.sportbooking.gui.component.MultipleWindowNavigator;
+import de.chrisgw.sportbooking.gui.component.SportBuchungsBotLogo;
 import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.service.ApplicationStateDao;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Locale;
 
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
+import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 import static de.chrisgw.sportbooking.SportBookingApplicationTest.*;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
@@ -22,48 +32,74 @@ import static org.apache.commons.lang3.StringUtils.upperCase;
 public class TopMenuBarWindow extends BasicWindow {
 
     private final ApplicationStateDao applicationStateDao;
-    private final MenuBar menuBar;
+
+    private MenuBar menuBar;
+    private Menu viewMenu;
 
 
     public TopMenuBarWindow(ApplicationStateDao applicationStateDao) {
-        super();
+        super("top MenuBar");
         this.applicationStateDao = applicationStateDao;
+        setHints(Arrays.asList(Hint.FIXED_POSITION, Hint.FULL_SCREEN, Hint.NO_DECORATIONS));
+        setPosition(TerminalPosition.TOP_LEFT_CORNER);
 
-        this.menuBar = new MenuBar().setLayoutData(LinearLayout.createLayoutData(Alignment.Fill))
-                .add(sportBuchungMenu())
-                .add(viewMenu())
+        Panel contentPanel = new Panel(createFullScreenGridLayout(1));
+        contentPanel.addComponent(createTopMenuBar(), GridLayout.createHorizontallyFilledLayoutData(1));
+        contentPanel.addComponent(new EmptySpace(ANSI.BLUE), GridLayout.createHorizontallyFilledLayoutData(1));
+        contentPanel.addComponent(createLogoPanel(), GridLayout.createHorizontallyFilledLayoutData(1));
+        contentPanel.addComponent(new EmptySpace(ANSI.BLUE), GridLayout.createLayoutData(FILL, FILL, true, true, 1, 1));
+        setComponent(contentPanel);
+    }
+
+
+    private Panel createTopMenuBar() {
+        this.viewMenu = new Menu("View");
+        this.menuBar = new MenuBar().add(sportBuchungMenu())
+                .add(viewMenu)
                 .add(navigationMenu())
                 .add(debugMenu())
                 .add(personenAngabenMenu())
                 .add(languageMenu());
 
-        setComponent(Panels.vertical(this.menuBar));
+        Panel topMenuBar = new Panel(new BorderLayout());
+        topMenuBar.addComponent(menuBar, Location.CENTER);
+        topMenuBar.addComponent(clockDisplyMenuBar(), Location.RIGHT);
+        return topMenuBar;
+    }
+
+
+    private Panel createLogoPanel() {
+        TextColor backgroundColor = ANSI.BLUE;
+        SportBuchungsBotLogo sportBuchungsBotLogo = new SportBuchungsBotLogo(ANSI.YELLOW, backgroundColor);
+
+        Panel logoPanel = new Panel(createFullScreenGridLayout(3));
+        logoPanel.addComponent(new EmptySpace(backgroundColor), GridLayout.createLayoutData(FILL, FILL));
+        logoPanel.addComponent(sportBuchungsBotLogo, GridLayout.createLayoutData(BEGINNING, BEGINNING));
+        logoPanel.addComponent(new EmptySpace(backgroundColor), GridLayout.createLayoutData(FILL, FILL, true, true));
+        return logoPanel;
     }
 
 
     private Menu sportBuchungMenu() {
-        Menu menu = new Menu("SportBuchung");
+        Menu menu = new Menu("New");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            new PersonenAngabenWindow(this.applicationStateDao).showDialog(getTextGUI());
+            // TODO new SportBuchung dialog
         }));
         return menu;
     }
 
 
-    @Override
-    public void draw(TextGUIGraphics graphics) {
-        super.draw(graphics);
-
-        graphics.putString(new TerminalPosition(0, 1),
-                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
-    }
-
-
-    private Menu viewMenu() {
-        Menu menu = new Menu("View");
-        menu.add(new MenuItem("Show / Hide pending SportBuchungen"));
-        menu.add(new MenuItem("Show / Hide finished SportBuchungen"));
-        return menu;
+    public CheckBoxMenuItem addToggleVisibleWindowMenuItem(MultipleWindowNavigator windowNavigator, Window window) {
+        String label = window.getTitle();
+        KeyType windowShortKeyType = windowNavigator.findShortKeyTypeForWindow(window).orElse(null);
+        if (windowShortKeyType != null) {
+            label += " <S-" + windowShortKeyType + ">";
+        }
+        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label,
+                visibleCheck -> windowNavigator.setWindowVisible(window, visibleCheck));
+        checkBoxMenuItem.setChecked(window.isVisible());
+        viewMenu.add(checkBoxMenuItem);
+        return checkBoxMenuItem;
     }
 
 
@@ -113,7 +149,7 @@ public class TopMenuBarWindow extends BasicWindow {
         return new MenuItem(formatLocale(language), () -> applicationStateDao.setLanguage(language));
     }
 
-    private static String formatLocale(Locale locale) {
+    private String formatLocale(Locale locale) {
         return String.format("%s (%s)", locale.getDisplayLanguage(), upperCase(locale.getLanguage()));
     }
 
@@ -147,6 +183,56 @@ public class TopMenuBarWindow extends BasicWindow {
                 .orElseThrow(RuntimeException::new);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = createSportBuchungsBestaetigung(sportTermin);
         applicationStateDao.addFinishedSportBuchung(sportBuchungsBestaetigung);
+    }
+
+
+    private MenuBar clockDisplyMenuBar() {
+        Menu clockDisplyMenu = new Menu("clock") {
+
+            private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
+
+            @Override
+            public String getLabel() {
+                LocalDateTime time = LocalDateTime.now().withNano(0);
+                return dateTimeFormatter.format(time);
+            }
+
+            @Override
+            public boolean isInvalid() {
+                return true;
+            }
+
+        };
+        clockDisplyMenu.setTheme(new SimpleTheme(ANSI.BLACK, ANSI.WHITE, SGR.BOLD));
+        clockDisplyMenu.setEnabled(false);
+
+        MenuBar menuBar = new MenuBar() {
+
+            private LocalDateTime lastShownTime = LocalDateTime.now().minusSeconds(1);
+
+            @Override
+            public boolean isInvalid() {
+                LocalDateTime currentTime = LocalDateTime.now().withNano(0);
+                boolean isInvalid = lastShownTime.isBefore(currentTime);
+                lastShownTime = currentTime;
+                return isInvalid;
+            }
+        };
+        return menuBar.add(clockDisplyMenu);
+    }
+
+
+    @Override
+    public void draw(TextGUIGraphics graphics) {
+        super.draw(graphics);
+
+        graphics.putString(new TerminalPosition(0, 1),
+                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+    }
+
+
+    private static GridLayout createFullScreenGridLayout(int numberOfColums) {
+        return new GridLayout(numberOfColums).setHorizontalSpacing(0).setRightMarginSize(0).setLeftMarginSize(0);
     }
 
 }
