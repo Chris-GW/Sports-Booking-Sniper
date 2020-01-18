@@ -1,40 +1,44 @@
 package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.Symbols;
 import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.graphics.SimpleTheme;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
 
 import static de.chrisgw.sportbooking.SportBookingApplicationTest.*;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
-public class MainMenuBar extends Panel {
+public class MainMenuBar extends SportBookingComponent {
 
-    private final ApplicationStateDao applicationStateDao;
-
+    @Getter
     private MenuBar menuBar;
+
+    @Getter
     private Menu viewMenu;
+
+    @Getter
     private Menu navigationMenu;
 
 
-    public MainMenuBar(ApplicationStateDao applicationStateDao) {
-        super(new BorderLayout());
-        this.applicationStateDao = applicationStateDao;
+    public MainMenuBar(ApplicationStateDao applicationStateDao, Window window) {
+        super(applicationStateDao, window, "top Navigation", KeyType.F1);
+        setLayoutManager(new BorderLayout());
 
         this.viewMenu = new Menu("View");
         this.navigationMenu = new Menu("Navigation");
@@ -44,6 +48,8 @@ public class MainMenuBar extends Panel {
                 .add(debugMenu())
                 .add(personenAngabenMenu())
                 .add(languageMenu());
+        addViewMenuItemsFor(this);
+        addNavigationMenuItemsFor(this);
 
         addComponent(menuBar, Location.CENTER);
         addComponent(clockDisplyMenuBar(), Location.RIGHT);
@@ -59,34 +65,27 @@ public class MainMenuBar extends Panel {
     }
 
 
-    public void fillViewMenu(List<Pair<KeyType, Window>> shortKeyTypeWindowPairs) {
-        for (Pair<KeyType, Window> shortKeyTypeWindowPair : shortKeyTypeWindowPairs) {
-            KeyType shortKey = shortKeyTypeWindowPair.getLeft();
-            Window window = shortKeyTypeWindowPair.getRight();
-            String label = window.getTitle();
-            if (shortKey != null) {
-                label += " <S-" + shortKey + ">";
-            }
-            CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, window::setVisible);
-            checkBoxMenuItem.setChecked(window.isVisible());
-            viewMenu.add(checkBoxMenuItem);
+    public void addViewMenuItemsFor(SportBookingComponent sportBookingComponent) {
+        KeyType shortKey = sportBookingComponent.getShortKeyType();
+        String label = sportBookingComponent.getTitle();
+        if (shortKey != null) {
+            label += " <S-" + shortKey + ">";
         }
+        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, sportBookingComponent::setVisible);
+        checkBoxMenuItem.setChecked(sportBookingComponent.isVisible());
+        viewMenu.add(checkBoxMenuItem);
     }
 
-    public void fillNavigationMenu(List<Pair<KeyType, Window>> shortKeyTypeWindowPairs) {
-        for (Pair<KeyType, Window> shortKeyTypeWindowPair : shortKeyTypeWindowPairs) {
-            KeyType shortKey = shortKeyTypeWindowPair.getLeft();
-            Window window = shortKeyTypeWindowPair.getRight();
-            String label = window.getTitle();
-            if (shortKey != null) {
-                label += " <" + shortKey + ">";
-            }
-            navigationMenu.add(new MenuItem(label, () -> getTextGUI().setActiveWindow(window)));
+    public void addNavigationMenuItemsFor(SportBookingComponent sportBookingComponent) {
+        KeyType shortKey = sportBookingComponent.getShortKeyType();
+        String label = sportBookingComponent.getTitle();
+        if (shortKey != null) {
+            label += " <" + shortKey + ">";
         }
-        navigationMenu.add(new MenuItem("focus Window above <C-" + Symbols.ARROW_UP + ">"));
-        navigationMenu.add(new MenuItem("focus Window below <C-" + Symbols.ARROW_DOWN + ">"));
-        navigationMenu.add(new MenuItem("focus left  Window <C-" + Symbols.ARROW_LEFT + ">"));
-        navigationMenu.add(new MenuItem("focus right Window <C-" + Symbols.ARROW_RIGHT + ">"));
+        MenuItem navigationMenuItem = new MenuItem(label, () -> {
+            window.setFocusedInteractable(sportBookingComponent.nextFocus(null));
+        });
+        navigationMenu.add(navigationMenuItem);
     }
 
 
@@ -200,19 +199,14 @@ public class MainMenuBar extends Panel {
 
     @Override
     protected void onAfterDrawing(TextGUIGraphics graphics) {
-//        graphics.putString(new TerminalPosition(0, 1),
-//                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
+        //        graphics.putString(new TerminalPosition(0, 1),
+        //                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
     }
 
 
     @Override
     public WindowBasedTextGUI getTextGUI() {
         return (WindowBasedTextGUI) super.getTextGUI();
-    }
-
-
-    public MenuBar getMenuBar() {
-        return menuBar;
     }
 
 }

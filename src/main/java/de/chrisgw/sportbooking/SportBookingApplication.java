@@ -62,7 +62,7 @@ public class SportBookingApplication {
     @Bean(destroyMethod = "close")
     public Screen guiScreen() throws IOException {
         DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
-                .setInitialTerminalSize(new TerminalSize(90, 40))
+                .setInitialTerminalSize(new TerminalSize(100, 50))
                 .setTerminalEmulatorTitle("Sportbuchungsbot - RWTH Hochschulsport");
         return defaultTerminalFactory.createScreen();
     }

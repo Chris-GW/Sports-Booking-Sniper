@@ -3,6 +3,7 @@ package de.chrisgw.sportbooking.gui;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import de.chrisgw.sportbooking.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportbooking.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportbooking.gui.component.MainMenuBar;
 import de.chrisgw.sportbooking.gui.component.PendingSportBuchungenComponent;
@@ -23,10 +24,10 @@ public class SportBookingMainWindow extends BasicWindow {
     private final SportBookingSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
-    private Panel contentPanel;
     private MainMenuBar mainMenuBar;
     private PendingSportBuchungenComponent pendingComponent;
     private FinishedSportBuchungenComponent finishedComponent;
+    private FavoriteSportAngebotComponent favoriteComponent;
 
 
     public SportBookingMainWindow(SportBookingService bookingService, SportBookingSniperService bookingSniperService,
@@ -37,40 +38,52 @@ public class SportBookingMainWindow extends BasicWindow {
         this.applicationStateDao = applicationStateDao;
         setHints(Arrays.asList(Hint.EXPANDED));
 
-        contentPanel = new Panel(new BorderLayout());
-        setComponent(contentPanel);
-
-        mainMenuBar = new MainMenuBar(applicationStateDao);
-        contentPanel.addComponent(mainMenuBar, Location.TOP);
-
-        pendingComponent = new PendingSportBuchungenComponent(applicationStateDao);
-        pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, true));
-        finishedComponent = new FinishedSportBuchungenComponent(applicationStateDao);
-        finishedComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
-
-        Panel leftPanel = new Panel(new GridLayout(1));
-        leftPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel("Ausstehende Sportbuchungen")));
-        leftPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel("Beendete Sportbuchungen")));
-        contentPanel.addComponent(leftPanel, Location.LEFT);
-        addWindowListener(resizeVisibleTableRowListener());
-
-        Panel favoritePanel = new Panel();
-        favoritePanel.addComponent(new Label("Meine Favoriten"));
-        favoritePanel.addComponent(new CheckBoxList<>().addItem("1 Favorite")
-                .addItem("2 Favorite")
-                .addItem("3 Favorite")
-                .addItem("4 Favorite"));
-        contentPanel.addComponent(favoritePanel.withBorder(Borders.singleLine("Favoriten")), Location.CENTER);
-
+        mainMenuBar = new MainMenuBar(applicationStateDao, this);
         setFocusedInteractable(mainMenuBar.getMenuBar().getMenu(0));
-        addWindowListener(windowResizeListener());
+
+        Panel contentPanel = new Panel(new BorderLayout());
+        contentPanel.addComponent(mainMenuBar, Location.TOP);
+        contentPanel.addComponent(createLeftPanel(), Location.LEFT);
+        contentPanel.addComponent(createCenterPanel(), Location.CENTER);
+
+        Label bottomLabel = new Label("");
+        addWindowListener(windowResizeListener(bottomLabel));
+        contentPanel.addComponent(bottomLabel, Location.BOTTOM);
+        setComponent(contentPanel);
     }
 
 
-    private WindowListenerAdapter windowResizeListener() {
-        Label windowSizeDebugLabel = new Label("");
-        contentPanel.addComponent(windowSizeDebugLabel, Location.BOTTOM);
+    private Panel createLeftPanel() {
+        pendingComponent = new PendingSportBuchungenComponent(applicationStateDao, this);
+        pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
+        mainMenuBar.addViewMenuItemsFor(pendingComponent);
+        mainMenuBar.addNavigationMenuItemsFor(pendingComponent);
 
+        finishedComponent = new FinishedSportBuchungenComponent(applicationStateDao, this);
+        finishedComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
+        mainMenuBar.addViewMenuItemsFor(finishedComponent);
+        mainMenuBar.addNavigationMenuItemsFor(finishedComponent);
+
+        Panel leftPanel = new Panel(new GridLayout(1));
+        leftPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
+        leftPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
+        addWindowListener(resizeVisibleTableRowListener());
+        return leftPanel;
+    }
+
+
+    private Panel createCenterPanel() {
+        favoriteComponent = new FavoriteSportAngebotComponent(applicationStateDao, this);
+        mainMenuBar.addViewMenuItemsFor(favoriteComponent);
+        mainMenuBar.addNavigationMenuItemsFor(favoriteComponent);
+
+        Panel centerPanel = new Panel();
+        centerPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
+        return centerPanel;
+    }
+
+
+    private WindowListener windowResizeListener(Label windowSizeDebugLabel) {
         return new WindowListenerAdapter() {
 
             @Override

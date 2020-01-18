@@ -1,15 +1,18 @@
 package de.chrisgw.sportbooking.gui.component;
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.Container;
+import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
+import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.service.ApplicationStateDao;
 import de.chrisgw.sportbooking.service.ApplicationStateDao.FinishedSportBuchungenListener;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,21 +20,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FinishedSportBuchungenComponent extends Panel implements FinishedSportBuchungenListener {
+public class FinishedSportBuchungenComponent extends SportBookingComponent implements FinishedSportBuchungenListener {
 
-    private final ApplicationStateDao applicationStateDao;
+    @Getter
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenComponent(ApplicationStateDao applicationStateDao) {
-        super(new BorderLayout());
-        this.applicationStateDao = applicationStateDao;
-        this.applicationStateDao.addFinishedSportBuchungenListener(this);
+    public FinishedSportBuchungenComponent(ApplicationStateDao applicationStateDao, Window window) {
+        super(applicationStateDao, window, "Beendete SportBuchungen", KeyType.F3);
+        setLayoutManager(new BorderLayout());
 
         this.finishedJobsTabel = createFinishedJobsTable();
         getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
         addComponent(finishedJobsTabel, Location.CENTER);
+    }
+
+
+    @Override
+    public synchronized void onAdded(Container container) {
+        super.onAdded(container);
+        applicationStateDao.addFinishedSportBuchungenListener(this);
+    }
+
+    @Override
+    public synchronized void onRemoved(Container container) {
+        super.onRemoved(container);
+        applicationStateDao.removeFinishedSportBuchungenListener(this);
     }
 
 
@@ -89,14 +104,6 @@ public class FinishedSportBuchungenComponent extends Panel implements FinishedSp
 
 
     @Override
-    protected void onAfterDrawing(TextGUIGraphics graphics) {
-        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("pref = %s, size = %s, vis. rows = %d",  getPreferredSize(), getSize(),
-                        finishedJobsTabel.getVisibleRows()));
-    }
-
-
-    @Override
     public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
         addFinishedBuchungsJob(sportBuchungsBestaetigung);
     }
@@ -104,12 +111,6 @@ public class FinishedSportBuchungenComponent extends Panel implements FinishedSp
 
     private List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
         return applicationStateDao.getFinishedBuchungsJobs();
-    }
-
-
-    @Override
-    public WindowBasedTextGUI getTextGUI() {
-        return (WindowBasedTextGUI) super.getTextGUI();
     }
 
 

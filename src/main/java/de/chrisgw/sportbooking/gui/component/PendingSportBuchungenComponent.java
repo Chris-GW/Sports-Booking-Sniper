@@ -1,15 +1,18 @@
 package de.chrisgw.sportbooking.gui.component;
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.Container;
+import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
+import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.service.ApplicationStateDao;
 import de.chrisgw.sportbooking.service.ApplicationStateDao.SportBuchungJobListener;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,21 +20,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class PendingSportBuchungenComponent extends Panel implements SportBuchungJobListener {
+public class PendingSportBuchungenComponent extends SportBookingComponent implements SportBuchungJobListener {
 
-    private final ApplicationStateDao applicationStateDao;
+    @Getter
     private final Table<String> pendingJobsTabel;
 
 
-    public PendingSportBuchungenComponent(ApplicationStateDao applicationStateDao) {
-        super(new BorderLayout());
-        this.applicationStateDao = applicationStateDao;
-        this.applicationStateDao.addSportBuchungJobListener(this);
+    public PendingSportBuchungenComponent(ApplicationStateDao applicationStateDao, Window window) {
+        super(applicationStateDao, window, "Ausstehende SportBuchungen", KeyType.F2);
+        setLayoutManager(new BorderLayout());
 
         this.pendingJobsTabel = createPendingJobsTabel();
         getPendingBuchungsJobs().forEach(this::addPendingJob);
 
         addComponent(pendingJobsTabel, Location.CENTER);
+    }
+
+
+    @Override
+    public synchronized void onAdded(Container container) {
+        super.onAdded(container);
+        applicationStateDao.addSportBuchungJobListener(this);
+    }
+
+    @Override
+    public synchronized void onRemoved(Container container) {
+        super.onRemoved(container);
+        applicationStateDao.removeSportBuchungJobListener(this);
     }
 
 
@@ -88,19 +103,6 @@ public class PendingSportBuchungenComponent extends Panel implements SportBuchun
 
 
     @Override
-    protected void onAfterDrawing(TextGUIGraphics graphics) {
-        graphics.putString(TerminalPosition.TOP_LEFT_CORNER,
-                String.format("pref = %s, size = %s, vis. rows = %d", getPreferredSize(), getSize(),
-                        pendingJobsTabel.getVisibleRows()));
-    }
-
-
-    public Table<String> getPendingJobsTabel() {
-        return pendingJobsTabel;
-    }
-
-
-    @Override
     public void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         addPendingJob(sportBuchungsJob);
     }
@@ -111,14 +113,14 @@ public class PendingSportBuchungenComponent extends Panel implements SportBuchun
     }
 
 
-    @Override
-    public WindowBasedTextGUI getTextGUI() {
-        return (WindowBasedTextGUI) super.getTextGUI();
-    }
-
     public List<SportBuchungsJob> getPendingBuchungsJobs() {
         return applicationStateDao.getPendingBuchungsJobs();
     }
 
+
+    @Override
+    protected PendingSportBuchungenComponent self() {
+        return this;
+    }
 
 }
