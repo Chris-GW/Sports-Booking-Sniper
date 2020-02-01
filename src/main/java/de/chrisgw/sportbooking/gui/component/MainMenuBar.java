@@ -2,29 +2,33 @@ package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TextColor.ANSI;
+import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.SimpleTheme;
+import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
 import com.googlecode.lanterna.gui2.Window;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog;
+import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder;
 import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportbooking.model.*;
+import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.service.SportBookingService;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import static de.chrisgw.sportbooking.SportBookingApplicationTest.*;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
 public class MainMenuBar extends SportBookingComponent {
+
+    private final SportBookingService sportBookingService;
 
     @Getter
     private MenuBar menuBar;
@@ -36,8 +40,10 @@ public class MainMenuBar extends SportBookingComponent {
     private Menu navigationMenu;
 
 
-    public MainMenuBar(ApplicationStateDao applicationStateDao, Window window) {
+    public MainMenuBar(SportBookingService sportBookingService, ApplicationStateDao applicationStateDao,
+            Window window) {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
+        this.sportBookingService = sportBookingService;
         setLayoutManager(new BorderLayout());
 
         this.viewMenu = new Menu("View");
@@ -48,6 +54,7 @@ public class MainMenuBar extends SportBookingComponent {
                 .add(debugMenu())
                 .add(personenAngabenMenu())
                 .add(languageMenu());
+        viewMenu.add(createSwitchThemeMenuItem());
         addViewMenuItemsFor(this);
         addNavigationMenuItemsFor(this);
 
@@ -55,11 +62,28 @@ public class MainMenuBar extends SportBookingComponent {
         addComponent(clockDisplyMenuBar(), Location.RIGHT);
     }
 
+    private MenuItem createSwitchThemeMenuItem() {
+        return new MenuItem("Switch Theme", () -> {
+            String[] registerdThemes = LanternaThemes.getRegisteredThemes().toArray(new String[0]);
+            ListSelectDialog<String> selectThemeDialog = new ListSelectDialogBuilder<String>().setTitle("Switch Theme")
+                    .setDescription(null)
+                    .setCanCancel(true)
+                    .addListItems(registerdThemes)
+                    .build();
+
+            String selectedThemeName = selectThemeDialog.showDialog(getTextGUI());
+            if (selectedThemeName != null) {
+                Theme selectedTheme = LanternaThemes.getRegisteredTheme(selectedThemeName);
+                getTextGUI().setTheme(selectedTheme);
+            }
+        });
+    }
+
 
     private Menu sportBuchungMenu() {
         Menu menu = new Menu("New");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            // TODO new SportBuchung dialog
+            new SportBuchungDialog(sportBookingService).showDialog(getTextGUI());
         }));
         return menu;
     }
@@ -130,34 +154,7 @@ public class MainMenuBar extends SportBookingComponent {
 
 
     private Menu debugMenu() {
-        Menu menu = new Menu("Debug");
-        menu.add(new MenuItem("addSportNewBuchungJob", this::addSportNewBuchungJob));
-        menu.add(new MenuItem("addNewSportBuchungsBestaetigung", this::addNewSportBuchungsBestaetigung));
-        return menu;
-    }
-
-    private void addSportNewBuchungJob() {
-        SportArt sportArt = new SportArt("Badminton Level Spielbetrieb", "http://badminton-spielbetrieb.de");
-        SportAngebot sportAngebot = createMontagsSportAngebot(sportArt);
-        SportTermin sportTermin = sportAngebot.getSportTermine()
-                .stream()
-                .unordered()
-                .findAny()
-                .orElseThrow(RuntimeException::new);
-        SportBuchungsJob sportBuchungsJob = new SportBuchungsJob(sportTermin, createPersonenAngaben());
-        applicationStateDao.addSportBuchungsJob(sportBuchungsJob);
-    }
-
-    private void addNewSportBuchungsBestaetigung() {
-        SportArt sportArt = new SportArt("Badminton Level 2", "http://badminton-level-2.de");
-        SportAngebot sportAngebot = createFreitagsSportAngebot(sportArt);
-        SportTermin sportTermin = sportAngebot.getSportTermine()
-                .stream()
-                .unordered()
-                .findAny()
-                .orElseThrow(RuntimeException::new);
-        SportBuchungsBestaetigung sportBuchungsBestaetigung = createSportBuchungsBestaetigung(sportTermin);
-        applicationStateDao.addFinishedSportBuchung(sportBuchungsBestaetigung);
+        return new Menu("Debug");
     }
 
 
@@ -194,19 +191,6 @@ public class MainMenuBar extends SportBookingComponent {
             }
         };
         return menuBar.add(clockDisplyMenu);
-    }
-
-
-    @Override
-    protected void onAfterDrawing(TextGUIGraphics graphics) {
-        //        graphics.putString(new TerminalPosition(0, 1),
-        //                String.format("Pos = %s, pref = %s, size = %s", getPosition(), getPreferredSize(), getSize()));
-    }
-
-
-    @Override
-    public WindowBasedTextGUI getTextGUI() {
-        return (WindowBasedTextGUI) super.getTextGUI();
     }
 
 }

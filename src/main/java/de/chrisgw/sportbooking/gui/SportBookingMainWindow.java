@@ -20,7 +20,7 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
 public class SportBookingMainWindow extends BasicWindow {
 
-    private final SportBookingService bookingService;
+    private final SportBookingService sportBookingService;
     private final SportBookingSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
@@ -30,15 +30,15 @@ public class SportBookingMainWindow extends BasicWindow {
     private FavoriteSportAngebotComponent favoriteComponent;
 
 
-    public SportBookingMainWindow(SportBookingService bookingService, SportBookingSniperService bookingSniperService,
+    public SportBookingMainWindow(SportBookingService sportBookingService, SportBookingSniperService bookingSniperService,
             ApplicationStateDao applicationStateDao) {
         super("Sportbuchungsbot - RWTH Hochschulsport");
-        this.bookingService = bookingService;
+        this.sportBookingService = sportBookingService;
         this.bookingSniperService = bookingSniperService;
         this.applicationStateDao = applicationStateDao;
         setHints(Arrays.asList(Hint.EXPANDED));
 
-        mainMenuBar = new MainMenuBar(applicationStateDao, this);
+        mainMenuBar = new MainMenuBar(sportBookingService, applicationStateDao, this);
         setFocusedInteractable(mainMenuBar.getMenuBar().getMenu(0));
 
         Panel contentPanel = new Panel(new BorderLayout());

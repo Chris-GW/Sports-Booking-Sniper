@@ -2,8 +2,7 @@ package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor.ANSI;
-import com.googlecode.lanterna.graphics.*;
+import com.googlecode.lanterna.graphics.ThemeDefinition;
 import com.googlecode.lanterna.gui2.CheckBox;
 import com.googlecode.lanterna.gui2.CheckBox.Listener;
 import com.googlecode.lanterna.gui2.Interactable;
@@ -13,6 +12,8 @@ import com.googlecode.lanterna.gui2.menu.MenuItem;
 
 import java.util.Arrays;
 
+import static com.googlecode.lanterna.TerminalPosition.TOP_LEFT_CORNER;
+
 
 public class CheckBoxMenuItem extends MenuItem {
 
@@ -21,8 +22,7 @@ public class CheckBoxMenuItem extends MenuItem {
 
     public CheckBoxMenuItem(String label) {
         super(label);
-        checkBox = new CheckBox(label);
-        checkBox.setTheme(getCheckBoxTheme());
+        checkBox = new CheckBox();
     }
 
     public CheckBoxMenuItem(String label, Listener... checkBoxListeners) {
@@ -30,17 +30,6 @@ public class CheckBoxMenuItem extends MenuItem {
         if (checkBoxListeners != null) {
             Arrays.stream(checkBoxListeners).forEachOrdered(this::addListener);
         }
-    }
-
-
-    @Override
-    public String getLabel() {
-        return checkBox.getLabel();
-    }
-
-    public CheckBoxMenuItem setLabel(String label) {
-        checkBox.setLabel(label);
-        return this;
     }
 
 
@@ -65,7 +54,7 @@ public class CheckBoxMenuItem extends MenuItem {
     @Override
     protected boolean onActivated() {
         setChecked(!isChecked());
-        return false;
+        return false; // never close menu item popup window
     }
 
 
@@ -84,6 +73,7 @@ public class CheckBoxMenuItem extends MenuItem {
 
     @Override
     protected InteractableRenderer<MenuItem> createDefaultRenderer() {
+        final InteractableRenderer<MenuItem> menuItemRenderer = super.createDefaultRenderer();
         return new InteractableRenderer<MenuItem>() {
 
             @Override
@@ -93,48 +83,45 @@ public class CheckBoxMenuItem extends MenuItem {
 
             @Override
             public TerminalSize getPreferredSize(MenuItem component) {
-                return checkBox.getRenderer().getPreferredSize(checkBox);
+                TerminalSize checkBoxPreferredSize = checkBox.getPreferredSize();
+                TerminalSize menuItemPreferredSize = menuItemRenderer.getPreferredSize(component);
+                int columns = checkBoxPreferredSize.getColumns() + menuItemPreferredSize.getColumns();
+                return TerminalSize.ONE.withColumns(columns);
             }
 
             @Override
             public void drawComponent(TextGUIGraphics graphics, MenuItem component) {
-                checkBox.getRenderer().drawComponent(graphics, checkBox);
+                TerminalSize checkBoxSize = checkBox.getPreferredSize();
+                TextGUIGraphics checkBoxGraphics = graphics.newTextGraphics(TOP_LEFT_CORNER, checkBoxSize);
+                drawCheckBox(checkBoxGraphics, component);
+
+                TerminalPosition topLeftCorner = TOP_LEFT_CORNER.withRelativeColumn(checkBoxSize.getColumns());
+                TerminalSize menuItemSize = graphics.getSize().withRelativeColumns(-checkBoxSize.getColumns());
+                TextGUIGraphics menuItemGraphics = graphics.newTextGraphics(topLeftCorner, menuItemSize);
+                menuItemRenderer.drawComponent(menuItemGraphics, component);
             }
 
-        };
-    }
-
-
-    private DelegatingTheme getCheckBoxTheme() {
-        return new DelegatingTheme(getTheme()) {
-
-            @Override
-            public ThemeDefinition getDefinition(Class<?> clazz) {
-                if (clazz.equals(CheckBox.class)) {
-                    return new DelegatingThemeDefinition(super.getDefinition(clazz)) {
-
-                        @Override
-                        public ThemeStyle getActive() {
-                            return new DefaultMutableThemeStyle(super.getActive()).setForeground(ANSI.DEFAULT)
-                                    .setBackground(ANSI.GREEN);
-                        }
-
-                        @Override
-                        public ThemeStyle getPreLight() {
-                            return new DefaultMutableThemeStyle(super.getActive()).setForeground(ANSI.DEFAULT)
-                                    .setBackground(ANSI.GREEN);
-                        }
-
-                        @Override
-                        public ThemeStyle getSelected() {
-                            return new DefaultMutableThemeStyle(super.getSelected()).setForeground(ANSI.WHITE)
-                                    .setBackground(ANSI.DEFAULT);
-                        }
-
-                    };
+            private void drawCheckBox(TextGUIGraphics graphics, MenuItem component) {
+                ThemeDefinition themeDefinition = component.getThemeDefinition();
+                if (component.isFocused()) {
+                    graphics.applyThemeStyle(themeDefinition.getSelected());
+                } else {
+                    graphics.applyThemeStyle(themeDefinition.getNormal());
                 }
-                return super.getDefinition(clazz);
+                graphics.fill(' ');
+                graphics.setCharacter(0, 0, themeDefinition.getCharacter("LEFT_BRACKET", '['));
+                graphics.setCharacter(2, 0, themeDefinition.getCharacter("RIGHT_BRACKET", ']'));
+                graphics.setCharacter(3, 0, ' ');
+
+                if (component.isFocused()) {
+                    ThemeDefinition checkBoxThemeDefinition = checkBox.getThemeDefinition();
+                    graphics.applyThemeStyle(checkBoxThemeDefinition.getSelected());
+                } else {
+                    graphics.applyThemeStyle(themeDefinition.getNormal());
+                }
+                graphics.setCharacter(1, 0, (isChecked() ? themeDefinition.getCharacter("MARKER", 'x') : ' '));
             }
+
         };
     }
 

@@ -5,7 +5,6 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.gui.bind.ConcealableComponent;
 import de.chrisgw.sportbooking.gui.bind.ModalField;
 import de.chrisgw.sportbooking.gui.bind.ModalForm;
@@ -27,11 +26,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
-import static com.googlecode.lanterna.gui2.GridLayout.Alignment.END;
 import static com.googlecode.lanterna.gui2.GridLayout.createHorizontallyFilledLayoutData;
-import static com.googlecode.lanterna.gui2.GridLayout.createLayoutData;
-import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
+import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.End;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newComboBoxField;
 import static de.chrisgw.sportbooking.gui.bind.ModalFieldBuilder.newTextBoxField;
@@ -58,57 +54,65 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
         this.applicationDataService.addPersonenAngabenListener(this);
         this.forceValidPersonenAngaben = forceValidPersonenAngaben;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
-        createContentPane();
+        setComponent(createContentPane());
         setPersonenAngaben(applicationDataService.getPersonenAngaben());
-        setCloseWindowWithEscape(true);
+        setCloseWindowWithEscape(!forceValidPersonenAngaben);
     }
 
 
-    private void createContentPane() {
+    private Panel createContentPane() {
         Panel contentPane = new Panel();
         contentPane.addComponent(createFormularPanel());
-        contentPane.addComponent(createLowerButtonPanel(), createLayoutData(Fill));
+        contentPane.addComponent(new EmptySpace());
+        contentPane.addComponent(createLowerButtonPanel(), createLayoutData(End));
         addWindowListener(this);
-        setComponent(contentPane);
+        return contentPane;
     }
 
 
     private Panel createFormularPanel() {
         Panel formularGridPanel = new Panel(new GridLayout(2));
+        formularGridPanel.addComponent(new Label("Bitte geben Sie die Daten des Teilnehmers ein:"),
+                createHorizontallyFilledLayoutData(2));
+        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
         newTextBoxField("vorname").addTo(modalForm).addToGrid(formularGridPanel);
         newTextBoxField("nachname").addTo(modalForm).addToGrid(formularGridPanel);
-        newComboBoxField("gender", Gender.values()).withLabel("Geschlecht")
+        newComboBoxField("gender", Gender.values()).withLabel("Geschlecht:*")
                 .addTo(modalForm)
                 .addToGrid(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
-        newTextBoxField("street").withLabel("Straße").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("street").withLabel("Straße:*").addTo(modalForm).addToGrid(formularGridPanel);
         newTextBoxField("ort").addTo(modalForm).addToGrid(formularGridPanel);
         newTextBoxField("email").addTo(modalForm).addToGrid(formularGridPanel);
-        newTextBoxField("telefon").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("telefon").withLabel("Telefon:").addTo(modalForm).addToGrid(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
         createPersonenKategorieFields(formularGridPanel);
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
-        newTextBoxField("iban").withLabel("IBAN").addTo(modalForm).addToGrid(formularGridPanel);
-        newTextBoxField("kontoInhaber").addTo(modalForm).addToGrid(formularGridPanel);
+        formularGridPanel.addComponent(new Label("Konto, zum Bezahlen des Kursentgeltes per Lastschrift:"),
+                createHorizontallyFilledLayoutData(2));
+        newTextBoxField("iban").withLabel("IBAN:*").addTo(modalForm).addToGrid(formularGridPanel);
+        newTextBoxField("kontoInhaber").withLabel("KontoInhaber:").addTo(modalForm).addToGrid(formularGridPanel);
+        formularGridPanel.addComponent(new Label("nur ändern, falls nicht mit Teilnehmer/in identisch"),
+                createHorizontallyFilledLayoutData(2));
         return formularGridPanel;
     }
 
     private void createPersonenKategorieFields(Panel formularGridPanel) {
         ComboBox<PersonKategorie> kategorieComboBox = newComboBoxField("personKategorie", PersonKategorie.values()) //
-                .withLabel("Kategorie") //
+                .withLabel("Kategorie:*") //
                 .addTo(modalForm) //
                 .addToGrid(formularGridPanel) //
                 .getInputField();
 
         ModalField<TextBox, String> matrikelnummerField = newTextBoxField("matrikelnummer") //
-                .withLabel("Matrikelnr.") //
+                .withLabel("Matrikel-Nr.:*") //
                 .addTo(modalForm);
         ModalField<TextBox, String> mitarbeiterNummerField = newTextBoxField("mitarbeiterNummer") //
-                .withLabel("Mitarbeiternr.") //
+                .withLabel("Mitarbeiternr.:*") //
                 .addTo(modalForm);
 
         ConcealableComponent label = new ConcealableComponent().addTo(formularGridPanel);
@@ -140,18 +144,12 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
     private Panel createLowerButtonPanel() {
         Panel lowerButtonPanel = new Panel();
         if (!forceValidPersonenAngaben) {
-            new Button(LocalizedString.Cancel.toString(), this::close) //
-                    .setLayoutData(createLayoutData(BEGINNING, BEGINNING, true, false)) //
-                    .addTo(lowerButtonPanel);
+            new Button(LocalizedString.Cancel.toString(), this::close).addTo(lowerButtonPanel);
         }
-        new Button("Reset", this::resetPersonenAngaben) //
-                .setLayoutData(createLayoutData(BEGINNING, BEGINNING, true, false)) //
-                .addTo(lowerButtonPanel);
-        new Button("Save", this::savePersonenAngaben) //
-                .setLayoutData(createLayoutData(END, BEGINNING, true, false)) //
-                .addTo(lowerButtonPanel);
-        lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()));
-        return lowerButtonPanel.setLayoutData(createLayoutData(Fill));
+        new Button("Reset", this::resetPersonenAngaben).addTo(lowerButtonPanel);
+        new Button("Save", this::savePersonenAngaben).addTo(lowerButtonPanel);
+        lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()).setHorizontalSpacing(1));
+        return lowerButtonPanel;
     }
 
 
@@ -200,7 +198,6 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
     public void close() {
         applicationDataService.removePersonenAngabenListener(this);
         super.close();
-
     }
 
     @Override
@@ -220,9 +217,6 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
             deliverEvent.set(false);
         } else if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'r') {
             resetPersonenAngaben();
-            deliverEvent.set(false);
-        } else if (!forceValidPersonenAngaben && KeyType.Escape.equals(keyStroke.getKeyType())) {
-            close();
             deliverEvent.set(false);
         } else {
             deliverEvent.set(true);

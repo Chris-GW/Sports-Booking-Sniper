@@ -31,41 +31,46 @@ public class SportTermin implements Comparable<SportTermin> {
     private SportTerminStatus status = SportTerminStatus.WARTELISTE;
 
 
-    public boolean hasSameStartAndEndDateTime(LocalDateTime startZeit, LocalDateTime endZeit) {
-        return this.getStartZeit().isEqual(startZeit) && this.getEndZeit().isEqual(endZeit);
+    public boolean overlapseWith(SportTermin otherSportTermin) {
+        LocalDateTime otherStartZeit = otherSportTermin.getStartZeit();
+        LocalDateTime otherEndZeit = otherSportTermin.getEndZeit();
+        return getStartZeit().isBefore(otherEndZeit) && getEndZeit().isAfter(otherStartZeit);
     }
+
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
         String sportName = getSportAngebot().getSportArt().getName();
         String kursnummer = getSportAngebot().getKursnummer();
-        String dayOfWeekStr = startZeit.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.getDefault());
-        String start = DATE_TIME_FORMATTER.format(startZeit);
-        String end = ISO_LOCAL_TIME.format(endZeit);
+        String dayOfWeekStr = getStartZeit().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.getDefault());
+        String start = DATE_TIME_FORMATTER.format(getStartZeit());
+        String end = ISO_LOCAL_TIME.format(getEndZeit());
         return String.format("%s (%s) von %s %s bis %s", sportName, kursnummer, dayOfWeekStr, start, end);
     }
 
+
     public SportTerminStatus getStatus() {
-        if (getStartZeit() != null && LocalDateTime.now().isAfter(getStartZeit())) {
-            return SportTerminStatus.ABGELAUFEN;
+        if (getBuchungsBeginn() != null && LocalDateTime.now().isBefore(getBuchungsBeginn())) {
+            setStatus(SportTerminStatus.GESCHLOSSEN);
+        } else if (getStartZeit() != null && LocalDateTime.now().isAfter(getStartZeit())) {
+            setStatus(SportTerminStatus.ABGELAUFEN);
         }
         return status;
+    }
+
+    public boolean hasStatus(SportTerminStatus terminStatus) {
+        return getStatus().equals(terminStatus);
     }
 
 
     @JsonIgnore
     public LocalDate getTerminDate() {
-        return startZeit.toLocalDate();
+        return getStartZeit().toLocalDate();
     }
 
     @JsonIgnore
     public Duration getDuration() {
-        return Duration.between(startZeit, endZeit);
-    }
-
-
-    public boolean hasStatus(SportTerminStatus terminStatus) {
-        return this.getStatus().equals(terminStatus);
+        return Duration.between(getStartZeit(), getEndZeit());
     }
 
 
@@ -83,7 +88,7 @@ public class SportTermin implements Comparable<SportTermin> {
     }
 
     public enum SportTerminStatus {
-        OFFEN, WARTELISTE, GESCHLOSSEN, ABGELAUFEN
+        GESCHLOSSEN, OFFEN, WARTELISTE, ABGELAUFEN
     }
 
 }

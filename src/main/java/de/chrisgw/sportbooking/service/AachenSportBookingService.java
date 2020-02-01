@@ -78,17 +78,10 @@ public class AachenSportBookingService implements SportBookingService {
             log.trace("fetchSportAngebote() GET response document:\n{}", doc);
 
             Element sportBuchungsForm = doc.select("#bs_content form").first();
-            Element bsCodeInputElement = sportBuchungsForm.select("input[name=BS_Code]").first();
-            String bsCode = bsCodeInputElement.attr("value");
 
             for (Element sportTerminRow : sportBuchungsForm.select("table.bs_kurse tbody tr")) {
                 SportAngebot sportAngebot = createSportAngebotOf(sportTerminRow);
-                if (sportAngebot == null) {
-                    continue;
-                }
                 sportAngebot.setSportArt(sportArt);
-                sportAngebot.setBsCode(bsCode);
-                sportAngebot.setUrl(sportArt.getUrl());
                 sportAngebote.add(sportAngebot);
             }
             return sportAngebote;
@@ -101,25 +94,21 @@ public class AachenSportBookingService implements SportBookingService {
         SportAngebot sportAngebot = new SportAngebot();
         String kursnr = tableRow.child(0).text();
         String details = tableRow.child(1).text();
+        boolean einzelterminBuchung = details.equalsIgnoreCase("Ein Termin");
 
         String tag = tableRow.child(2).text();
         String zeit = tableRow.child(3).text();
         String ort = tableRow.child(4).text();
 
-        Element zeitraumTd = tableRow.child(5);
-        String kursinfoUrl = zeitraumTd.select("a").first().attr("abs:href");
-        sportAngebot.setKursinfoUrl(kursinfoUrl);
-
+        String kursinfoUrl = tableRow.child(5).select("a").first().attr("abs:href");
         String leitung = tableRow.child(6).text();
-        String preis = tableRow.child(7).text();
-        String buchung = tableRow.child(8).text();
 
         sportAngebot.setKursnummer(kursnr);
         sportAngebot.setDetails(details + " am " + tag + " von " + zeit);
-
+        sportAngebot.setEinzelterminBuchung(einzelterminBuchung);
         sportAngebot.setOrt(ort);
+        sportAngebot.setKursinfoUrl(kursinfoUrl);
         sportAngebot.setLeitung(leitung);
-        sportAngebot.setBsKursid(selectBsKursId(tableRow));
         sportAngebot.setPreis(readSportAngebotPreis(tableRow));
 
         sportAngebot.setSportTermine(new SportAngebotLazyTerminLoader(this, sportAngebot));
@@ -127,40 +116,54 @@ public class AachenSportBookingService implements SportBookingService {
     }
 
     private SportAngebotPreis readSportAngebotPreis(Element tableRow) {
-        Elements preisForKategorie = tableRow.select(".bs_tt1, .bs_tt2");
-        Pattern preisPattern = Pattern.compile("\\d+(,\\d+)?");
+        Elements preisForKategorie = tableRow.select(".bs_spreis .bs_tt1, .bs_spreis .bs_tt2");
 
-        long[] preis = new long[4];
-        for (int i = 0; i < preisForKategorie.size(); i++) {
+        long preisStudierende = 0, preisMitarbeiter = 0, preisExterne = 0, prei1sAlumni = 0;
+        for (int i = 0; i < preisForKategorie.size() - 1; i += 2) {
             String preisText = preisForKategorie.get(i).text();
-            Matcher preisMatcher = preisPattern.matcher(preisText);
-            if (preisMatcher.find()) {
-                // FIXME readSportAngebotPreis
-                preis[i] = Math.round(Double.parseDouble(preisMatcher.group(1)) * 100);
+            String preisKategorieText = preisForKategorie.get(i + 1).text();
+            long preis = parsePreis(preisText);
+
+            switch (preisKategorieText) {
+            case "für Studierende":
+                preisStudierende = preis;
+                break;
+            case "für Beschäftigte":
+                preisMitarbeiter = preis;
+                break;
+            case "für Externe":
+                preisExterne = preis;
+                break;
+            case "für Alumni":
+                prei1sAlumni = preis;
+                break;
+            default:
+                throw new IllegalArgumentException("unexpected preis kategorie text: " + preisKategorieText);
             }
         }
-        return new SportAngebotPreis(preis[0], preis[1], preis[2], preis[3]);
+        return new SportAngebotPreis(preisStudierende, preisMitarbeiter, preisExterne, prei1sAlumni);
     }
 
-    private String selectBsKursId(Element tableRow) {
-        Element bsKursIdInput = tableRow.select("input[type='submit']").first();
-        if (bsKursIdInput != null) {
-            return bsKursIdInput.attr("name");
+    private long parsePreis(String preisText) {
+        Pattern preisPattern = Pattern.compile("(?<preis>\\d+(,\\d+)?)\\s+EUR");
+        Matcher preisMatcher = preisPattern.matcher(preisText);
+        if (preisMatcher.matches()) {
+            String preisStr = preisMatcher.group("preis");
+            return Math.round(Double.parseDouble(preisStr) * 100);
+        } else {
+            throw new IllegalArgumentException("expect preis to match '" + preisMatcher + "', but was: " + preisText);
         }
-        return null;
     }
 
 
     @Override
     public Set<SportTermin> fetchSportTermine(SportAngebot sportAngebot) {
         try {
-            Set<SportTermin> sportTermine = new LinkedHashSet<>(20);
+            Set<SportTermin> sportTermine = new LinkedHashSet<>();
 
-            log.debug("fetchSportTermine() GET {}", sportAngebot.getKursinfoUrl());
-            Document doc = Jsoup.connect(sportAngebot.getKursinfoUrl())
-                    .timeout(8 * 1000)
-                    .referrer(sportAngebot.getUrl())
-                    .get();
+            String kursinfoUrl = sportAngebot.getKursinfoUrl();
+            log.debug("fetchSportTermine() GET {}", kursinfoUrl);
+            Document doc = Jsoup.connect(kursinfoUrl).timeout(8 * 1000).get();
             log.trace("fetchSportTermine() GET response document:\n{}", doc);
 
             for (Element terminTr : doc.select("#main #bs_content table tbody tr")) {
@@ -207,7 +210,9 @@ public class AachenSportBookingService implements SportBookingService {
             driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
             log.debug("verbindlichBuchen() for {} with driver={}", sportBuchungsJob, driver);
             // navigate to SportAngebot page
-            driver.get(sportTermin.getSportAngebot().getUrl());
+            SportAngebot sportAngebot = sportTermin.getSportAngebot();
+            SportArt sportArt = sportAngebot.getSportArt();
+            driver.get(sportArt.getUrl());
             boolean isBuchbarerSportTermin =
                     clickOntoSportAngebot(driver, sportTermin) && clickOntoSportTermin(driver, sportTermin);
             if (!isBuchbarerSportTermin) {

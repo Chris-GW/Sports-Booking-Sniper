@@ -118,11 +118,7 @@ public class SportBookingApplicationTest {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setBsCode("bs_" + sportArt.getName());
         sportAngebot.setKursnummer("1234");
-        sportAngebot.setBsKursid("bs_1234");
-        sportAngebot.setUrl("http://www.badminton.de/" + sportAngebot.getKursnummer());
-
         sportAngebot.setDetails("Angebot Montags");
         sportAngebot.setLeitung("Leitung Montags");
         sportAngebot.setOrt("Ort Montags");
@@ -135,11 +131,7 @@ public class SportBookingApplicationTest {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setBsCode("bs_" + sportArt.getName());
         sportAngebot.setKursnummer("6412");
-        sportAngebot.setBsKursid("bs_6412");
-        sportAngebot.setUrl("http://www.badminton.de/" + sportAngebot.getKursnummer());
-
         sportAngebot.setDetails("Angebot Freitags");
         sportAngebot.setLeitung("Leitung Freitags");
         sportAngebot.setOrt("Ort Freitags");

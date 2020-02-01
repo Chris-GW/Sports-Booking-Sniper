@@ -41,11 +41,7 @@ public class SportBookingModelTestUtil {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setBsCode("bs_" + sportArt.getName());
         sportAngebot.setKursnummer("1234");
-        sportAngebot.setBsKursid("bs_1234");
-        sportAngebot.setUrl("http://www.badminton.de/" + sportAngebot.getKursnummer());
-
         sportAngebot.setDetails("Angebot Montags");
         sportAngebot.setLeitung("Leitung Montags");
         sportAngebot.setOrt("Ort Montags");
@@ -58,11 +54,7 @@ public class SportBookingModelTestUtil {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setBsCode("bs_" + sportArt.getName());
         sportAngebot.setKursnummer("6412");
-        sportAngebot.setBsKursid("bs_6412");
-        sportAngebot.setUrl("http://www.badminton.de/" + sportAngebot.getKursnummer());
-
         sportAngebot.setDetails("Angebot Freitags");
         sportAngebot.setLeitung("Leitung Freitags");
         sportAngebot.setOrt("Ort Freitags");
@@ -76,11 +68,7 @@ public class SportBookingModelTestUtil {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setBsCode("bs_" + sportArt.getName());
         sportAngebot.setKursnummer("8931");
-        sportAngebot.setBsKursid("bs_8931");
-        sportAngebot.setUrl("http://www.badminton.de/" + sportAngebot.getKursnummer() + "/lazy");
-
         sportAngebot.setDetails("Angebot Lazy ");
         sportAngebot.setLeitung("Leitung Lazy ");
         sportAngebot.setOrt("Ort Lazy ");

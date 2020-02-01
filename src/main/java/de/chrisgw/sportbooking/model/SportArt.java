@@ -16,14 +16,13 @@ public class SportArt implements Comparable<SportArt> {
     private final String url;
 
     @EqualsAndHashCode.Exclude
-    private Set<SportAngebot> sportAngebote;
+    private Set<SportAngebot> sportAngebote = new LinkedHashSet<>();
 
 
     @JsonCreator
     public SportArt(@JsonProperty("name") String name, @JsonProperty("url") String url) {
         this.name = name;
         this.url = url;
-        this.sportAngebote = new TreeSet<>();
     }
 
 

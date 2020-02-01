@@ -26,16 +26,12 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private String details;
     private String ort;
     private String leitung;
-
+    private boolean einzelterminBuchung;
     private SportAngebotPreis preis = new SportAngebotPreis();
-
-    private String url;
-    private String bsCode;
-    private String bsKursid;
     private String kursinfoUrl;
 
     @EqualsAndHashCode.Exclude
-    private Set<SportTermin> sportTermine = new TreeSet<>();
+    private Set<SportTermin> sportTermine = new LinkedHashSet<>();
 
 
     public boolean isPaymentRequierd() {
@@ -53,6 +49,10 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
     public Optional<SportTermin> findByDate(LocalDate terminDate) {
         return sportTermine.stream().filter(sportTermin -> sportTermin.getTerminDate().equals(terminDate)).findFirst();
+    }
+
+    public SportTermin firstSportTermin() {
+        return sportTermine.stream().sorted().findFirst().orElse(null);
     }
 
 
@@ -94,7 +94,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
     @Override
     public String toString() {
-        return getName() + " " + getDetails();
+        return String.format("(%s) %s", getKursnummer(), getDetails());
     }
 
 }

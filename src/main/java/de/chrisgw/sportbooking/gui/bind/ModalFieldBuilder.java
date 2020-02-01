@@ -25,7 +25,8 @@ public final class ModalFieldBuilder<I extends Interactable, T> {
 
     private ModalFieldBuilder(String propertyName) {
         this.propertyName = propertyName;
-        withLabel(StringUtils.capitalize(propertyName));
+        String defaultLabelText = StringUtils.capitalize(propertyName) + ":*";
+        withLabel(defaultLabelText);
     }
 
 
