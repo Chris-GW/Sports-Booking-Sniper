@@ -22,9 +22,9 @@
   <logger name="org.springframework" level="WARN"/>
   <logger name="com.gargoylesoftware.htmlunit.DefaultCssErrorHandler" level="ERROR"/>
 
-  <logger name="de.vhrisgw.sportbooking" level="INFO"/>
+  <logger name="de.chrisgw.sportbooking" level="INFO"/>
   <logger name="de.chrisgw.sportbooking.gui" level="DEBUG"/>
-  <logger name="de.vhrisgw.sportbooking.SportBookingApplication" level="INFO"/>
-  <logger name="de.vhrisgw.sportbooking.service.SportBookingSniperService" level="DEBUG"/>
-  <logger name="de.vhrisgw.sportbooking.service.AachenSportBookingService" level="DEBUG"/>
+  <logger name="de.chrisgw.sportbooking.SportBookingApplication" level="INFO"/>
+  <logger name="de.chrisgw.sportbooking.service.SportBookingSniperService" level="DEBUG"/>
+  <logger name="de.chrisgw.sportbooking.service.AachenSportBookingService" level="DEBUG"/>
 </configuration>

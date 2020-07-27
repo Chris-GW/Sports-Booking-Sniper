@@ -30,6 +30,7 @@ public class SportBuchungDialog extends DialogWindow {
 
     private ComboBox<SportArt> sportArtComboBox;
     private ComboBox<SportAngebot> sportAngebotComboBox;
+    private ComboBox<Object> terminComboBox;
 
 
     public SportBuchungDialog(SportBookingService sportBookingService) {
@@ -55,28 +56,55 @@ public class SportBuchungDialog extends DialogWindow {
                 createHorizontallyFilledLayoutData(2));
         formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
+        addSportArtComboBox(formularGridPanel);
+        addSportAngebotComboBox(formularGridPanel);
+        addTerminComboBox(formularGridPanel);
+        return formularGridPanel;
+    }
+
+
+    private void addSportArtComboBox(Panel formularGridPanel) {
         new Label("SportArt:*").addTo(formularGridPanel);
         SportKatalog sportKatalog = sportBookingService.loadSportKatalog();
-        this.sportArtComboBox = new SportArtComboBox(sportKatalog).addListener(onSelectSportArt())
+        this.sportArtComboBox = new SearchableComboBox<>(sportKatalog.getSportArten()) //
+                .addListener(onSelectSportArt()) //
                 .addTo(formularGridPanel);
-
-        new Label("SportAngebot:*").addTo(formularGridPanel);
-        sportAngebotComboBox = new ComboBox<>();
-        sportAngebotComboBox.setDropDownNumberOfRows(19);
-        sportAngebotComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(1)).addTo(formularGridPanel);
-
-        // TODO sportTermin ComboBox
-        new Label("SportTermin:*").addTo(formularGridPanel);
-        new TextBox().setLayoutData(GridLayout.createHorizontallyFilledLayoutData(1)).addTo(formularGridPanel);
-        return formularGridPanel;
     }
 
     private Listener onSelectSportArt() {
         return (selectedIndex, previousSelection) -> {
             SportArt sportArt = sportArtComboBox.getSelectedItem();
+            sportAngebotComboBox.setEnabled(true);
             sportAngebotComboBox.clearItems();
-            sportArt.getSportAngebote().forEach(sportAngebotComboBox::addItem);
+            sportArt.upcomingSportAngebote().forEach(sportAngebotComboBox::addItem);
         };
+    }
+
+    private void addSportAngebotComboBox(Panel formularGridPanel) {
+        new Label("SportAngebot:*").addTo(formularGridPanel);
+        sportAngebotComboBox = new SearchableComboBox<>();
+        sportAngebotComboBox.setEnabled(false);
+        sportAngebotComboBox.setDropDownNumberOfRows(19);
+        sportAngebotComboBox.addListener(onSelectSportAngebot());
+        sportAngebotComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(1)).addTo(formularGridPanel);
+    }
+
+    private Listener onSelectSportAngebot() {
+        return (selectedIndex, previousSelection) -> {
+            SportAngebot sportAngebot = sportAngebotComboBox.getSelectedItem();
+            terminComboBox.setEnabled(true);
+            terminComboBox.clearItems();
+            sportAngebot.upcomingSportTermine().forEachOrdered(terminComboBox::addItem);
+        };
+    }
+
+
+    private void addTerminComboBox(Panel formularGridPanel) {
+        new Label("SportTermin:*").addTo(formularGridPanel);
+        terminComboBox = new ComboBox<>();
+        terminComboBox.setEnabled(false);
+        terminComboBox.setDropDownNumberOfRows(18);
+        terminComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData(1)).addTo(formularGridPanel);
     }
 
 

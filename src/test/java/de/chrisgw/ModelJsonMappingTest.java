@@ -27,6 +27,8 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.*;
+import static de.chrisgw.sportbooking.model.SportBookingModelTestUtil.createFreitagsSportAngebot;
+import static de.chrisgw.sportbooking.model.SportBookingModelTestUtil.createMontagsSportAngebot;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -40,6 +42,7 @@ public class ModelJsonMappingTest {
     private PersonenAngaben personenAngaben;
     private SportKatalog sportKatalog;
 
+    private Semester semester;
     private SportArt badminton;
     private SportArt volleyball;
 
@@ -51,13 +54,14 @@ public class ModelJsonMappingTest {
         personenAngaben = SportBookingModelTestUtil.createPersonenAngaben();
         sportKatalog = new SportKatalog();
 
-        badminton = new SportArt("Badminton", "http://www.badminton.de");
-        badminton.addSportAngebot(SportBookingModelTestUtil.createMontagsSportAngebot(badminton));
-        badminton.addSportAngebot(SportBookingModelTestUtil.createFreitagsSportAngebot(badminton));
+        semester = Semester.newSommerSemester(2018);
+        badminton = new SportArt("Badminton", semester, "http://www.badminton.de");
+        badminton.addSportAngebot(createMontagsSportAngebot(badminton));
+        badminton.addSportAngebot(createFreitagsSportAngebot(badminton));
         sportKatalog.addSportArt(badminton);
 
-        volleyball = new SportArt("Volleyball", "http://www.volleyball.de");
-        volleyball.addSportAngebot(SportBookingModelTestUtil.createFreitagsSportAngebot(volleyball));
+        volleyball = new SportArt("Volleyball", semester, "http://www.volleyball.de");
+        volleyball.addSportAngebot(createFreitagsSportAngebot(volleyball));
         sportKatalog.addSportArt(volleyball);
     }
 

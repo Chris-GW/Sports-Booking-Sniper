@@ -4,48 +4,45 @@ import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.ComboBox.Listener;
 import com.googlecode.lanterna.gui2.LinearLayout.Alignment;
 import com.googlecode.lanterna.input.KeyStroke;
-import de.chrisgw.sportbooking.model.SportArt;
-import de.chrisgw.sportbooking.model.SportKatalog;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.requireNonNull;
 
-public class SportArtComboBox extends ComboBox<SportArt> implements Listener {
 
+public class SearchableComboBox<V> extends ComboBox<V> {
+
+    private Function<V, String> itemToString;
     private SearchablePopupWindow popupWindow;
 
-    public SportArtComboBox() {
-        super("", Collections.emptyList());
-        this.popupWindow = null;
-        setReadOnly(true);
-        setDropDownNumberOfRows(20);
-        addListener(this);
+
+    public SearchableComboBox(V... items) {
+        this(Arrays.asList(items));
     }
 
-    public SportArtComboBox(SportKatalog sportKatalog) {
-        super("", sportKatalog.getSportArten());
-        this.popupWindow = null;
-        setReadOnly(true);
-        setDropDownNumberOfRows(20);
-        addListener(this);
+
+    public SearchableComboBox(Collection<V> items) {
+        this("", items);
     }
 
-    public SportArtComboBox withKatalog(SportKatalog sportKatalog) {
-        sportKatalog.getSportArten().forEach(this::addItem);
+    public SearchableComboBox(String initialText, Collection<V> items) {
+        super(initialText, items);
+        this.popupWindow = null;
+        this.itemToString = Objects::toString;
+        setReadOnly(true);
+        setDropDownNumberOfRows(20);
+    }
+
+
+    public SearchableComboBox<V> setItemToString(Function<V, String> itemToString) {
+        this.itemToString = requireNonNull(itemToString);
         return this;
-    }
-
-
-    @Override
-    public void onSelectionChanged(int selectedIndex, int previousSelection) {
-        if (selectedIndex == 0) {
-
-        }
     }
 
 
@@ -60,6 +57,7 @@ public class SportArtComboBox extends ComboBox<SportArt> implements Listener {
 
     @Override
     public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
+        // need to use custom PopupWindow
         switch (keyStroke.getKeyType()) {
         case Insert:
         case Delete:
@@ -144,11 +142,11 @@ public class SportArtComboBox extends ComboBox<SportArt> implements Listener {
         }
 
         private ActionListBox createItemActionListBox() {
-            ActionListBox listBox = new ActionListBox(SportArtComboBox.this.getSize().withRows(getItemCount()));
+            ActionListBox listBox = new ActionListBox(SearchableComboBox.this.getSize().withRows(getItemCount()));
             for (int i = 0; i < getItemCount(); i++) {
-                SportArt item = getItem(i);
+                V item = getItem(i);
                 final int index = i;
-                listBox.addItem(item.toString(), () -> {
+                listBox.addItem(itemToString.apply(item), () -> {
                     setSelectedIndex(index);
                     close();
                 });
@@ -168,12 +166,12 @@ public class SportArtComboBox extends ComboBox<SportArt> implements Listener {
                 String searchText = text.substring("Search: ".length()).toLowerCase();
                 listBox.clearItems();
                 for (int i = 0; i < getItemCount(); i++) {
-                    SportArt item = getItem(i);
-                    if (!item.getName().toLowerCase().contains(searchText)) {
+                    V item = getItem(i);
+                    if (!itemToString.apply(item).toLowerCase().contains(searchText)) {
                         continue;
                     }
                     final int index = i;
-                    listBox.addItem(item.toString(), () -> {
+                    listBox.addItem(itemToString.apply(item), () -> {
                         setSelectedIndex(index);
                         close();
                     });
@@ -183,7 +181,7 @@ public class SportArtComboBox extends ComboBox<SportArt> implements Listener {
 
         @Override
         public synchronized Theme getTheme() {
-            return SportArtComboBox.this.getTheme();
+            return SearchableComboBox.this.getTheme();
         }
 
     }

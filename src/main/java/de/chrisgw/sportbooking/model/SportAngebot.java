@@ -12,8 +12,11 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 
 @Data
@@ -29,9 +32,21 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private boolean einzelterminBuchung;
     private SportAngebotPreis preis = new SportAngebotPreis();
     private String kursinfoUrl;
+    private LocalDate zeitraumStart;
+    private LocalDate zeitraumEnde;
 
     @EqualsAndHashCode.Exclude
     private Set<SportTermin> sportTermine = new LinkedHashSet<>();
+
+
+    public boolean isUpcoming() {
+        return !LocalDate.now().isAfter(zeitraumEnde);
+    }
+
+    public boolean isAktuell() {
+        LocalDate now = LocalDate.now();
+        return !(now.isBefore(zeitraumStart) || now.isAfter(zeitraumEnde));
+    }
 
 
     public boolean isPaymentRequierd() {
@@ -51,17 +66,12 @@ public class SportAngebot implements Comparable<SportAngebot> {
         return sportTermine.stream().filter(sportTermin -> sportTermin.getTerminDate().equals(terminDate)).findFirst();
     }
 
-    public SportTermin firstSportTermin() {
-        return sportTermine.stream().sorted().findFirst().orElse(null);
-    }
-
 
     @JsonIgnore
-    public List<SportTermin> getUpcomingSportTermine() {
-        return sportTermine.stream()
+    public Stream<SportTermin> upcomingSportTermine() {
+        return getSportTermine().stream()
                 .filter(sportTermin -> sportTermin.getStartZeit().isAfter(LocalDateTime.now()))
-                .sorted()
-                .collect(Collectors.toList());
+                .sorted();
     }
 
     public void addSportTermin(SportTermin sportTermin) {

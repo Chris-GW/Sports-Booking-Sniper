@@ -46,6 +46,8 @@ public class SportBookingModelTestUtil {
         sportAngebot.setLeitung("Leitung Montags");
         sportAngebot.setOrt("Ort Montags");
         sportAngebot.setPreis(new SportAngebotPreis(2500));
+        sportAngebot.setZeitraumStart(LocalDate.of(2018,4,21));
+        sportAngebot.setZeitraumEnde(LocalDate.of(2018,5,21));
         sportAngebot.setSportTermine(createSportTermine(sportAngebot, LocalDate.of(2016, 10, 24)));
         return sportAngebot;
     }
@@ -59,6 +61,8 @@ public class SportBookingModelTestUtil {
         sportAngebot.setLeitung("Leitung Freitags");
         sportAngebot.setOrt("Ort Freitags");
         sportAngebot.setPreis(new SportAngebotPreis(1500));
+        sportAngebot.setZeitraumStart(LocalDate.of(2018,4,21));
+        sportAngebot.setZeitraumEnde(LocalDate.of(2018,5,21));
         sportAngebot.setSportTermine(createSportTermine(sportAngebot, LocalDate.of(2016, 10, 21)));
         return sportAngebot;
     }
@@ -72,6 +76,8 @@ public class SportBookingModelTestUtil {
         sportAngebot.setDetails("Angebot Lazy ");
         sportAngebot.setLeitung("Leitung Lazy ");
         sportAngebot.setOrt("Ort Lazy ");
+        sportAngebot.setZeitraumStart(LocalDate.of(2018,4,21));
+        sportAngebot.setZeitraumEnde(LocalDate.of(2018,5,21));
         sportAngebot.setPreis(new SportAngebotPreis(1505));
 
         SportBookingService sportBookingService = Mockito.mock(SportBookingService.class);
@@ -84,7 +90,8 @@ public class SportBookingModelTestUtil {
     }
 
     public static SportArt createLazySportArt() {
-        SportArt sportArt = new SportArt("Handball", "http://www.handball.de");
+        Semester semester = Semester.newSommerSemester(2018);
+        SportArt sportArt = new SportArt("Handball", semester, "http://www.handball.de");
 
         SportBookingService sportBookingService = Mockito.mock(SportBookingService.class);
         Set<Object> sportAngebote = new HashSet<>();

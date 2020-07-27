@@ -13,19 +13,19 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <spring-version.version>5.2.2.RELEASE</spring-version.version>
-    <lanterna.version>3.1.0-alpha1</lanterna.version>
-    <jsoup.version>1.12.1</jsoup.version>
+    <spring-version.version>5.2.8.RELEASE</spring-version.version>
+    <lanterna.version>3.1.0-beta2</lanterna.version>
+    <jsoup.version>1.13.1</jsoup.version>
     <selenium.version>2.52.0</selenium.version>
     <cglib.version>3.3.0</cglib.version>
-    <commons-lang3.version>3.9</commons-lang3.version>
+    <commons-lang3.version>3.11</commons-lang3.version>
     <logback-classic.version>1.2.3</logback-classic.version>
-    <lombok.version>1.18.10</lombok.version>
+    <lombok.version>1.18.12</lombok.version>
     <mockito-core.version>3.2.4</mockito-core.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13</junit.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <jackson.version>2.10.2</jackson.version>
-    <json-path-assert.version>2.2.0</json-path-assert.version>
+    <jackson.version>2.11.1</jackson.version>
+    <json-path-assert.version>2.4.0</json-path-assert.version>
   </properties>
 
   <dependencies>
@@ -130,7 +130,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <phase>package</phase>

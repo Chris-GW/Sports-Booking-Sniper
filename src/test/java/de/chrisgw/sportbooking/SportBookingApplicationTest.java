@@ -39,7 +39,9 @@ public class SportBookingApplicationTest {
             System.setProperty("webdriver.chrome.driver", "C:\\01_Programmieren\\chromedriver.exe");
 
             SportAngebot sportAngebot = testApplication.findSportAngebot(SPORT_ART, KURSNUMMER);
-            SportTermin sportTermin = sportAngebot.getUpcomingSportTermine().get(0);
+            SportTermin sportTermin = sportAngebot.upcomingSportTermine()
+                    .findFirst()
+                    .orElseThrow(RuntimeException::new);
             testApplication.bucheSportTermin(sportTermin);
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,8 +88,7 @@ public class SportBookingApplicationTest {
 
 
     private PersonenAngaben readPersonenAngaben() {
-        ApplicationStateDao applicationStateDao = applicationContext.getBean(
-                ApplicationStateDao.class);
+        ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
         return applicationStateDao.getPersonenAngaben();
     }
 

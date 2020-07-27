@@ -4,7 +4,13 @@ import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
 
 
 @Data
@@ -13,6 +19,7 @@ import java.util.*;
 public class SportArt implements Comparable<SportArt> {
 
     private final String name;
+    private final Semester semester;
     private final String url;
 
     @EqualsAndHashCode.Exclude
@@ -20,9 +27,16 @@ public class SportArt implements Comparable<SportArt> {
 
 
     @JsonCreator
-    public SportArt(@JsonProperty("name") String name, @JsonProperty("url") String url) {
-        this.name = name;
-        this.url = url;
+    public SportArt(@JsonProperty("name") String name, @JsonProperty("semester") Semester semester,
+            @JsonProperty("url") String url) {
+        this.name = requireNonNull(name);
+        this.semester = requireNonNull(semester);
+        this.url = requireNonNull(url);
+    }
+
+
+    public Stream<SportAngebot> upcomingSportAngebote() {
+        return sportAngebote.stream().filter(SportAngebot::isUpcoming);
     }
 
 
@@ -30,8 +44,9 @@ public class SportArt implements Comparable<SportArt> {
         return sportAngebote.stream().filter(sportAngebot -> sportAngebot.getKursnummer().equals(kursnummer)).findAny();
     }
 
+
     public void addSportAngebot(SportAngebot sportAngebot) {
-        Objects.requireNonNull(sportAngebot).setSportArt(this);
+        requireNonNull(sportAngebot).setSportArt(this);
         this.sportAngebote.add(sportAngebot);
     }
 
