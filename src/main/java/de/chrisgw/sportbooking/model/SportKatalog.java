@@ -1,60 +1,51 @@
 package de.chrisgw.sportbooking.model;
 
 
+import lombok.Data;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
 
-public class SportKatalog {
+@Data
+public class SportKatalog implements Iterable<SportArt> {
 
-    private LocalDateTime uhrzeitAberufen = LocalDateTime.now();
-
+    private String katalog;
+    private LocalDate zeitraumStart;
+    private LocalDate zeitraumEnde;
+    private LocalDateTime abrufzeitpunkt = LocalDateTime.now();
     private Set<SportArt> sportArten = new TreeSet<>();
-
-
-    public SportKatalog() {
-
-    }
 
 
     public Optional<SportArt> findSportArtByName(String name) {
         return getSportArten().stream().filter(sportArt -> sportArt.getName().equalsIgnoreCase(name)).findFirst();
     }
 
-
-    public Set<SportArt> getSportArten() {
-        return sportArten;
-    }
-
-    public void setSportArten(Set<SportArt> sportArten) {
-        this.sportArten = Objects.requireNonNull(sportArten);
-    }
-
-    public void addSportArt(SportArt sportArt) {
-        this.sportArten.add(Objects.requireNonNull(sportArt));
-    }
-
-    public void addAllSportArten(Collection<? extends SportArt> collection) {
-        collection.forEach(this::addSportArt);
+    public boolean isInZeitraum(LocalDate localDate) {
+        return !(localDate.isBefore(zeitraumStart) || localDate.isAfter(zeitraumEnde));
     }
 
 
-    public LocalDateTime getUhrzeitAberufen() {
-        return uhrzeitAberufen;
+    public boolean addSportArt(SportArt sportArt) {
+        Objects.requireNonNull(sportArt).setSportKatalog(this);
+        return sportArten.add(sportArt);
     }
 
-    public void setUhrzeitAberufen(LocalDateTime uhrzeitAberufen) {
-        this.uhrzeitAberufen = uhrzeitAberufen;
+
+    @Override
+    public Iterator<SportArt> iterator() {
+        return sportArten.iterator();
     }
 
 
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder("SportKatalog von: ").append(uhrzeitAberufen).append("\n");
+        StringBuilder str = new StringBuilder();
+        str.append(katalog).append(" (").append(abrufzeitpunkt).append(")\n");
         for (SportArt sportArt : sportArten) {
             str.append(sportArt).append("\n");
         }
         return str.deleteCharAt(str.length() - 1).toString();
     }
-
 }

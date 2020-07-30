@@ -3,266 +3,34 @@ package de.chrisgw.sportbooking.service;
 import de.chrisgw.sportbooking.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
-import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.ui.Select;
+import org.springframework.stereotype.Service;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Integer.parseInt;
-
 
 @Slf4j
+@Service
 public class AachenSportBookingService implements SportBookingService {
 
-    public static final String SPORT_KATALOG_URL = "http://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/index.html";
-
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    private final Pattern SPORT_ANGEBOT_ZEITRAUM_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.-(\\d+)\\.(\\d+)\\.");
-
 
     @Override
-    public SportKatalog loadSportKatalog() {
-        SportKatalog sportKatalog = new SportKatalog();
-        sportKatalog.addAllSportArten(loadSportArten());
-        return sportKatalog;
-    }
-
-    private Set<SportArt> loadSportArten() {
-        try {
-            log.debug("loadSportArten() GET {}", SPORT_KATALOG_URL);
-            Set<SportArt> sportArten = new HashSet<>(200);
-            Document doc = Jsoup.connect(SPORT_KATALOG_URL).timeout(8 * 1000).get();
-            log.trace("loadSportArten() GET response document:\n{}", doc);
-            Elements sportLinkList = doc.select("div#bs_content dl.bs_menu dd a[href]");
-            Semester semester = readSemester(doc);
-            for (Element sportLink : sportLinkList) {
-                sportArten.add(createSportArtOfLink(semester, sportLink));
-            }
-            return sportArten;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not loadSportArten", e);
-        }
-    }
-
-    private Semester readSemester(Document doc) {
-        Pattern semesterPattern = Pattern.compile(
-                "(Sommersemester|Wintersemester) (\\d+|\\d+/\\d+) \\((\\d+\\.\\d+\\.\\d+)-(\\d+\\.\\d+\\.\\d+)\\)");
-        // Sommersemester 2019 (01.04.2019-06.10.2019)
-        // Wintersemester 2019/20 (07.10.2019-05.04.2020)
-        String semesterStr = doc.getElementById("bs_top").text();
-        Matcher semesterMatcher = semesterPattern.matcher(semesterStr);
-        if (semesterMatcher.matches()) {
-            if ("Sommersemester".equals(semesterMatcher.group(1))) {
-                int year = Integer.parseInt(semesterMatcher.group(2));
-                return Semester.newSommerSemester(year);
-            } else {
-                String[] wsSemesterYearSplit = semesterMatcher.group(2).split("/");
-                int year = Integer.parseInt(wsSemesterYearSplit[0]);
-                return Semester.newWinterSemester(year);
-            }
-        } else {
-            throw new IllegalArgumentException(
-                    "Expect Semester to match '" + semesterPattern + "' but was: " + semesterStr);
-        }
-    }
-
-    private SportArt createSportArtOfLink(Semester semester, Element sportLink) throws MalformedURLException {
-        String sportName = sportLink.text();
-        String sportUrlStr = sportLink.attr("href");
-        URL sportUrl = new URL(new URL(SPORT_KATALOG_URL), sportUrlStr);
-
-        SportArt sportArt = new SportArt(sportName, semester, sportUrl.toString());
-        sportArt.setSportAngebote(new SportArtLazyAngebotLoader(this, sportArt));
-        return sportArt;
-    }
-
-
-    @Override
-    public Set<SportAngebot> fetchSportAngebote(SportArt sportArt) {
-        try {
-            Set<SportAngebot> sportAngebote = new TreeSet<>();
-            log.debug("fetchSportAngebote() GET {}", sportArt.getUrl());
-            Document doc = Jsoup.connect(sportArt.getUrl()).timeout(8 * 1000).get();
-            log.trace("fetchSportAngebote() GET response document:\n{}", doc);
-
-            Element sportBuchungsForm = doc.select("#bs_content form").first();
-
-            for (Element sportTerminRow : sportBuchungsForm.select("table.bs_kurse tbody tr")) {
-                SportAngebot sportAngebot = createSportAngebotOf(sportTerminRow);
-                sportAngebot.setSportArt(sportArt);
-                sportAngebote.add(sportAngebot);
-            }
-            return sportAngebote;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not fetchSportAngebote", e);
-        }
-    }
-
-    private SportAngebot createSportAngebotOf(Element tableRow) {
-        SportAngebot sportAngebot = new SportAngebot();
-        String kursnr = tableRow.child(0).text();
-        String details = tableRow.child(1).text();
-        boolean einzelterminBuchung = details.equalsIgnoreCase("Ein Termin");
-        Set<String> bodyClassNames = tableRow.parents().select("body").first().classNames();
-        Optional<String> wintersemester = bodyClassNames.stream()
-                .filter(className -> className.startsWith("bs_wintersemester_"))
-                .findAny();
-        System.out.println(wintersemester);
-
-        // only use first text
-        String tag = tableRow.child(2).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
-        String zeit = tableRow.child(3).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
-        String ort = tableRow.child(4).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
-
-        Element zeitraumTd = tableRow.child(5);
-        setReadZeitraum(sportAngebot, zeitraumTd);
-        String kursinfoUrl = readKursinfoUrl(zeitraumTd);
-        String leitung = tableRow.child(6).text();
-
-        sportAngebot.setKursnummer(kursnr);
-        sportAngebot.setDetails(details + " am " + tag + " von " + zeit);
-        sportAngebot.setEinzelterminBuchung(einzelterminBuchung);
-        sportAngebot.setOrt(ort);
-        sportAngebot.setKursinfoUrl(kursinfoUrl);
-        sportAngebot.setLeitung(leitung);
-        sportAngebot.setPreis(readSportAngebotPreis(tableRow));
-
-        sportAngebot.setSportTermine(new SportAngebotLazyTerminLoader(this, sportAngebot));
-        return sportAngebot;
-    }
-
-
-    private void setReadZeitraum(SportAngebot sportAngebot, Element zeitraumTd) {
-        Matcher zeitraumMatcher = SPORT_ANGEBOT_ZEITRAUM_PATTERN.matcher(zeitraumTd.text());
-        if (zeitraumMatcher.matches()) {
-            int year = LocalDate.now().getYear();
-            int startDay = parseInt(zeitraumMatcher.group(1));
-            int startMonth = parseInt(zeitraumMatcher.group(2));
-            LocalDate zeitraumStart = LocalDate.of(year, startMonth, startDay);
-
-            int endDay = parseInt(zeitraumMatcher.group(3));
-            int endMonth = parseInt(zeitraumMatcher.group(4));
-            LocalDate zeitraumEnde = LocalDate.of(year, endMonth, endDay);
-            if (zeitraumEnde.isBefore(zeitraumStart)) {
-                // so this zeitraum is in wintersemester and wraps around new year
-                zeitraumStart = zeitraumStart.minusYears(1);
-            }
-            sportAngebot.setZeitraumStart(zeitraumStart);
-            sportAngebot.setZeitraumEnde(zeitraumEnde);
-        } else {
-            log.warn("could not read zeitraumStart: " + zeitraumTd.text());
-        }
-    }
-
-
-    private String readKursinfoUrl(Element zeitraumTd) {
-        return zeitraumTd.select("a").first().attr("abs:href");
-    }
-
-
-    private SportAngebotPreis readSportAngebotPreis(Element tableRow) {
-        Elements preisForKategorie = tableRow.select(".bs_spreis .bs_tt1, .bs_spreis .bs_tt2");
-
-        long preisStudierende = 0, preisMitarbeiter = 0, preisExterne = 0, prei1sAlumni = 0;
-        for (int i = 0; i < preisForKategorie.size() - 1; i += 2) {
-            String preisText = preisForKategorie.get(i).text();
-            String preisKategorieText = preisForKategorie.get(i + 1).text();
-            long preis = parsePreis(preisText);
-
-            switch (preisKategorieText) {
-            case "für Studierende":
-                preisStudierende = preis;
-                break;
-            case "für Beschäftigte":
-                preisMitarbeiter = preis;
-                break;
-            case "für Externe":
-                preisExterne = preis;
-                break;
-            case "für Alumni":
-                prei1sAlumni = preis;
-                break;
-            default:
-                throw new IllegalArgumentException("unexpected preis kategorie text: " + preisKategorieText);
-            }
-        }
-        return new SportAngebotPreis(preisStudierende, preisMitarbeiter, preisExterne, prei1sAlumni);
-    }
-
-    private long parsePreis(String preisText) {
-        Pattern preisPattern = Pattern.compile("(?<preis>\\d+(,\\d+)?)\\s+EUR");
-        Matcher preisMatcher = preisPattern.matcher(preisText);
-        if (preisMatcher.matches()) {
-            String preisStr = preisMatcher.group("preis").replace(",", ".");
-            return Math.round(Double.parseDouble(preisStr) * 100);
-        } else {
-            throw new IllegalArgumentException("expect preis to match '" + preisMatcher + "', but was: " + preisText);
-        }
-    }
-
-
-    @Override
-    public Set<SportTermin> fetchSportTermine(SportAngebot sportAngebot) {
-        try {
-            Set<SportTermin> sportTermine = new LinkedHashSet<>();
-
-            String kursinfoUrl = sportAngebot.getKursinfoUrl();
-            log.debug("fetchSportTermine() GET {}", kursinfoUrl);
-            Document doc = Jsoup.connect(kursinfoUrl).timeout(9 * 1000).get();
-            log.trace("fetchSportTermine() GET response document:\n{}", doc);
-
-            for (Element terminTr : doc.select("#main #bs_content table tbody tr")) {
-                SportTermin sportTermin = readSportTermin(terminTr);
-                sportTermin.setSportAngebot(sportAngebot);
-                sportTermine.add(sportTermin);
-            }
-            return sportTermine;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not fetchSportTermine()", e);
-        }
-    }
-
-    private SportTermin readSportTermin(Element terminTr) {
-        String datumStr = terminTr.child(1).text();
-        String[] uhrzeitStr = terminTr.child(2).text().split("-");
-
-        String startZeitStr = datumStr + " " + uhrzeitStr[0].replace(".", ":");
-        String endZeitStr = datumStr + " " + uhrzeitStr[1].replace(".", ":");
-        LocalDateTime startZeit = LocalDateTime.parse(startZeitStr, DATE_TIME_FORMATTER);
-        LocalDateTime endZeit = LocalDateTime.parse(endZeitStr, DATE_TIME_FORMATTER);
-
-        SportTermin sportTermin = new SportTermin();
-        sportTermin.setBuchungsBeginn(startZeit.minusDays(7));
-        sportTermin.setStartZeit(startZeit);
-        sportTermin.setEndZeit(endZeit);
-
-        log.trace("readSportTermin {} from terminTr {}", sportTermin, terminTr);
-        return sportTermin;
-    }
-
-
-    @Override
-    public SportBuchungsBestaetigung verbindlichBuchen(SportBuchungsJob sportBuchungsJob) {
+    public SportBuchungsBestaetigung versucheVerbindlichZuBuchen(SportBuchungsJob sportBuchungsJob) {
         if (sportBuchungsJob == null) {
             throw new NullPointerException("SportBuchungsJob must be non null");
         }

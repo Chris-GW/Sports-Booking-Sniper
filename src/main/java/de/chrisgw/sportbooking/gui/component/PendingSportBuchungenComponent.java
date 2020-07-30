@@ -8,10 +8,11 @@ import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
+import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.ApplicationStateDao.SportBuchungJobListener;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao.SportBuchungJobListener;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -31,7 +32,7 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
         setLayoutManager(new BorderLayout());
 
         this.pendingJobsTabel = createPendingJobsTabel();
-        getPendingBuchungsJobs().forEach(this::addPendingJob);
+        this.applicationStateDao.getPendingBuchungsJobs().forEach(this::addPendingJob);
 
         addComponent(pendingJobsTabel, Location.CENTER);
     }
@@ -60,10 +61,10 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
 
     private void onSelectPendingJob() {
         int selectedRow = pendingJobsTabel.getSelectedRow();
-        if (selectedRow < 0) {
+        if (selectedRow < 0 || selectedRow >= applicationStateDao.getPendingBuchungsJobs().size()) {
             return;
         }
-        SportBuchungsJob sportBuchungsJob = getPendingBuchungsJobs().get(selectedRow);
+        SportBuchungsJob sportBuchungsJob = applicationStateDao.getPendingBuchungsJobs().get(selectedRow);
 
         new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
                 .setDescription("Aktion bitte auswählen")
@@ -103,18 +104,18 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
 
 
     @Override
-    public void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+    public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         addPendingJob(sportBuchungsJob);
     }
 
     @Override
-    public void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        // TOTO refreshPendingJob
+    public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        // TODO refreshPendingJob
     }
 
-
-    public List<SportBuchungsJob> getPendingBuchungsJobs() {
-        return applicationStateDao.getPendingBuchungsJobs();
+    @Override
+    public void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
+        // TODO refreshPendingJob
     }
 
 

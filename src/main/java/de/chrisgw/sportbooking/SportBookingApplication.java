@@ -3,8 +3,6 @@ package de.chrisgw.sportbooking;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.bundle.LanternaThemes;
@@ -15,10 +13,15 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportbooking.gui.SportBookingMainWindow;
-import de.chrisgw.sportbooking.gui.component.PersonenAngabenDialog;
-import de.chrisgw.sportbooking.gui.component.WelcomeDialog;
+import de.chrisgw.sportbooking.gui.dialog.PersonenAngabenDialog;
+import de.chrisgw.sportbooking.gui.dialog.WelcomeDialog;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
-import de.chrisgw.sportbooking.service.*;
+import de.chrisgw.sportbooking.repository.AachenSportKatalogRepository;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.SportKatalogRepository;
+import de.chrisgw.sportbooking.service.AachenSportBookingService;
+import de.chrisgw.sportbooking.service.SportBookingService;
+import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -31,7 +34,6 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -46,6 +48,11 @@ public class SportBookingApplication {
     @Bean(destroyMethod = "shutdownNow")
     public SportBookingSniperService sportBookingSniperService() {
         return new SportBookingSniperService(sportBookingService());
+    }
+
+    @Bean
+    public SportKatalogRepository sportKatalogRepository() {
+        return new AachenSportKatalogRepository();
     }
 
     @Bean
@@ -84,10 +91,6 @@ public class SportBookingApplication {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        LazyLoaderFilter lazyLoaderFilter = new LazyLoaderFilter();
-        FilterProvider filters = new SimpleFilterProvider().addFilter("lazyLoaderFilter", lazyLoaderFilter);
-        objectMapper.setFilterProvider(filters);
         return objectMapper;
     }
 
@@ -123,34 +126,38 @@ public class SportBookingApplication {
     // MAIN
 
     public static void main(String[] args) {
-        System.out.println("Start SportBookingApplication ...");
         try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
                 SportBookingApplication.class)) {
-            Locale.setDefault(Locale.GERMANY);
-
-            SportBookingService bookingService = applicationContext.getBean(SportBookingService.class);
-            SportBookingSniperService bookingSniperService = applicationContext.getBean(
-                    SportBookingSniperService.class);
             ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
-            Screen guiScreen = applicationContext.getBean(Screen.class);
 
+            Screen guiScreen = applicationContext.getBean(Screen.class);
             MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
+            windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
             guiScreen.startScreen();
-            SportBookingMainWindow sportBookingMainWindow = new SportBookingMainWindow(bookingService,
-                    bookingSniperService, applicationStateDao);
+            log.trace("start SportBooking gui");
+
+            SportBookingMainWindow sportBookingMainWindow = newSportBookingMainWindow(applicationContext);
             windowTextGUI.addWindow(sportBookingMainWindow);
             if (applicationStateDao.isFirstVisite()) {
                 showFirstVisiteDialog(applicationStateDao, windowTextGUI);
             }
             windowTextGUI.waitForWindowToClose(sportBookingMainWindow);
             guiScreen.stopScreen();
-            System.out.println("finish SportBookingApplication");
+            log.trace("finish SportBooking gui");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
             e.printStackTrace();
         }
     }
 
+    private static SportBookingMainWindow newSportBookingMainWindow(ConfigurableApplicationContext applicationContext) {
+        SportKatalogRepository sportKatalogRepository = applicationContext.getBean(SportKatalogRepository.class);
+        SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
+        SportBookingSniperService bookingSniperService = applicationContext.getBean(SportBookingSniperService.class);
+        ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
+        return new SportBookingMainWindow(sportKatalogRepository, sportBookingService, bookingSniperService,
+                applicationStateDao);
+    }
 
     private static void showFirstVisiteDialog(ApplicationStateDao applicationStateDao,
             MultiWindowTextGUI windowTextGUI) {
@@ -161,6 +168,5 @@ public class SportBookingApplication {
         applicationStateDao.updatePersonenAngaben(personenAngaben.orElseThrow(RuntimeException::new));
         applicationStateDao.setFirstVisite(false);
     }
-
 
 }

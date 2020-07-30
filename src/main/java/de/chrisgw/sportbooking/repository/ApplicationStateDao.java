@@ -1,7 +1,8 @@
-package de.chrisgw.sportbooking.service;
+package de.chrisgw.sportbooking.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.chrisgw.sportbooking.gui.SavedApplicationState;
+import com.googlecode.lanterna.bundle.LanternaThemes;
+import com.googlecode.lanterna.graphics.Theme;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
@@ -11,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 @Slf4j
-@Service
+@Repository
 @RequiredArgsConstructor
 public class ApplicationStateDao implements InitializingBean, DisposableBean {
 
@@ -34,8 +35,7 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     private SavedApplicationState applicationState;
 
     private final List<PersonenAngabenListener> personenAngabenListeners = new ArrayList<>();
-    private final List<SportBuchungJobListener> pendingSportBuchungJobListeners = new ArrayList<>();
-    private final List<FinishedSportBuchungenListener> finishedSportBuchungenListeners = new ArrayList<>();
+    private final List<SportBuchungJobListener> sportBuchungJobListeners = new ArrayList<>();
 
 
     public LocalDateTime getSaveTime() {
@@ -93,8 +93,8 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
         saveApplicationData();
-        for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
-            sportBuchungJobListener.onAddSportBuchungsJob(sportBuchungsJob);
+        for (SportBuchungJobListener sportBuchungJobListener : sportBuchungJobListeners) {
+            sportBuchungJobListener.onNewPendingSportBuchungsJob(sportBuchungsJob);
         }
     }
 
@@ -103,18 +103,18 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
         if (index >= 0) {
             applicationState.getPendingBuchungsJobs().set(index, sportBuchungsJob);
             saveApplicationData();
-            for (SportBuchungJobListener sportBuchungJobListener : pendingSportBuchungJobListeners) {
-                sportBuchungJobListener.onRefreshSportBuchungsJob(sportBuchungsJob);
+            for (SportBuchungJobListener sportBuchungJobListener : sportBuchungJobListeners) {
+                sportBuchungJobListener.onUpdatedSportBuchungsJob(sportBuchungsJob);
             }
         }
     }
 
     public void addSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
-        pendingSportBuchungJobListeners.add(sportBuchungJobListener);
+        sportBuchungJobListeners.add(sportBuchungJobListener);
     }
 
     public void removeSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
-        pendingSportBuchungJobListeners.remove(sportBuchungJobListener);
+        sportBuchungJobListeners.remove(sportBuchungJobListener);
     }
 
 
@@ -123,23 +123,6 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
         return applicationState.getFinishedBuchungsJobs();
     }
-
-    public void addFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        applicationState.getFinishedBuchungsJobs().add(sportBuchungsBestaetigung);
-        saveApplicationData();
-        for (FinishedSportBuchungenListener finishedSportBuchungenListener : finishedSportBuchungenListeners) {
-            finishedSportBuchungenListener.onAddFinishedSportBuchung(sportBuchungsBestaetigung);
-        }
-    }
-
-    public void addFinishedSportBuchungenListener(FinishedSportBuchungenListener finishedSportBuchungenListener) {
-        finishedSportBuchungenListeners.add(finishedSportBuchungenListener);
-    }
-
-    public void removeFinishedSportBuchungenListener(FinishedSportBuchungenListener finishedSportBuchungenListener) {
-        finishedSportBuchungenListeners.remove(finishedSportBuchungenListener);
-    }
-
 
     // firstVisite
 
@@ -150,6 +133,28 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     public void setFirstVisite(boolean firstVisite) {
         applicationState.setFirstVisite(firstVisite);
         saveApplicationData();
+    }
+
+
+    // selectedheme
+
+    public Theme getSelectedheme() {
+        String selectedTheme = applicationState.getSelectedTheme();
+        if (LanternaThemes.getRegisteredThemes().contains(selectedTheme)) {
+            return LanternaThemes.getRegisteredTheme(selectedTheme);
+        } else {
+            log.warn("theme '{}' not registered with lanterna. Fallback to default theme", selectedTheme);
+            return LanternaThemes.getDefaultTheme();
+        }
+    }
+
+    public void setSelectedTheme(String themeName) {
+        if (LanternaThemes.getRegisteredThemes().contains(themeName)) {
+            applicationState.setSelectedTheme(themeName);
+            saveApplicationData();
+        } else {
+            log.warn("theme '{}' not registered with lanterna", themeName);
+        }
     }
 
 
@@ -185,21 +190,16 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     }
 
 
-    public void clearAll() {
-        applicationState.getPendingBuchungsJobs().clear();
-        applicationState.getFinishedBuchungsJobs().clear();
-        saveApplicationData();
-    }
-
-
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         applicationState = loadApplicationData();
         Locale.setDefault(applicationState.getLanguage());
+        log.trace("on initialize load application data: {}", applicationState);
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
+        log.trace("on destroy save application data last time: {}", applicationState);
         saveApplicationData();
     }
 
@@ -207,21 +207,17 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     public interface PersonenAngabenListener {
 
         void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben);
+
     }
 
 
     public interface SportBuchungJobListener {
 
-        void onAddSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
+        void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
 
-        void onRefreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
+        void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
 
-    }
-
-
-    public interface FinishedSportBuchungenListener {
-
-        void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung);
+        void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung);
 
     }
 

@@ -12,11 +12,10 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
+
+import static de.chrisgw.sportbooking.model.SportAngebotBuchungsArt.UNBEKANNTE_BUCHUNGSART;
 
 
 @Data
@@ -29,14 +28,14 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private String details;
     private String ort;
     private String leitung;
-    private boolean einzelterminBuchung;
+    private SportAngebotBuchungsArt buchungsArt = UNBEKANNTE_BUCHUNGSART;
     private SportAngebotPreis preis = new SportAngebotPreis();
     private String kursinfoUrl;
     private LocalDate zeitraumStart;
     private LocalDate zeitraumEnde;
 
     @EqualsAndHashCode.Exclude
-    private Set<SportTermin> sportTermine = new LinkedHashSet<>();
+    private Set<SportTermin> sportTermine = new TreeSet<>();
 
 
     public boolean isUpcoming() {
@@ -63,16 +62,21 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
 
     public Optional<SportTermin> findByDate(LocalDate terminDate) {
-        return sportTermine.stream().filter(sportTermin -> sportTermin.getTerminDate().equals(terminDate)).findFirst();
+        return sportTermine().filter(sportTermin -> sportTermin.getTerminDate().equals(terminDate)).findFirst();
     }
 
 
     @JsonIgnore
     public Stream<SportTermin> upcomingSportTermine() {
-        return getSportTermine().stream()
-                .filter(sportTermin -> sportTermin.getStartZeit().isAfter(LocalDateTime.now()))
-                .sorted();
+        final LocalDateTime now = LocalDateTime.now();
+        return sportTermine().filter(sportTermin -> sportTermin.getStartZeit().isAfter(now)).sorted();
     }
+
+    @JsonIgnore
+    public Stream<SportTermin> sportTermine() {
+        return sportTermine.stream();
+    }
+
 
     public void addSportTermin(SportTermin sportTermin) {
         sportTermin.setSportAngebot(this);

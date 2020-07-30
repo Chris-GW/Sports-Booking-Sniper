@@ -4,9 +4,9 @@ import de.chrisgw.sportbooking.model.*;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
 import de.chrisgw.sportbooking.model.SportBuchungStrategieImpl.FixedPeriodTimeBuchungStrategie;
 import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.SportBookingService;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.service.SportBookingSniperService;
+import de.chrisgw.sportbooking.repository.SportKatalogRepository;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -50,8 +50,8 @@ public class SportBookingApplicationTest {
 
 
     private SportAngebot findSportAngebot(String sportArtName, String kursnummer) {
-        SportBookingService bookingService = applicationContext.getBean(SportBookingService.class);
-        SportKatalog sportKatalog = bookingService.loadSportKatalog();
+        SportKatalogRepository sportKatalogRepository = applicationContext.getBean(SportKatalogRepository.class);
+        SportKatalog sportKatalog = sportKatalogRepository.currentSportKatalog();
         Optional<SportArt> sportArt = sportKatalog.findSportArtByName(sportArtName);
         if (sportArt.isPresent()) {
             Optional<SportAngebot> sportAngebot = sportArt.get().findSportAngebot(kursnummer);

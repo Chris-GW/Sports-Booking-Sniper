@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-import static de.chrisgw.sportbooking.service.AachenSportBookingService.DATE_TIME_FORMATTER;
+import static de.chrisgw.sportbooking.repository.AachenSportKatalogRepository.DATE_TIME_FORMATTER;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 
 
@@ -25,6 +25,7 @@ public class SportTermin implements Comparable<SportTermin> {
 
     private SportAngebot sportAngebot;
 
+    private String passwort; // TODO anmeldung mit passwort
     private LocalDateTime buchungsBeginn;
     private LocalDateTime startZeit;
     private LocalDateTime endZeit;

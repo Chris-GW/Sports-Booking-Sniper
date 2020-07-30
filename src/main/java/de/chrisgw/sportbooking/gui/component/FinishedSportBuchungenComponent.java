@@ -9,9 +9,10 @@ import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.ApplicationStateDao.FinishedSportBuchungenListener;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao.SportBuchungJobListener;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FinishedSportBuchungenComponent extends SportBookingComponent implements FinishedSportBuchungenListener {
+public class FinishedSportBuchungenComponent extends SportBookingComponent implements SportBuchungJobListener {
 
     @Getter
     private final Table<String> finishedJobsTabel;
@@ -31,7 +32,7 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
         setLayoutManager(new BorderLayout());
 
         this.finishedJobsTabel = createFinishedJobsTable();
-        getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
+        this.applicationStateDao.getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
         addComponent(finishedJobsTabel, Location.CENTER);
     }
@@ -40,13 +41,13 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
     @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
-        applicationStateDao.addFinishedSportBuchungenListener(this);
+        applicationStateDao.addSportBuchungJobListener(this);
     }
 
     @Override
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
-        applicationStateDao.removeFinishedSportBuchungenListener(this);
+        applicationStateDao.removeSportBuchungJobListener(this);
     }
 
 
@@ -61,18 +62,20 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
 
     private void onSelectFinishedJob() {
         int selectedRow = finishedJobsTabel.getSelectedRow();
-        if (selectedRow < 0) {
+        if (selectedRow < 0 || selectedRow >= applicationStateDao.getFinishedBuchungsJobs().size()) {
             return;
         }
-        SportBuchungsBestaetigung selectedBestaetigung = getFinishedBuchungsJobs().get(selectedRow);
+        SportBuchungsBestaetigung selectedBestaetigung = applicationStateDao.getFinishedBuchungsJobs().get(selectedRow);
 
         new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
                 .setDescription("Aktion bitte auswählen")
                 .setCanCancel(true)
                 .addAction("Details", () -> {
+                    // TODO action show details
                     System.out.println("Details: " + selectedBestaetigung);
                 })
                 .addAction("Löschen", () -> {
+                    // TODO action löschen
                     System.out.println("Löschen: " + selectedBestaetigung);
                 })
                 .build()
@@ -104,13 +107,18 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
 
 
     @Override
-    public void onAddFinishedSportBuchung(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        addFinishedBuchungsJob(sportBuchungsBestaetigung);
+    public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+
     }
 
+    @Override
+    public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
 
-    private List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
-        return applicationStateDao.getFinishedBuchungsJobs();
+    }
+
+    @Override
+    public void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
+        addFinishedBuchungsJob(sportBuchungsBestaetigung);
     }
 
 
@@ -118,5 +126,6 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
     protected FinishedSportBuchungenComponent self() {
         return this;
     }
+
 
 }

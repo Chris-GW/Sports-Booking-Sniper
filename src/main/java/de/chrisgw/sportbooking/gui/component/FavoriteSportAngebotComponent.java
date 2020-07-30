@@ -4,7 +4,7 @@ import com.googlecode.lanterna.gui2.CheckBoxList;
 import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 
 
 public class FavoriteSportAngebotComponent extends SportBookingComponent {

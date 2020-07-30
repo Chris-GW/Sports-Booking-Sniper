@@ -14,9 +14,11 @@ import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
+import de.chrisgw.sportbooking.gui.dialog.PersonenAngabenDialog;
+import de.chrisgw.sportbooking.gui.dialog.SportBuchungDialog;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.SportBookingService;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.SportKatalogRepository;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -28,7 +30,7 @@ import static org.apache.commons.lang3.StringUtils.upperCase;
 
 public class MainMenuBar extends SportBookingComponent {
 
-    private final SportBookingService sportBookingService;
+    private final SportKatalogRepository sportKatalogRepository;
 
     @Getter
     private MenuBar menuBar;
@@ -40,10 +42,10 @@ public class MainMenuBar extends SportBookingComponent {
     private Menu navigationMenu;
 
 
-    public MainMenuBar(SportBookingService sportBookingService, ApplicationStateDao applicationStateDao,
+    public MainMenuBar(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
             Window window) {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
-        this.sportBookingService = sportBookingService;
+        this.sportKatalogRepository = sportKatalogRepository;
         setLayoutManager(new BorderLayout());
 
         this.viewMenu = new Menu("View");
@@ -75,6 +77,7 @@ public class MainMenuBar extends SportBookingComponent {
             if (selectedThemeName != null) {
                 Theme selectedTheme = LanternaThemes.getRegisteredTheme(selectedThemeName);
                 getTextGUI().setTheme(selectedTheme);
+                applicationStateDao.setSelectedTheme(selectedThemeName);
             }
         });
     }
@@ -83,7 +86,7 @@ public class MainMenuBar extends SportBookingComponent {
     private Menu sportBuchungMenu() {
         Menu menu = new Menu("New");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            new SportBuchungDialog(sportBookingService).showDialog(getTextGUI());
+            new SportBuchungDialog(sportKatalogRepository).showDialog(getTextGUI());
         }));
         return menu;
     }

@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.gui.component;
+package de.chrisgw.sportbooking.gui.dialog;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -12,8 +12,8 @@ import de.chrisgw.sportbooking.model.PersonAngabenValidator;
 import de.chrisgw.sportbooking.model.PersonKategorie;
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.ApplicationStateDao.PersonenAngabenListener;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao.PersonenAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;

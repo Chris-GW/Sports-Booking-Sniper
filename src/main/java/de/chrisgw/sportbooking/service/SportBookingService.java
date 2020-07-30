@@ -1,18 +1,11 @@
 package de.chrisgw.sportbooking.service;
 
-import de.chrisgw.sportbooking.model.*;
-
-import java.util.Set;
+import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.SportBuchungsJob;
 
 
 public interface SportBookingService {
 
-    SportKatalog loadSportKatalog();
-
-    Set<SportAngebot> fetchSportAngebote(SportArt sportArt);
-
-    Set<SportTermin> fetchSportTermine(SportAngebot sportAngebot);
-
-    SportBuchungsBestaetigung verbindlichBuchen(SportBuchungsJob sportBuchungsJob);
+    SportBuchungsBestaetigung versucheVerbindlichZuBuchen(SportBuchungsJob sportBuchungsJob);
 
 }

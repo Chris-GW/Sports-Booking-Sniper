@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.gui;
+package de.chrisgw.sportbooking.repository;
 
 import de.chrisgw.sportbooking.model.PersonenAngaben;
 import de.chrisgw.sportbooking.model.SportAngebot;
@@ -19,6 +19,7 @@ public class SavedApplicationState {
     private boolean firstVisite = true;
     private LocalDateTime saveTime = LocalDateTime.now();
     private Locale language = Locale.getDefault();
+    private String selectedTheme = "default";
     private PersonenAngaben personenAngaben = new PersonenAngaben();
 
     private List<SportAngebot> watchedSportAngebote = new ArrayList<>();

@@ -1,10 +1,10 @@
 package de.chrisgw.sportbooking.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -14,23 +14,19 @@ import static java.util.Objects.requireNonNull;
 
 
 @Data
-@JsonFilter("lazyLoaderFilter")
 @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportArt implements Comparable<SportArt> {
 
-    private final String name;
-    private final Semester semester;
-    private final String url;
+    private SportKatalog sportKatalog;
+    private String name;
+    private String url;
 
     @EqualsAndHashCode.Exclude
     private Set<SportAngebot> sportAngebote = new LinkedHashSet<>();
 
 
-    @JsonCreator
-    public SportArt(@JsonProperty("name") String name, @JsonProperty("semester") Semester semester,
-            @JsonProperty("url") String url) {
+    public SportArt(String name, String url) {
         this.name = requireNonNull(name);
-        this.semester = requireNonNull(semester);
         this.url = requireNonNull(url);
     }
 
@@ -48,10 +44,6 @@ public class SportArt implements Comparable<SportArt> {
     public void addSportAngebot(SportAngebot sportAngebot) {
         requireNonNull(sportAngebot).setSportArt(this);
         this.sportAngebote.add(sportAngebot);
-    }
-
-    public void addAllSportAngebot(Collection<SportAngebot> sportAngebote) {
-        sportAngebote.forEach(this::addSportAngebot);
     }
 
 

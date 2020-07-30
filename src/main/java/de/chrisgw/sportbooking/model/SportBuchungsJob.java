@@ -30,7 +30,6 @@ public class SportBuchungsJob implements Comparable<SportBuchungsJob> {
 
 
     public SportBuchungsJob() {
-
         setSportBuchungStrategie(new FixedPeriodTimeBuchungStrategie(15, TimeUnit.MINUTES));
     }
 

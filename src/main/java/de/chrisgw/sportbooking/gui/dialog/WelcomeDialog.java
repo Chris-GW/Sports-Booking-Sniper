@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.gui.component;
+package de.chrisgw.sportbooking.gui.dialog;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;

@@ -2,11 +2,10 @@ package de.chrisgw.sportbooking.gui.component;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportbooking.service.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import lombok.Getter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -130,9 +129,10 @@ public class SportBookingComponent extends Panel implements WindowListener {
     @Override
     protected void onAfterDrawing(TextGUIGraphics graphics) {
         super.onAfterDrawing(graphics);
-        String sizeInfo = String.format("[%s/%s]", getPreferredSize(), getSize());
-        TerminalPosition bottomRight = new TerminalPosition(0, getSize().getRows() - 1);
-        graphics.setForegroundColor(ANSI.BLACK).setBackgroundColor(ANSI.GREEN).putString(bottomRight, sizeInfo);
+        // draw sizeInfo bottomRight
+//        String sizeInfo = String.format("[%s/%s]", getPreferredSize(), getSize());
+//        TerminalPosition bottomRight = new TerminalPosition(0, getSize().getRows() - 1);
+//        graphics.setForegroundColor(ANSI.BLACK).setBackgroundColor(ANSI.GREEN).putString(bottomRight, sizeInfo);
     }
 
 

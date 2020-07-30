@@ -3,8 +3,6 @@ package de.chrisgw;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.Defaults;
@@ -14,7 +12,6 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import de.chrisgw.sportbooking.model.*;
-import de.chrisgw.sportbooking.service.LazyLoaderFilter;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -26,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.EnumSet;
 import java.util.Set;
 
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.*;
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static de.chrisgw.sportbooking.model.SportBookingModelTestUtil.createFreitagsSportAngebot;
 import static de.chrisgw.sportbooking.model.SportBookingModelTestUtil.createMontagsSportAngebot;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,7 +39,6 @@ public class ModelJsonMappingTest {
     private PersonenAngaben personenAngaben;
     private SportKatalog sportKatalog;
 
-    private Semester semester;
     private SportArt badminton;
     private SportArt volleyball;
 
@@ -54,13 +50,12 @@ public class ModelJsonMappingTest {
         personenAngaben = SportBookingModelTestUtil.createPersonenAngaben();
         sportKatalog = new SportKatalog();
 
-        semester = Semester.newSommerSemester(2018);
-        badminton = new SportArt("Badminton", semester, "http://www.badminton.de");
+        badminton = new SportArt("Badminton", "http://www.badminton.de");
         badminton.addSportAngebot(createMontagsSportAngebot(badminton));
         badminton.addSportAngebot(createFreitagsSportAngebot(badminton));
         sportKatalog.addSportArt(badminton);
 
-        volleyball = new SportArt("Volleyball", semester, "http://www.volleyball.de");
+        volleyball = new SportArt("Volleyball", "http://www.volleyball.de");
         volleyball.addSportAngebot(createFreitagsSportAngebot(volleyball));
         sportKatalog.addSportArt(volleyball);
     }
@@ -104,7 +99,7 @@ public class ModelJsonMappingTest {
         String json = objectMapper.writeValueAsString(sportKatalog);
         logger.debug(json);
 
-        assertThat(json, hasJsonPath("$.uhrzeitAberufen", jsonValue(sportKatalog.getUhrzeitAberufen())));
+        assertThat(json, hasJsonPath("$.abrufzeitpunkt", jsonValue(sportKatalog.getAbrufzeitpunkt())));
         for (SportArt sportArt : sportKatalog.getSportArten()) {
             assertThat(json, hasJsonPath("$.sportArten[*].name", hasItem(sportArt.getName())));
             assertThat(json, hasJsonPath("$.sportArten[*].url", hasItem(sportArt.getUrl())));
@@ -119,7 +114,7 @@ public class ModelJsonMappingTest {
 
         SportKatalog readedSportKatalog = objectMapper.readValue(json, SportKatalog.class);
         logger.debug("{}", readedSportKatalog);
-        assertThat(readedSportKatalog, hasProperty("uhrzeitAberufen", is(sportKatalog.getUhrzeitAberufen())));
+        assertThat(readedSportKatalog, hasProperty("abrufzeitpunkt", is(sportKatalog.getAbrufzeitpunkt())));
         for (SportArt sportArt : sportKatalog.getSportArten()) {
             assertThat(readedSportKatalog.getSportArten(), hasItem(sportArt));
         }
@@ -136,30 +131,10 @@ public class ModelJsonMappingTest {
         assertThat(json, hasJsonPath("$.url", jsonValue(sportArt.getUrl())));
     }
 
-    @Test
-    public void shouldSeralizeLazySportArt() throws Exception {
-        SportArt sportArt = SportBookingModelTestUtil.createLazySportArt();
-        String json = objectMapper.writeValueAsString(sportArt);
-        logger.debug(json);
-
-        assertThat(json, isJson(withoutJsonPath("$.sportAngebote")));
-    }
-
 
     @Test
     public void shouldReadSportArt() throws Exception {
         SportArt sportArt = this.badminton;
-        String json = objectMapper.writeValueAsString(sportArt);
-        logger.debug(json);
-
-        SportArt readedSportArt = objectMapper.readValue(json, SportArt.class);
-        logger.debug("{}", readedSportArt);
-        assertThat(readedSportArt, equalTo(sportArt));
-    }
-
-    @Test
-    public void shouldReadLazySportArt() throws Exception {
-        SportArt sportArt = SportBookingModelTestUtil.createLazySportArt();
         String json = objectMapper.writeValueAsString(sportArt);
         logger.debug(json);
 
@@ -199,10 +174,6 @@ public class ModelJsonMappingTest {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        LazyLoaderFilter lazyLoaderFilter = new LazyLoaderFilter();
-        FilterProvider filters = new SimpleFilterProvider().addFilter("lazyLoaderFilter", lazyLoaderFilter);
-        objectMapper.setFilterProvider(filters);
 
         Configuration.setDefaults(new Defaults() {
 
