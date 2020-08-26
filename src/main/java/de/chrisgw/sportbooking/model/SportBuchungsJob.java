@@ -1,47 +1,81 @@
 package de.chrisgw.sportbooking.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import de.chrisgw.sportbooking.model.SportBuchungStrategieImpl.FixedPeriodTimeBuchungStrategie;
 import lombok.Data;
-import org.apache.commons.lang3.builder.CompareToBuilder;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-import static java.util.Objects.requireNonNull;
+import static de.chrisgw.sportbooking.model.SportBuchungsStrategieImpl.defaultSportBuchungStrategie;
 
 
 @Data
-public class SportBuchungsJob implements Comparable<SportBuchungsJob> {
+@NoArgsConstructor
+public class SportBuchungsJob {
 
-    private long jobId;
-    private LocalDateTime timestamp = LocalDateTime.now();
-
-    @JsonIgnore
-    private SportBuchungStrategie sportBuchungStrategie;
-
+    private int jobId;
+    private SportAngebot sportAngebot;
     private SportTermin sportTermin;
-    private PersonenAngaben personenAngaben;
+    private TeilnehmerAngaben teilnehmerAngaben;
+    private String passwort;
+    private SportBuchungsStrategie buchungsStrategie = defaultSportBuchungStrategie();
+
+    private boolean pausiert = false;
+    private LocalDateTime bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
+    private List<SportBuchungsVersuch> buchungsVersuche = new ArrayList<>();
 
 
-    public SportBuchungsJob() {
-        setSportBuchungStrategie(new FixedPeriodTimeBuchungStrategie(15, TimeUnit.MINUTES));
+
+
+
+    public LocalDateTime getBevorstehenderBuchungsVersuch() {
+        if (bevorstehenderBuchungsVersuch.isAfter(LocalDateTime.now())) {
+            bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
+        }
+        return bevorstehenderBuchungsVersuch;
     }
 
-    public SportBuchungsJob(SportTermin sportTermin, PersonenAngaben personenAngaben) {
-        this.sportTermin = requireNonNull(sportTermin);
-        this.personenAngaben = requireNonNull(personenAngaben);
-        setSportBuchungStrategie(new FixedPeriodTimeBuchungStrategie(15, TimeUnit.MINUTES));
+
+    public SportBuchungsVersuch lastSportBuchungsVersuch() {
+        return buchungsVersuche.get(buchungsVersuche.size() - 1);
+    }
+
+    public Duration durationTillNextCheck() {
+        return Duration.between(getBevorstehenderBuchungsVersuch(), LocalDateTime.now());
     }
 
 
-    public LocalDateTime getNextTimeForCheckTermin() {
-        return sportBuchungStrategie.getNextTimeForCheckTermin(this);
+    public Stream<SportBuchungsVersuch> buchungsVersuche() {
+        return buchungsVersuche.stream();
+    }
+
+    public int anzahlVersuche() {
+        return buchungsVersuche.size();
+    }
+
+
+    public Optional<SportBuchungsBestaetigung> buchungsBestaetigung() {
+        return Optional.ofNullable(lastSportBuchungsVersuch().getBuchungsBestaetigung());
+    }
+
+
+    public void addBuchungsVersuch(SportBuchungsVersuch buchungsVersuch) {
+        buchungsVersuche.add(Objects.requireNonNull(buchungsVersuch));
+    }
+
+    public BigInteger getPreis() {
+        return getSportAngebot().preisFor(teilnehmerAngaben.getTeilnehmerKategorie());
     }
 
 
@@ -52,21 +86,14 @@ public class SportBuchungsJob implements Comparable<SportBuchungsJob> {
 
 
     @Override
-    public int compareTo(SportBuchungsJob o) {
-        return new CompareToBuilder().append(this.getSportTermin(), o.getSportTermin())
-                .append(this.getJobId(), o.getJobId())
-                .toComparison();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
-
-        if (o == null || getClass() != o.getClass())
+        }
+        if (other == null || getClass() != other.getClass()) {
             return false;
-
-        SportBuchungsJob that = (SportBuchungsJob) o;
+        }
+        SportBuchungsJob that = (SportBuchungsJob) other;
         return new EqualsBuilder().append(jobId, that.jobId).isEquals();
     }
 

@@ -16,7 +16,8 @@
     <spring-version.version>5.2.8.RELEASE</spring-version.version>
     <lanterna.version>3.1.0-beta2</lanterna.version>
     <jsoup.version>1.13.1</jsoup.version>
-    <selenium.version>2.52.0</selenium.version>
+    <selenium-java.version>3.141.59</selenium-java.version>
+    <selenium.version>2.43.1</selenium.version>
     <cglib.version>3.3.0</cglib.version>
     <commons-lang3.version>3.11</commons-lang3.version>
     <logback-classic.version>1.2.3</logback-classic.version>
@@ -54,11 +55,11 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>${selenium.version}</version>
+      <version>${selenium-java.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-htmlunit-driver</artifactId>
+      <artifactId>htmlunit-driver</artifactId>
       <version>${selenium.version}</version>
     </dependency>
 

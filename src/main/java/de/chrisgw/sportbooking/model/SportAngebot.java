@@ -11,11 +11,12 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportbooking.model.SportAngebotBuchungsArt.UNBEKANNTE_BUCHUNGSART;
+import static de.chrisgw.sportbooking.model.SportAngebot.SportAngebotBuchungsArt.UNBEKANNTE_BUCHUNGSART;
 
 
 @Data
@@ -28,9 +29,11 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private String details;
     private String ort;
     private String leitung;
-    private SportAngebotBuchungsArt buchungsArt = UNBEKANNTE_BUCHUNGSART;
     private SportAngebotPreis preis = new SportAngebotPreis();
+
     private String kursinfoUrl;
+    private SportAngebotBuchungsArt buchungsArt = UNBEKANNTE_BUCHUNGSART;
+    private boolean passwortGesichert = false;
     private LocalDate zeitraumStart;
     private LocalDate zeitraumEnde;
 
@@ -38,7 +41,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private Set<SportTermin> sportTermine = new TreeSet<>();
 
 
-    public boolean isUpcoming() {
+    public boolean isBevorstehend() {
         return !LocalDate.now().isAfter(zeitraumEnde);
     }
 
@@ -52,8 +55,8 @@ public class SportAngebot implements Comparable<SportAngebot> {
         return preis.isPaymentRequierd();
     }
 
-    public BigInteger preisFor(PersonKategorie personKategorie) {
-        return preis.preisFor(personKategorie);
+    public BigInteger preisFor(TeilnehmerKategorie teilnehmerKategorie) {
+        return preis.preisFor(teilnehmerKategorie);
     }
 
     public boolean hasEqualKursnummer(SportAngebot otherSportAngebot) {
@@ -67,9 +70,8 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
 
     @JsonIgnore
-    public Stream<SportTermin> upcomingSportTermine() {
-        final LocalDateTime now = LocalDateTime.now();
-        return sportTermine().filter(sportTermin -> sportTermin.getStartZeit().isAfter(now)).sorted();
+    public Stream<SportTermin> bevorstehendeSportTermine() {
+        return sportTermine().filter(SportTermin::isBevorstehend).sorted();
     }
 
     @JsonIgnore
@@ -81,13 +83,6 @@ public class SportAngebot implements Comparable<SportAngebot> {
     public void addSportTermin(SportTermin sportTermin) {
         sportTermin.setSportAngebot(this);
         this.sportTermine.add(sportTermin);
-    }
-
-    public void addAllSportTermine(Collection<SportTermin> sportTermine) {
-        for (SportTermin sportTermin : sportTermine) {
-            sportTermin.setSportAngebot(this);
-            this.sportTermine.add(sportTermin);
-        }
     }
 
 
@@ -109,6 +104,16 @@ public class SportAngebot implements Comparable<SportAngebot> {
     @Override
     public String toString() {
         return String.format("(%s) %s", getKursnummer(), getDetails());
+    }
+
+
+    public enum SportAngebotBuchungsArt {
+
+        UNBEKANNTE_BUCHUNGSART, //
+        ANGEBOT_TICKET_BUCHUNG, //
+        EINZEL_TERMIN_BUCHUNG, //
+        EINZEL_PLATZ_BUCHUNG; //
+
     }
 
 }

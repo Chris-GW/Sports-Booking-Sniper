@@ -12,14 +12,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
 public class SportBookingSniperService {
 
     private final SportBookingService sportBookingService;
-    private final AtomicLong jobIdCounter = new AtomicLong();
+    private final AtomicInteger jobIdCounter = new AtomicInteger();
     private final ScheduledExecutorService executorService;
 
     private Map<SportBuchungsJob, CompletableFuture<SportBuchungsBestaetigung>> ausstehendeBuchungsJobs;
@@ -126,7 +126,7 @@ public class SportBookingSniperService {
 
         private boolean tryToBookOpenSportTermin() {
             log.info("try to final book open SportBuchungsJob {} with PersonenAngaben ", sportBuchungsJob,
-                    sportBuchungsJob.getPersonenAngaben());
+                    sportBuchungsJob.getTeilnehmerAngaben());
             SportBuchungsBestaetigung sportBuchungsBestaetigung = sportBookingService.versucheVerbindlichZuBuchen(
                     sportBuchungsJob);
             if (sportBuchungsBestaetigung == null) {
@@ -142,7 +142,7 @@ public class SportBookingSniperService {
 
 
         public Duration getDurationUntilNextTerminCheck() {
-            return Duration.between(LocalDateTime.now(), sportBuchungsJob.getNextTimeForCheckTermin());
+            return Duration.between(LocalDateTime.now(), sportBuchungsJob.getBevorstehenderBuchungsVersuch());
         }
 
         public SportBuchungsJob getSportBuchungsJob() {

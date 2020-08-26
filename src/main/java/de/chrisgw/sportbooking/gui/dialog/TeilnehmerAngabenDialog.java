@@ -8,12 +8,12 @@ import com.googlecode.lanterna.input.KeyStroke;
 import de.chrisgw.sportbooking.gui.bind.ConcealableComponent;
 import de.chrisgw.sportbooking.gui.bind.ModalField;
 import de.chrisgw.sportbooking.gui.bind.ModalForm;
-import de.chrisgw.sportbooking.model.PersonAngabenValidator;
-import de.chrisgw.sportbooking.model.PersonKategorie;
-import de.chrisgw.sportbooking.model.PersonenAngaben;
-import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
+import de.chrisgw.sportbooking.model.TeilnehmerAngabenValidator;
+import de.chrisgw.sportbooking.model.TeilnehmerKategorie;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben.Gender;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
-import de.chrisgw.sportbooking.repository.ApplicationStateDao.PersonenAngabenListener;
+import de.chrisgw.sportbooking.repository.ApplicationStateDao.TeilnehmerAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -35,27 +35,27 @@ import static java.util.Objects.requireNonNull;
 
 
 @Slf4j
-public class PersonenAngabenDialog extends DialogWindow implements WindowListener, PersonenAngabenListener {
+public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListener, TeilnehmerAngabenListener {
 
 
     private final ApplicationStateDao applicationDataService;
     private final boolean forceValidPersonenAngaben;
-    private PersonenAngaben personenAngaben;
+    private TeilnehmerAngaben teilnehmerAngaben;
     private ModalForm modalForm = new ModalForm();
 
 
-    public PersonenAngabenDialog(ApplicationStateDao applicationDataService) {
+    public TeilnehmerAngabenDialog(ApplicationStateDao applicationDataService) {
         this(applicationDataService, false);
     }
 
-    public PersonenAngabenDialog(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
+    public TeilnehmerAngabenDialog(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
         super("Personenangaben");
         this.applicationDataService = requireNonNull(applicationDataService);
-        this.applicationDataService.addPersonenAngabenListener(this);
+        this.applicationDataService.addTeilnehmerAngabenListener(this);
         this.forceValidPersonenAngaben = forceValidPersonenAngaben;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setComponent(createContentPane());
-        setPersonenAngaben(applicationDataService.getPersonenAngaben());
+        setPersonenAngaben(applicationDataService.getTeilnehmerAngaben());
         setCloseWindowWithEscape(!forceValidPersonenAngaben);
     }
 
@@ -102,7 +102,7 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
     }
 
     private void createPersonenKategorieFields(Panel formularGridPanel) {
-        ComboBox<PersonKategorie> kategorieComboBox = newComboBoxField("personKategorie", PersonKategorie.values()) //
+        ComboBox<TeilnehmerKategorie> kategorieComboBox = newComboBoxField("teilnehmerKategorie", TeilnehmerKategorie.values()) //
                 .withLabel("Kategorie:*") //
                 .addTo(modalForm) //
                 .addToGrid(formularGridPanel) //
@@ -154,7 +154,7 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
 
 
     private void resetPersonenAngaben() {
-        setPersonenAngaben(new PersonenAngaben());
+        setPersonenAngaben(new TeilnehmerAngaben());
     }
 
 
@@ -162,23 +162,23 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
         BindingResult bindingResult = bindPersonenAngabenModalData();
 
         if (!bindingResult.hasErrors()) {
-            this.personenAngaben = (PersonenAngaben) bindingResult.getTarget();
+            this.teilnehmerAngaben = (TeilnehmerAngaben) bindingResult.getTarget();
             this.close();
         }
     }
 
 
     private BindingResult bindPersonenAngabenModalData() {
-        DataBinder dataBinder = new DataBinder(new PersonenAngaben());
+        DataBinder dataBinder = new DataBinder(new TeilnehmerAngaben());
         dataBinder.setAllowedFields("vorname", "nachname", "email", "telefon", "gender", "street", "ort",
-                "personKategorie", "matrikelnummer", "mitarbeiterNummer", "iban", "kontoInhaber");
-        dataBinder.addValidators(new PersonAngabenValidator());
+                "teilnehmerKategorie", "matrikelnummer", "mitarbeiterNummer", "iban", "kontoInhaber");
+        dataBinder.addValidators(new TeilnehmerAngabenValidator());
         return modalForm.bindData(dataBinder);
     }
 
 
-    public void setPersonenAngaben(PersonenAngaben personenAngaben) {
-        BeanWrapper beanWrapper = new BeanWrapperImpl(personenAngaben);
+    public void setPersonenAngaben(TeilnehmerAngaben teilnehmerAngaben) {
+        BeanWrapper beanWrapper = new BeanWrapperImpl(teilnehmerAngaben);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
             String propertyName = propertyDescriptor.getName();
@@ -189,14 +189,14 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
     }
 
 
-    public Optional<PersonenAngaben> getPersonenAngaben() {
-        return Optional.ofNullable(personenAngaben);
+    public Optional<TeilnehmerAngaben> getPersonenAngaben() {
+        return Optional.ofNullable(teilnehmerAngaben);
     }
 
 
     @Override
     public void close() {
-        applicationDataService.removePersonenAngabenListener(this);
+        applicationDataService.removeTeilnehmerAngabenListener(this);
         super.close();
     }
 
@@ -229,13 +229,13 @@ public class PersonenAngabenDialog extends DialogWindow implements WindowListene
     }
 
     @Override
-    public void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben) {
-        setPersonenAngaben(changedPersonenAngaben);
+    public void onChangedTeilnehmerAngaben(TeilnehmerAngaben changedTeilnehmerAngaben) {
+        setPersonenAngaben(changedTeilnehmerAngaben);
     }
 
 
     @Override
-    public Optional<PersonenAngaben> showDialog(WindowBasedTextGUI textGUI) {
+    public Optional<TeilnehmerAngaben> showDialog(WindowBasedTextGUI textGUI) {
         super.showDialog(textGUI);
         return getPersonenAngaben();
     }

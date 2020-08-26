@@ -1,6 +1,6 @@
 package de.chrisgw.sportbooking.repository;
 
-import de.chrisgw.sportbooking.model.PersonenAngaben;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import de.chrisgw.sportbooking.model.SportAngebot;
 import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
@@ -20,16 +20,16 @@ public class SavedApplicationState {
     private LocalDateTime saveTime = LocalDateTime.now();
     private Locale language = Locale.getDefault();
     private String selectedTheme = "default";
-    private PersonenAngaben personenAngaben = new PersonenAngaben();
+    private TeilnehmerAngaben teilnehmerAngaben = new TeilnehmerAngaben();
 
     private List<SportAngebot> watchedSportAngebote = new ArrayList<>();
     private List<SportBuchungsJob> pendingBuchungsJobs = new ArrayList<>();
-    private List<SportBuchungsBestaetigung> finishedBuchungsJobs = new ArrayList<>();
+    private List<SportBuchungsJob> finishedBuchungsJobs = new ArrayList<>();
 
 
     public BigInteger totalSpendEuro() {
         return finishedBuchungsJobs.stream()
-                .map(SportBuchungsBestaetigung::getPreis)
+                .map(SportBuchungsJob::getPreis)
                 .reduce(BigInteger.ZERO, BigInteger::add);
     }
 

@@ -8,7 +8,6 @@ import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
@@ -86,7 +85,7 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
         SportAngebot sportAngebot = sportTermin.getSportAngebot();
         String kursnummer = sportAngebot.getKursnummer();
         String sportArtName = sportAngebot.getSportArt().getName();
-        LocalDateTime timestamp = sportBuchungsJob.getTimestamp();
+        LocalDateTime timestamp = sportBuchungsJob.lastSportBuchungsVersuch().getTimestamp();
         String formatBuchungsTimestamp = DateTimeFormatter.ofPattern("dd.MM. HH:mm").format(timestamp);
 
         rowValues.add(String.valueOf(sportBuchungsJob.getJobId()));
@@ -114,7 +113,7 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
     }
 
     @Override
-    public void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
+    public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
         // TODO refreshPendingJob
     }
 

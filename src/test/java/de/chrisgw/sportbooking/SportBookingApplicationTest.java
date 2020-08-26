@@ -1,12 +1,11 @@
 package de.chrisgw.sportbooking;
 
 import de.chrisgw.sportbooking.model.*;
-import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
-import de.chrisgw.sportbooking.model.SportBuchungStrategieImpl.FixedPeriodTimeBuchungStrategie;
-import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
+import de.chrisgw.sportbooking.model.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben.Gender;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
-import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
+import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -21,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SportBookingApplicationTest {
 
-    private final static String SPORT_ART = "Badminton Spielbetrieb";
-    private final static String KURSNUMMER = "11132976";
+    private final static String SPORT_ART = "Softball Level 1 - 3";
+    private final static String KURSNUMMER = "15142116";
 
     private final ConfigurableApplicationContext applicationContext;
 
@@ -39,7 +38,7 @@ public class SportBookingApplicationTest {
             System.setProperty("webdriver.chrome.driver", "C:\\01_Programmieren\\chromedriver.exe");
 
             SportAngebot sportAngebot = testApplication.findSportAngebot(SPORT_ART, KURSNUMMER);
-            SportTermin sportTermin = sportAngebot.upcomingSportTermine()
+            SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
                     .findFirst()
                     .orElseThrow(RuntimeException::new);
             testApplication.bucheSportTermin(sportTermin);
@@ -51,7 +50,7 @@ public class SportBookingApplicationTest {
 
     private SportAngebot findSportAngebot(String sportArtName, String kursnummer) {
         SportKatalogRepository sportKatalogRepository = applicationContext.getBean(SportKatalogRepository.class);
-        SportKatalog sportKatalog = sportKatalogRepository.currentSportKatalog();
+        SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
         Optional<SportArt> sportArt = sportKatalog.findSportArtByName(sportArtName);
         if (sportArt.isPresent()) {
             Optional<SportAngebot> sportAngebot = sportArt.get().findSportAngebot(kursnummer);
@@ -76,8 +75,11 @@ public class SportBookingApplicationTest {
 
 
     private void bucheSportTermin(SportTermin sportTermin) throws ExecutionException, InterruptedException {
-        SportBuchungsJob sportBuchungsJob = new SportBuchungsJob(sportTermin, readPersonenAngaben());
-        sportBuchungsJob.setSportBuchungStrategie(getSportBuchungsStrategie());
+        SportBuchungsJob sportBuchungsJob = new SportBuchungsJob();
+        sportBuchungsJob.setSportAngebot(sportTermin.getSportAngebot());
+        sportBuchungsJob.setSportTermin(sportTermin);
+        sportBuchungsJob.setTeilnehmerAngaben(readTeilnehmerAngaben());
+        sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
 
         SportBookingSniperService bookingSniperService = applicationContext.getBean(SportBookingSniperService.class);
         CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submitSportBuchungsJob(
@@ -87,31 +89,31 @@ public class SportBookingApplicationTest {
     }
 
 
-    private PersonenAngaben readPersonenAngaben() {
+    private TeilnehmerAngaben readTeilnehmerAngaben() {
         ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
-        return applicationStateDao.getPersonenAngaben();
+        return applicationStateDao.getTeilnehmerAngaben();
     }
 
 
-    private SportBuchungStrategie getSportBuchungsStrategie() {
-        return new FixedPeriodTimeBuchungStrategie(1, TimeUnit.MINUTES);
+    private SportBuchungsStrategie getSportBuchungsStrategie() {
+        return new FixedPeriodBuchungsStrategie(1, TimeUnit.MINUTES);
     }
 
 
-    public static PersonenAngaben createPersonenAngaben() {
-        PersonenAngaben personenAngaben = new PersonenAngaben();
-        personenAngaben.setVorname("Vorname");
-        personenAngaben.setNachname("Nachname");
-        personenAngaben.setEmail("Email");
-        personenAngaben.setGender(Gender.FEMALE);
+    public static TeilnehmerAngaben createTeilnehmerAngaben() {
+        TeilnehmerAngaben teilnehmerAngaben = new TeilnehmerAngaben();
+        teilnehmerAngaben.setVorname("Vorname");
+        teilnehmerAngaben.setNachname("Nachname");
+        teilnehmerAngaben.setEmail("Email");
+        teilnehmerAngaben.setGender(Gender.FEMALE);
 
-        personenAngaben.setStreet("Street");
-        personenAngaben.setOrt("Ort");
+        teilnehmerAngaben.setStreet("Street");
+        teilnehmerAngaben.setOrt("Ort");
 
-        personenAngaben.setPersonKategorie(PersonKategorie.MITARBEITER_FH);
-        personenAngaben.setMitarbeiterNummer("MitarbeiterNummer");
-        personenAngaben.setMatrikelnummer("Matrikelnummer");
-        return personenAngaben;
+        teilnehmerAngaben.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
+        teilnehmerAngaben.setMitarbeiterNummer("MitarbeiterNummer");
+        teilnehmerAngaben.setMatrikelnummer("Matrikelnummer");
+        return teilnehmerAngaben;
     }
 
 
@@ -147,25 +149,11 @@ public class SportBookingApplicationTest {
         for (int i = 0; i < 3; i++) {
             SportTermin sportTermin = new SportTermin();
             sportTermin.setSportAngebot(sportAngebot);
-            sportTermin.setStatus(SportTerminStatus.OFFEN);
             sportTermin.setStartZeit(firstTerminDate.plusWeeks(i).atTime(18, 30));
             sportTermin.setEndZeit(firstTerminDate.plusWeeks(i).atTime(20, 15));
             sportTermine.add(sportTermin);
         }
         return sportTermine;
-    }
-
-
-    public static SportBuchungsBestaetigung createSportBuchungsBestaetigung(SportTermin sportTermin) {
-        SportBuchungsBestaetigung buchungsBestaetigung = new SportBuchungsBestaetigung();
-        buchungsBestaetigung.setBuchungsNummer("5412123");
-        buchungsBestaetigung.setBuchungsBestaetigungUrl(
-                "http://www.badminton.de/bestätigung/" + buchungsBestaetigung.getBuchungsNummer());
-        buchungsBestaetigung.setJobId(41);
-        buchungsBestaetigung.setPersonenAngaben(createPersonenAngaben());
-        buchungsBestaetigung.setSportTermin(sportTermin);
-        buchungsBestaetigung.setBuchungsBestaetigung("buchungsBestätigung PDF content".getBytes());
-        return buchungsBestaetigung;
     }
 
 }

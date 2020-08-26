@@ -7,16 +7,16 @@ import static org.springframework.validation.ValidationUtils.rejectIfEmpty;
 import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
 
 
-public class PersonAngabenValidator implements Validator {
+public class TeilnehmerAngabenValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return PersonenAngaben.class.equals(clazz);
+        return TeilnehmerAngaben.class.equals(clazz);
     }
 
     @Override
     public void validate(Object target, Errors errors) {
-        PersonenAngaben personenAngaben = (PersonenAngaben) target;
+        TeilnehmerAngaben teilnehmerAngaben = (TeilnehmerAngaben) target;
         rejectIfEmptyOrWhitespace(errors, "vorname", "vorname.empty");
         rejectIfEmptyOrWhitespace(errors, "nachname", "nachname.empty");
         rejectIfEmptyOrWhitespace(errors, "email", "email.empty");
@@ -24,12 +24,12 @@ public class PersonAngabenValidator implements Validator {
         rejectIfEmptyOrWhitespace(errors, "street", "street.empty");
         rejectIfEmptyOrWhitespace(errors, "ort", "ort.empty");
 
-        rejectIfEmpty(errors, "personKategorie", "personKategorie.empty");
-        PersonKategorie personKategorie = personenAngaben.getPersonKategorie();
-        if (personKategorie != null && personKategorie.requiresMatrikelnummer()) {
+        rejectIfEmpty(errors, "teilnehmerKategorie", "teilnehmerKategorie.empty");
+        TeilnehmerKategorie teilnehmerKategorie = teilnehmerAngaben.getTeilnehmerKategorie();
+        if (teilnehmerKategorie != null && teilnehmerKategorie.requiresMatrikelnummer()) {
             rejectIfEmptyOrWhitespace(errors, "matrikelnummer", "matrikelnummer.empty");
         }
-        if (personKategorie != null && personKategorie.requiresMitarbeiterNummer()) {
+        if (teilnehmerKategorie != null && teilnehmerKategorie.requiresMitarbeiterNummer()) {
             rejectIfEmptyOrWhitespace(errors, "mitarbeiterNummer", "mitarbeiterNummer.empty");
         }
 

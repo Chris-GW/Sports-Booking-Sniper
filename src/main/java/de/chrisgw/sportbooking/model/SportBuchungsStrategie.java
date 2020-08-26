@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 
 
 @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.WRAPPER_OBJECT)
-public interface SportBuchungStrategie {
+public interface SportBuchungsStrategie {
 
     /**
      * @param sportBuchungsJob für welchen SportBuchungsJob der nächte Versuchszeitpunkt gesucht wird.
      * @return der nächste Zeitpunkt, zu dem der übergebene SportBuchungsJob erneut überprüft werden soll.
      */
-    LocalDateTime getNextTimeForCheckTermin(SportBuchungsJob sportBuchungsJob);
+    LocalDateTime getNextTimeForCheck(SportBuchungsJob sportBuchungsJob);
 
 
 }

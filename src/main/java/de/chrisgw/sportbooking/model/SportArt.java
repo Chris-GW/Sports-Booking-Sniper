@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import static java.util.Objects.requireNonNull;
 
 
 @Data
+@NoArgsConstructor
 @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportArt implements Comparable<SportArt> {
 
@@ -32,7 +34,7 @@ public class SportArt implements Comparable<SportArt> {
 
 
     public Stream<SportAngebot> upcomingSportAngebote() {
-        return sportAngebote.stream().filter(SportAngebot::isUpcoming);
+        return sportAngebote.stream().filter(SportAngebot::isBevorstehend);
     }
 
 

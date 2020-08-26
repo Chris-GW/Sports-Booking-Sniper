@@ -65,7 +65,7 @@ public class SportBuchungDialog extends DialogWindow {
 
     private void addSportArtComboBox(Panel formularGridPanel) {
         new Label("SportArt:*").addTo(formularGridPanel);
-        SportKatalog sportKatalog = sportKatalogRepository.currentSportKatalog();
+        SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
         sportArtComboBox = new SearchableComboBox<>(sportKatalog.getSportArten());
         sportArtComboBox.addListener(onSelectSportArt());
         sportArtComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
@@ -98,7 +98,7 @@ public class SportBuchungDialog extends DialogWindow {
             terminComboBox.clearItems();
             SportAngebot sportAngebot = sportAngebotComboBox.getSelectedItem();
             if (sportAngebot != null) {
-                sportAngebot.upcomingSportTermine().forEachOrdered(terminComboBox::addItem);
+                sportAngebot.bevorstehendeSportTermine().forEachOrdered(terminComboBox::addItem);
             }
         };
     }
@@ -139,9 +139,9 @@ public class SportBuchungDialog extends DialogWindow {
 
 
     private BindingResult bindPersonenAngabenModalData() {
-        DataBinder dataBinder = new DataBinder(new PersonenAngaben());
+        DataBinder dataBinder = new DataBinder(new TeilnehmerAngaben());
         dataBinder.setAllowedFields("TODO");
-        dataBinder.addValidators(new PersonAngabenValidator());
+        dataBinder.addValidators(new TeilnehmerAngabenValidator());
         return modalForm.bindData(dataBinder);
     }
 

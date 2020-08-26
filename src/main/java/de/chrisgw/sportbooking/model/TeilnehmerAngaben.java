@@ -5,18 +5,18 @@ import lombok.Data;
 
 
 @Data
-public class PersonenAngaben {
+public class TeilnehmerAngaben {
 
     private String vorname;
     private String nachname;
     private String email;
     private String telefon;
-    private Gender gender = Gender.MALE;
+    private Gender gender = Gender.KEINE_ANGABE;
 
     private String street;
     private String ort;
 
-    private PersonKategorie personKategorie;
+    private TeilnehmerKategorie teilnehmerKategorie;
     private String matrikelnummer; // needed for PersonenKategorie Student
     private String mitarbeiterNummer; // needed for PersonenKategorie Mitarbeiter
 
@@ -33,7 +33,10 @@ public class PersonenAngaben {
 
     public enum Gender {
 
-        MALE("M", "männlich"), FEMALE("W", "weiblich");
+        MALE("M", "männlich"), //
+        FEMALE("W", "weiblich"), //
+        DIVERS("D", "divers"), //
+        KEINE_ANGABE("X", "keine Angabe");
 
         private String shortName;
         private String name;

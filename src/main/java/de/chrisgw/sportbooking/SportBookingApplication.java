@@ -13,21 +13,19 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportbooking.gui.SportBookingMainWindow;
-import de.chrisgw.sportbooking.gui.dialog.PersonenAngabenDialog;
+import de.chrisgw.sportbooking.gui.dialog.TeilnehmerAngabenDialog;
 import de.chrisgw.sportbooking.gui.dialog.WelcomeDialog;
-import de.chrisgw.sportbooking.model.PersonenAngaben;
-import de.chrisgw.sportbooking.repository.AachenSportKatalogRepository;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
+import de.chrisgw.sportbooking.repository.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
-import de.chrisgw.sportbooking.service.AachenSportBookingService;
+import de.chrisgw.sportbooking.service.HszRwthAachenSportBookingService;
 import de.chrisgw.sportbooking.service.SportBookingService;
 import de.chrisgw.sportbooking.service.SportBookingSniperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -37,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 
 @Slf4j
@@ -52,17 +52,17 @@ public class SportBookingApplication {
 
     @Bean
     public SportKatalogRepository sportKatalogRepository() {
-        return new AachenSportKatalogRepository();
+        return new HszRwthAachenSportKatalogRepository();
     }
 
     @Bean
     public SportBookingService sportBookingService() {
-        return new AachenSportBookingService();
+        return new HszRwthAachenSportBookingService();
     }
 
 
     @Bean
-    public ApplicationStateDao savedApplicationDataService() {
+    public ApplicationStateDao applicationStateDao() {
         return new ApplicationStateDao(savedApplicationDataResource(), objectMapper());
     }
 
@@ -72,9 +72,10 @@ public class SportBookingApplication {
     }
 
 
-    // Lanterna GUI
+    // lanterna
 
-    @Bean(destroyMethod = "close")
+    @Lazy
+    @Bean(initMethod = "startScreen", destroyMethod = "stopScreen")
     public Screen guiScreen() throws IOException {
         DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
                 .setInitialTerminalSize(new TerminalSize(100, 50))
@@ -82,16 +83,18 @@ public class SportBookingApplication {
         return defaultTerminalFactory.createScreen();
     }
 
-    // other
+    @Lazy
+    @Bean
+    public MultiWindowTextGUI multiWindowTextGUI(Screen guiScreen, ApplicationStateDao applicationStateDao) {
+        MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
+        windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
+        return windowTextGUI;
+    }
 
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return objectMapper;
+    @Scope(SCOPE_PROTOTYPE)
+    public SportBookingMainWindow sportBookingMainWindow() {
+        return new SportBookingMainWindow(sportKatalogRepository(), sportBookingSniperService(), applicationStateDao());
     }
 
     @Bean
@@ -106,6 +109,19 @@ public class SportBookingApplication {
                 .stream()
                 .map(LanternaThemes::getRegisteredTheme)
                 .collect(Collectors.toList());
+    }
+
+
+    // other
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return objectMapper;
     }
 
     private void registerLanternaTheme(String themeName, String resourceName) {
@@ -126,23 +142,17 @@ public class SportBookingApplication {
     // MAIN
 
     public static void main(String[] args) {
-        try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
+        try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(
                 SportBookingApplication.class)) {
-            ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
+            ApplicationStateDao applicationStateDao = ctx.getBean(ApplicationStateDao.class);
+            MultiWindowTextGUI windowTextGUI = ctx.getBean(MultiWindowTextGUI.class);
 
-            Screen guiScreen = applicationContext.getBean(Screen.class);
-            MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
-            windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
-            guiScreen.startScreen();
-            log.trace("start SportBooking gui");
-
-            SportBookingMainWindow sportBookingMainWindow = newSportBookingMainWindow(applicationContext);
+            SportBookingMainWindow sportBookingMainWindow = ctx.getBean(SportBookingMainWindow.class);
             windowTextGUI.addWindow(sportBookingMainWindow);
             if (applicationStateDao.isFirstVisite()) {
                 showFirstVisiteDialog(applicationStateDao, windowTextGUI);
             }
             windowTextGUI.waitForWindowToClose(sportBookingMainWindow);
-            guiScreen.stopScreen();
             log.trace("finish SportBooking gui");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
@@ -150,22 +160,15 @@ public class SportBookingApplication {
         }
     }
 
-    private static SportBookingMainWindow newSportBookingMainWindow(ConfigurableApplicationContext applicationContext) {
-        SportKatalogRepository sportKatalogRepository = applicationContext.getBean(SportKatalogRepository.class);
-        SportBookingService sportBookingService = applicationContext.getBean(SportBookingService.class);
-        SportBookingSniperService bookingSniperService = applicationContext.getBean(SportBookingSniperService.class);
-        ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
-        return new SportBookingMainWindow(sportKatalogRepository, sportBookingService, bookingSniperService,
-                applicationStateDao);
-    }
 
     private static void showFirstVisiteDialog(ApplicationStateDao applicationStateDao,
             MultiWindowTextGUI windowTextGUI) {
+        log.trace("showFirstVisiteDialog");
         new WelcomeDialog().showDialog(windowTextGUI);
 
-        PersonenAngabenDialog personenAngabenDialog = new PersonenAngabenDialog(applicationStateDao, true);
-        Optional<PersonenAngaben> personenAngaben = personenAngabenDialog.showDialog(windowTextGUI);
-        applicationStateDao.updatePersonenAngaben(personenAngaben.orElseThrow(RuntimeException::new));
+        TeilnehmerAngabenDialog teilnehmerAngabenDialog = new TeilnehmerAngabenDialog(applicationStateDao, true);
+        Optional<TeilnehmerAngaben> teilnehmerAngaben = teilnehmerAngabenDialog.showDialog(windowTextGUI);
+        applicationStateDao.updateTeilnehmerAngaben(teilnehmerAngaben.orElseThrow(RuntimeException::new));
         applicationStateDao.setFirstVisite(false);
     }
 

@@ -2,7 +2,7 @@ package de.chrisgw.sportbooking.repository;
 
 
 import de.chrisgw.sportbooking.model.*;
-import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
+import de.chrisgw.sportbooking.model.SportAngebot.SportAngebotBuchungsArt;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.LazyLoader;
@@ -22,35 +22,35 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.chrisgw.sportbooking.model.SportAngebotBuchungsArt.*;
+import static de.chrisgw.sportbooking.model.SportAngebot.SportAngebotBuchungsArt.*;
 import static java.lang.Integer.parseInt;
 
 
 @Slf4j
 @Repository
-public class AachenSportKatalogRepository implements SportKatalogRepository {
+public class HszRwthAachenSportKatalogRepository implements SportKatalogRepository {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-    private static final String SPORT_KATALOG_URL = "http://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/index.html";
+    public static final int REQUEST_TIMEOUT_MS = 8 * 1000;
+    public static final String SPORT_KATALOG_URL = "http://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/index.html";
 
 
     @Override
-    public SportKatalog currentSportKatalog() {
+    public SportKatalog findCurrentSportKatalog() {
         try {
             log.debug("loadSportArten() GET {}", SPORT_KATALOG_URL);
-            Document doc = Jsoup.connect(SPORT_KATALOG_URL).timeout(8 * 1000).get();
+            Document doc = Jsoup.connect(SPORT_KATALOG_URL).timeout(REQUEST_TIMEOUT_MS).get();
             log.trace("loadSportArten() GET response document:\n{}", doc);
             SportKatalog sportKatalog = readSportKatalog(doc);
 
-            Set<SportArt> sportArten = new HashSet<>(200);
             Elements sportLinkList = doc.select("div#bs_content dl.bs_menu dd a[href]");
             for (Element sportLink : sportLinkList) {
-                sportArten.add(createSportArtOfLink(sportLink));
+                SportArt sportArt = createSportArtOfLink(sportLink);
+                sportKatalog.addSportArt(sportArt);
             }
-            sportKatalog.setSportArten(sportArten);
             return sportKatalog;
         } catch (Exception e) {
             throw new RuntimeException("Could not loadSportArten", e);
@@ -67,9 +67,8 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
         Matcher sportKatalogMatcher = sportKatalogPattern.matcher(sportKatalogToprStr);
         if (sportKatalogMatcher.matches()) {
             String katalogName = sportKatalogMatcher.group(1);
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            LocalDate zeitraumStart = LocalDate.parse(sportKatalogMatcher.group(2), dateFormatter);
-            LocalDate zeitraumEnde = LocalDate.parse(sportKatalogMatcher.group(3), dateFormatter);
+            LocalDate zeitraumStart = LocalDate.parse(sportKatalogMatcher.group(2), DATE_FORMATTER);
+            LocalDate zeitraumEnde = LocalDate.parse(sportKatalogMatcher.group(3), DATE_FORMATTER);
 
             SportKatalog sportKatalog = new SportKatalog();
             sportKatalog.setKatalog(katalogName);
@@ -78,7 +77,7 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
             sportKatalog.setAbrufzeitpunkt(LocalDateTime.now());
             return sportKatalog;
         } else {
-            String message = String.format("Expect top SportKatalog String to match '%s' but was: %s",
+            String message = String.format("Expect top SportKatalog String to match Pattern '%s' but was: '%s'",
                     sportKatalogPattern, sportKatalogToprStr);
             throw new IllegalArgumentException(message);
         }
@@ -97,7 +96,7 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
     @SuppressWarnings("unchecked")
     private Set<SportAngebot> newLazySportAngebotLoader(final SportArt sportArt) {
         return (Set<SportAngebot>) Enhancer.create(Set.class, (LazyLoader) () -> {
-            log.debug("lazy load SportAngebote for {}", sportArt);
+            log.trace("lazy load SportAngebote for {}", sportArt);
             return findSportAngeboteFor(sportArt);
         });
     }
@@ -107,7 +106,7 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
     public Set<SportAngebot> findSportAngeboteFor(SportArt sportArt) {
         try {
             log.debug("fetchSportAngebote() GET {}", sportArt.getUrl());
-            Document doc = Jsoup.connect(sportArt.getUrl()).timeout(8 * 1000).get();
+            Document doc = Jsoup.connect(sportArt.getUrl()).timeout(REQUEST_TIMEOUT_MS).get();
             log.trace("fetchSportAngebote() GET response document:\n{}", doc);
 
             Set<SportAngebot> sportAngebote = new TreeSet<>();
@@ -135,7 +134,7 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
         SportAngebot sportAngebot = new SportAngebot();
         String kursnr = tableRow.child(0).text();
         String details = tableRow.child(1).text();
-        SportAngebotBuchungsArt buchungsArt = EINMALIGES_TICKET_BUCHUNG;
+        SportAngebotBuchungsArt buchungsArt = ANGEBOT_TICKET_BUCHUNG;
         if (details.equalsIgnoreCase("Ein Termin")) {
             buchungsArt = EINZEL_TERMIN_BUCHUNG;
         }
@@ -146,17 +145,18 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
         String ort = tableRow.child(4).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
 
         Element zeitraumTd = tableRow.child(5);
-        setReadZeitraum(sportAngebot, zeitraumTd);
         String kursinfoUrl = readKursinfoUrl(zeitraumTd);
         String leitung = tableRow.child(6).text();
+        SportAngebotPreis preis = readSportAngebotPreis(tableRow);
 
         sportAngebot.setKursnummer(kursnr);
         sportAngebot.setDetails(details + " am " + tag + " von " + zeit);
         sportAngebot.setBuchungsArt(buchungsArt);
         sportAngebot.setOrt(ort);
+        setReadZeitraum(sportAngebot, zeitraumTd);
         sportAngebot.setKursinfoUrl(kursinfoUrl);
         sportAngebot.setLeitung(leitung);
-        sportAngebot.setPreis(readSportAngebotPreis(tableRow));
+        sportAngebot.setPreis(preis);
         sportAngebot.setSportTermine(newTerminLazyLoader(sportAngebot));
         return sportAngebot;
     }
@@ -180,8 +180,8 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
             sportAngebot.setZeitraumStart(zeitraumStart);
             sportAngebot.setZeitraumEnde(zeitraumEnde);
         } else {
-            log.warn("expect zeitraumStart to match '{}' but was: '{}'", sportAngebotZeitraumPattern,
-                    zeitraumTd.text());
+            throw new RuntimeException(String.format("expect zeitraum tb cell to match '%s' but was: '%s'", //
+                    sportAngebotZeitraumPattern, zeitraumTd.text()));
         }
     }
 
@@ -215,13 +215,20 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
                 prei1sAlumni = preis;
                 break;
             default:
-                throw new IllegalArgumentException("unexpected preis kategorie text: " + preisKategorieText);
+                log.warn("unexpected preis kategorie text: {}", preisKategorieText);
             }
         }
-        return new SportAngebotPreis(preisStudierende, preisMitarbeiter, preisExterne, prei1sAlumni);
+        SportAngebotPreis preis = new SportAngebotPreis(preisStudierende, preisMitarbeiter, preisExterne, prei1sAlumni);
+        log.trace("readSportAngebotPreis for row [{}] '{}' as SportAngebotPreis = {}", //
+                tableRow.siblingIndex(), preisForKategorie.text(), prei1sAlumni);
+        return preis;
     }
 
     private long parsePreis(String preisText) {
+        /* 12 EUR für Studierende
+           12 EUR für Beschäftigte
+           12 EUR für Externe
+           12 EUR für Alumni */
         Pattern preisPattern = Pattern.compile("(?<preis>\\d+(,\\d+)?)\\s+EUR");
         Matcher preisMatcher = preisPattern.matcher(preisText);
         if (preisMatcher.matches()) {
@@ -307,7 +314,6 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
             terminEnd = terminEnd.plusWeeks(1);
 
             SportTermin sportTermin = new SportTermin();
-            sportTermin.setStatus(SportTerminStatus.GESCHLOSSEN);
             sportTermin.setStartZeit(terminStart);
             sportTermin.setEndZeit(terminEnd);
             sportTermin.setBuchungsBeginn(terminStart.minusWeeks(1));
@@ -325,7 +331,7 @@ public class AachenSportKatalogRepository implements SportKatalogRepository {
 
             String kursinfoUrl = sportAngebot.getKursinfoUrl();
             log.debug("fetchSportTermine() GET {}", kursinfoUrl);
-            Document doc = Jsoup.connect(kursinfoUrl).timeout(9 * 1000).get();
+            Document doc = Jsoup.connect(kursinfoUrl).timeout(REQUEST_TIMEOUT_MS).get();
             log.trace("fetchSportTermine() GET response document:\n{}", doc);
 
             for (Element terminTr : doc.select("#main #bs_content table tbody tr")) {

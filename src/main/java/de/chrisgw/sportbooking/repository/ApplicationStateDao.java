@@ -3,10 +3,7 @@ package de.chrisgw.sportbooking.repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
-import de.chrisgw.sportbooking.model.PersonenAngaben;
-import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
-import de.chrisgw.sportbooking.model.SportBuchungsJob;
+import de.chrisgw.sportbooking.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -34,7 +31,7 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
 
-    private final List<PersonenAngabenListener> personenAngabenListeners = new ArrayList<>();
+    private final List<TeilnehmerAngabenListener> teilnehmerAngabenListeners = new ArrayList<>();
     private final List<SportBuchungJobListener> sportBuchungJobListeners = new ArrayList<>();
 
 
@@ -56,24 +53,24 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
 
     // PersonenAngaben
 
-    public PersonenAngaben getPersonenAngaben() {
-        return applicationState.getPersonenAngaben();
+    public TeilnehmerAngaben getTeilnehmerAngaben() {
+        return applicationState.getTeilnehmerAngaben();
     }
 
-    public void updatePersonenAngaben(PersonenAngaben personenAngaben) {
-        applicationState.setPersonenAngaben(personenAngaben);
+    public void updateTeilnehmerAngaben(TeilnehmerAngaben teilnehmerAngaben) {
+        applicationState.setTeilnehmerAngaben(teilnehmerAngaben);
         saveApplicationData();
-        for (PersonenAngabenListener personenAngabenListener : personenAngabenListeners) {
-            personenAngabenListener.onChangedPersonenAngaben(personenAngaben);
+        for (TeilnehmerAngabenListener teilnehmerAngabenListener : teilnehmerAngabenListeners) {
+            teilnehmerAngabenListener.onChangedTeilnehmerAngaben(teilnehmerAngaben);
         }
     }
 
-    public void addPersonenAngabenListener(PersonenAngabenListener personenAngabenListener) {
-        personenAngabenListeners.add(personenAngabenListener);
+    public void addTeilnehmerAngabenListener(TeilnehmerAngabenListener teilnehmerAngabenListener) {
+        teilnehmerAngabenListeners.add(teilnehmerAngabenListener);
     }
 
-    public void removePersonenAngabenListener(PersonenAngabenListener personenAngabenListener) {
-        personenAngabenListeners.remove(personenAngabenListener);
+    public void removeTeilnehmerAngabenListener(TeilnehmerAngabenListener teilnehmerAngabenListener) {
+        teilnehmerAngabenListeners.remove(teilnehmerAngabenListener);
     }
 
 
@@ -120,7 +117,7 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
 
     // finished SportBuchung
 
-    public List<SportBuchungsBestaetigung> getFinishedBuchungsJobs() {
+    public List<SportBuchungsJob> getFinishedBuchungsJobs() {
         return applicationState.getFinishedBuchungsJobs();
     }
 
@@ -204,9 +201,9 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
     }
 
 
-    public interface PersonenAngabenListener {
+    public interface TeilnehmerAngabenListener {
 
-        void onChangedPersonenAngaben(PersonenAngaben changedPersonenAngaben);
+        void onChangedTeilnehmerAngaben(TeilnehmerAngaben changedTeilnehmerAngaben);
 
     }
 
@@ -217,7 +214,7 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
 
         void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
 
-        void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung);
+        void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob);
 
     }
 

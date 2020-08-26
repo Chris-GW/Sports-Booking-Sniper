@@ -14,9 +14,9 @@ import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportbooking.gui.dialog.PersonenAngabenDialog;
 import de.chrisgw.sportbooking.gui.dialog.SportBuchungDialog;
-import de.chrisgw.sportbooking.model.PersonenAngaben;
+import de.chrisgw.sportbooking.gui.dialog.TeilnehmerAngabenDialog;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
 import lombok.Getter;
@@ -48,17 +48,19 @@ public class MainMenuBar extends SportBookingComponent {
         this.sportKatalogRepository = sportKatalogRepository;
         setLayoutManager(new BorderLayout());
 
-        this.viewMenu = new Menu("View");
-        this.navigationMenu = new Menu("Navigation");
-        this.menuBar = new MenuBar().add(sportBuchungMenu())
+        viewMenu = new Menu("View");
+        addViewMenuItemsFor(this);
+        viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
+
+        navigationMenu = new Menu("Navigation");
+        addNavigationMenuItemsFor(this);
+
+        menuBar = new MenuBar().add(sportBuchungMenu())
                 .add(viewMenu)
                 .add(navigationMenu)
                 .add(debugMenu())
                 .add(personenAngabenMenu())
                 .add(languageMenu());
-        viewMenu.add(createSwitchThemeMenuItem());
-        addViewMenuItemsFor(this);
-        addNavigationMenuItemsFor(this);
 
         addComponent(menuBar, Location.CENTER);
         addComponent(clockDisplyMenuBar(), Location.RIGHT);
@@ -121,13 +123,13 @@ public class MainMenuBar extends SportBookingComponent {
 
             @Override
             public String getLabel() {
-                PersonenAngaben personenAngaben = applicationStateDao.getPersonenAngaben();
-                return personenAngaben.getName();
+                TeilnehmerAngaben teilnehmerAngaben = applicationStateDao.getTeilnehmerAngaben();
+                return teilnehmerAngaben.getName();
             }
         };
 
         menu.add(new MenuItem("edit PersonenAngaben", () -> {
-            new PersonenAngabenDialog(applicationStateDao).showDialog(getTextGUI());
+            new TeilnehmerAngabenDialog(applicationStateDao).showDialog(getTextGUI());
         }));
         return menu;
     }

@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-public class AachenSportBookingService implements SportBookingService {
+public class HszRwthAachenSportBookingService implements SportBookingService {
 
 
     @Override
@@ -36,7 +36,7 @@ public class AachenSportBookingService implements SportBookingService {
         }
         SportTermin sportTermin = sportBuchungsJob.getSportTermin();
 
-        //                WebDriver driver = new ChromeDriver();
+        //        WebDriver driver = new ChromeDriver();
         WebDriver driver = new HtmlUnitDriver(true);
         try {
             driver.manage().window().maximize();
@@ -59,11 +59,9 @@ public class AachenSportBookingService implements SportBookingService {
             if (buchungsNummer != null) {
                 log.info("buchungsBestaetigung document\n{}", driver.getPageSource());
                 SportBuchungsBestaetigung sportBuchungsBestaetigung = new SportBuchungsBestaetigung();
-                sportBuchungsBestaetigung.setJobId(sportBuchungsJob.getJobId());
+                sportBuchungsBestaetigung.setBuchungsJob(sportBuchungsJob);
                 sportBuchungsBestaetigung.setBuchungsBestaetigungUrl(driver.getCurrentUrl());
                 sportBuchungsBestaetigung.setBuchungsNummer(buchungsNummer);
-                sportBuchungsBestaetigung.setPersonenAngaben(sportBuchungsJob.getPersonenAngaben());
-                sportBuchungsBestaetigung.setSportTermin(sportBuchungsJob.getSportTermin());
                 // byte[] buchungsBestaetigungPdf = readBuchungsBestaetigungAsPdf(driver.getPageSource());
                 // sportBuchungsBestaetigung.setBuchungsBestaetigung(buchungsBestaetigungPdf);
                 return sportBuchungsBestaetigung;
@@ -120,7 +118,7 @@ public class AachenSportBookingService implements SportBookingService {
 
     private boolean hasAngebotBuchenBtn(WebElement angebotBuchenCell) {
         List<WebElement> inputElements = angebotBuchenCell.findElements(By.className("bs_btn_buchen"));
-        return inputElements.size() > 0;
+        return !inputElements.isEmpty();
     }
 
     private void switchToNewOpenWindow(WebDriver driver) {
@@ -164,42 +162,43 @@ public class AachenSportBookingService implements SportBookingService {
 
 
     private void fillPersonenAngaben(WebDriver driver, SportBuchungsJob sportBuchungsJob) {
-        PersonenAngaben personenAngaben = sportBuchungsJob.getPersonenAngaben();
-        log.debug("fill form with given PersonenAngaben {}", personenAngaben);
+        TeilnehmerAngaben teilnehmerAngaben = sportBuchungsJob.getTeilnehmerAngaben();
+        log.debug("fill form with given PersonenAngaben {}", teilnehmerAngaben);
         WebElement personenAngabenForm = driver.findElement(By.name("bsform"));
-        selectGenderRadio(personenAngabenForm, personenAngaben);
+        selectGenderRadio(personenAngabenForm, teilnehmerAngaben);
 
         personenAngabenForm.findElement(By.name("vorname")).clear();
-        personenAngabenForm.findElement(By.name("vorname")).sendKeys(personenAngaben.getVorname());
+        personenAngabenForm.findElement(By.name("vorname")).sendKeys(teilnehmerAngaben.getVorname());
         personenAngabenForm.findElement(By.name("name")).clear();
-        personenAngabenForm.findElement(By.name("name")).sendKeys(personenAngaben.getNachname());
+        personenAngabenForm.findElement(By.name("name")).sendKeys(teilnehmerAngaben.getNachname());
         personenAngabenForm.findElement(By.name("email")).clear();
-        personenAngabenForm.findElement(By.name("email")).sendKeys(personenAngaben.getEmail());
-        if (personenAngaben.getTelefon() != null) {
-            personenAngabenForm.findElement(By.name("telefon")).sendKeys(personenAngaben.getTelefon());
+        personenAngabenForm.findElement(By.name("email")).sendKeys(teilnehmerAngaben.getEmail());
+        if (teilnehmerAngaben.getTelefon() != null) {
+            personenAngabenForm.findElement(By.name("telefon")).sendKeys(teilnehmerAngaben.getTelefon());
         }
 
         personenAngabenForm.findElement(By.name("strasse")).clear();
-        personenAngabenForm.findElement(By.name("strasse")).sendKeys(personenAngaben.getStreet());
+        personenAngabenForm.findElement(By.name("strasse")).sendKeys(teilnehmerAngaben.getStreet());
         personenAngabenForm.findElement(By.name("ort")).clear();
-        personenAngabenForm.findElement(By.name("ort")).sendKeys(personenAngaben.getOrt());
+        personenAngabenForm.findElement(By.name("ort")).sendKeys(teilnehmerAngaben.getOrt());
 
-        selectPersonenKategorie(personenAngabenForm, personenAngaben);
+        selectPersonenKategorie(personenAngabenForm, teilnehmerAngaben);
 
         if (sportBuchungsJob.getSportTermin().getSportAngebot().isPaymentRequierd()) {
             personenAngabenForm.findElement(By.name("iban")).clear();
-            personenAngabenForm.findElement(By.name("iban")).sendKeys(personenAngaben.getIban());
-            if (personenAngaben.getKontoInhaber() != null) {
+            personenAngabenForm.findElement(By.name("iban")).sendKeys(teilnehmerAngaben.getIban());
+            if (teilnehmerAngaben.getKontoInhaber() != null) {
                 personenAngabenForm.findElement(By.name("kontoinh")).clear();
-                personenAngabenForm.findElement(By.name("kontoinh")).sendKeys(personenAngaben.getKontoInhaber());
+                personenAngabenForm.findElement(By.name("kontoinh")).sendKeys(teilnehmerAngaben.getKontoInhaber());
             }
         }
 
         personenAngabenForm.findElement(By.name("tnbed")).click();
     }
 
-    private Optional<WebElement> selectGenderRadio(WebElement personenAngabenForm, PersonenAngaben personenAngaben) {
-        String genderShortName = personenAngaben.getGender().getShortName();
+    private Optional<WebElement> selectGenderRadio(WebElement personenAngabenForm,
+            TeilnehmerAngaben teilnehmerAngaben) {
+        String genderShortName = teilnehmerAngaben.getGender().getShortName();
         List<WebElement> genderInputs = personenAngabenForm.findElements(By.cssSelector("input[name='sex']"));
         for (WebElement genderInput : genderInputs) {
             String value = genderInput.getAttribute("value");
@@ -211,22 +210,23 @@ public class AachenSportBookingService implements SportBookingService {
         return Optional.empty();
     }
 
-    private void selectPersonenKategorie(SearchContext personenAngabenForm, PersonenAngaben personenAngaben) {
-        PersonKategorie personKategorie = personenAngaben.getPersonKategorie();
-        new Select(personenAngabenForm.findElement(By.name("statusorig"))).selectByValue(personKategorie.getValue());
-        switch (personKategorie) {
+    private void selectPersonenKategorie(SearchContext personenAngabenForm, TeilnehmerAngaben teilnehmerAngaben) {
+        TeilnehmerKategorie teilnehmerKategorie = teilnehmerAngaben.getTeilnehmerKategorie();
+        new Select(personenAngabenForm.findElement(By.name("statusorig"))).selectByValue(
+                teilnehmerKategorie.getValue());
+        switch (teilnehmerKategorie) {
         case STUDENT_FH:
         case STUDENT_RWTH:
         case STUDENT_NRW:
         case STUDENT_ANDERE_HOCHSCHULE:
             personenAngabenForm.findElement(By.name("matnr")).clear();
-            personenAngabenForm.findElement(By.name("matnr")).sendKeys(personenAngaben.getMatrikelnummer());
+            personenAngabenForm.findElement(By.name("matnr")).sendKeys(teilnehmerAngaben.getMatrikelnummer());
             break;
         case MITARBEITER_FH:
         case MITARBEITER_RWTH:
         case MITARBEITER_KLINIKUM:
             personenAngabenForm.findElement(By.name("mitnr")).clear();
-            personenAngabenForm.findElement(By.name("mitnr")).sendKeys(personenAngaben.getMitarbeiterNummer());
+            personenAngabenForm.findElement(By.name("mitnr")).sendKeys(teilnehmerAngaben.getMitarbeiterNummer());
             break;
         case SCHUELER:
         case AZUBI_RWTH_UKA:
@@ -234,7 +234,8 @@ public class AachenSportBookingService implements SportBookingService {
             // no special data needed to enter
             break;
         default:
-            throw new IllegalArgumentException("Unknown PersonenKategorie " + personenAngaben.getPersonKategorie());
+            throw new IllegalArgumentException(
+                    "Unknown PersonenKategorie " + teilnehmerAngaben.getTeilnehmerKategorie());
         }
     }
 

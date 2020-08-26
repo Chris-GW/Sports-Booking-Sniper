@@ -1,7 +1,6 @@
 package de.chrisgw.sportbooking.model;
 
-import de.chrisgw.sportbooking.model.PersonenAngaben.Gender;
-import de.chrisgw.sportbooking.model.SportTermin.SportTerminStatus;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben.Gender;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -15,20 +14,20 @@ public class SportBookingModelTestUtil {
     }
 
 
-    public static PersonenAngaben createPersonenAngaben() {
-        PersonenAngaben personenAngaben = new PersonenAngaben();
-        personenAngaben.setVorname("Vorname");
-        personenAngaben.setNachname("Nachname");
-        personenAngaben.setEmail("Email");
-        personenAngaben.setGender(Gender.FEMALE);
+    public static TeilnehmerAngaben createPersonenAngaben() {
+        TeilnehmerAngaben teilnehmerAngaben = new TeilnehmerAngaben();
+        teilnehmerAngaben.setVorname("Vorname");
+        teilnehmerAngaben.setNachname("Nachname");
+        teilnehmerAngaben.setEmail("Email");
+        teilnehmerAngaben.setGender(Gender.FEMALE);
 
-        personenAngaben.setStreet("Street");
-        personenAngaben.setOrt("Ort");
+        teilnehmerAngaben.setStreet("Street");
+        teilnehmerAngaben.setOrt("Ort");
 
-        personenAngaben.setPersonKategorie(PersonKategorie.MITARBEITER_FH);
-        personenAngaben.setMitarbeiterNummer("MitarbeiterNummer");
-        personenAngaben.setMatrikelnummer("Matrikelnummer");
-        return personenAngaben;
+        teilnehmerAngaben.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
+        teilnehmerAngaben.setMitarbeiterNummer("MitarbeiterNummer");
+        teilnehmerAngaben.setMatrikelnummer("Matrikelnummer");
+        return teilnehmerAngaben;
     }
 
 
@@ -68,7 +67,6 @@ public class SportBookingModelTestUtil {
         for (int i = 0; i < 3; i++) {
             SportTermin sportTermin = new SportTermin();
             sportTermin.setSportAngebot(sportAngebot);
-            sportTermin.setStatus(SportTerminStatus.OFFEN);
             sportTermin.setStartZeit(firstTerminDate.plusWeeks(i).atTime(18, 30));
             sportTermin.setEndZeit(firstTerminDate.plusWeeks(i).atTime(20, 15));
             sportTermine.add(sportTermin);

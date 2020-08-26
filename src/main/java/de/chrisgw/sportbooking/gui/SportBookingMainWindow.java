@@ -13,10 +13,10 @@ import de.chrisgw.sportbooking.gui.component.MainMenuBar;
 import de.chrisgw.sportbooking.gui.component.PendingSportBuchungenComponent;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
-import de.chrisgw.sportbooking.service.SportBookingService;
 import de.chrisgw.sportbooking.service.SportBookingSniperService;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.googlecode.lanterna.gui2.Borders.singleLineReverseBevel;
@@ -27,7 +27,6 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 public class SportBookingMainWindow extends BasicWindow implements BasePaneListener<Window> {
 
     private final SportKatalogRepository sportKatalogRepository;
-    private final SportBookingService sportBookingService;
     private final SportBookingSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
@@ -38,13 +37,11 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
 
 
     public SportBookingMainWindow(SportKatalogRepository sportKatalogRepository,
-            SportBookingService sportBookingService, SportBookingSniperService bookingSniperService,
-            ApplicationStateDao applicationStateDao) {
+            SportBookingSniperService bookingSniperService, ApplicationStateDao applicationStateDao) {
         super("Sportbuchungsbot - RWTH Hochschulsport");
-        this.sportKatalogRepository = sportKatalogRepository;
-        this.sportBookingService = sportBookingService;
-        this.bookingSniperService = bookingSniperService;
-        this.applicationStateDao = applicationStateDao;
+        this.sportKatalogRepository = Objects.requireNonNull(sportKatalogRepository);
+        this.bookingSniperService = Objects.requireNonNull(bookingSniperService);
+        this.applicationStateDao = Objects.requireNonNull(applicationStateDao);
         setHints(Arrays.asList(Hint.EXPANDED));
 
         mainMenuBar = new MainMenuBar(sportKatalogRepository, applicationStateDao, this);

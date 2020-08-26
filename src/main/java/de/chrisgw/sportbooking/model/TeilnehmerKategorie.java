@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 
-public enum PersonKategorie {
+public enum TeilnehmerKategorie {
 
     STUDENT_FH("StudentIn der FH", "S-FH"), //
     STUDENT_RWTH("StudentIn der RWTH", "S-RWTH"), //
@@ -25,26 +25,26 @@ public enum PersonKategorie {
     private String name;
     private String value;
 
-    PersonKategorie(String name, String value) {
+    TeilnehmerKategorie(String name, String value) {
         this.name = name;
         this.value = value;
     }
 
 
-    public static PersonKategorie fromKategorieName(String kategorieName) {
-        for (PersonKategorie personKategorie : PersonKategorie.values()) {
-            if (personKategorie.getName().equalsIgnoreCase(kategorieName)) {
-                return personKategorie;
+    public static TeilnehmerKategorie fromKategorieName(String kategorieName) {
+        for (TeilnehmerKategorie teilnehmerKategorie : TeilnehmerKategorie.values()) {
+            if (teilnehmerKategorie.getName().equalsIgnoreCase(kategorieName)) {
+                return teilnehmerKategorie;
             }
         }
         throw new IllegalArgumentException(kategorieName + " is not a valid kategorieName for a PersonKategorie");
     }
 
     @JsonCreator
-    public static PersonKategorie fromKategorieValue(String kategorieValue) {
-        for (PersonKategorie personKategorie : PersonKategorie.values()) {
-            if (personKategorie.getValue().equals(kategorieValue)) {
-                return personKategorie;
+    public static TeilnehmerKategorie fromKategorieValue(String kategorieValue) {
+        for (TeilnehmerKategorie teilnehmerKategorie : TeilnehmerKategorie.values()) {
+            if (teilnehmerKategorie.getValue().equals(kategorieValue)) {
+                return teilnehmerKategorie;
             }
         }
         throw new IllegalArgumentException(kategorieValue + " is not a valid kategorieValue for a PersonKategorie");

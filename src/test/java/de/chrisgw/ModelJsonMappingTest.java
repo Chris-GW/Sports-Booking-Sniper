@@ -36,7 +36,7 @@ public class ModelJsonMappingTest {
 
     private ObjectMapper objectMapper;
 
-    private PersonenAngaben personenAngaben;
+    private TeilnehmerAngaben teilnehmerAngaben;
     private SportKatalog sportKatalog;
 
     private SportArt badminton;
@@ -47,7 +47,7 @@ public class ModelJsonMappingTest {
     public void setUp() {
         setUpJackson();
 
-        personenAngaben = SportBookingModelTestUtil.createPersonenAngaben();
+        teilnehmerAngaben = SportBookingModelTestUtil.createPersonenAngaben();
         sportKatalog = new SportKatalog();
 
         badminton = new SportArt("Badminton", "http://www.badminton.de");
@@ -63,33 +63,33 @@ public class ModelJsonMappingTest {
 
     @Test
     public void shouldSeralizePersonenAngaben() throws Exception {
-        PersonenAngaben personenAngaben = SportBookingModelTestUtil.createPersonenAngaben();
+        TeilnehmerAngaben teilnehmerAngaben = SportBookingModelTestUtil.createPersonenAngaben();
 
-        String json = objectMapper.writeValueAsString(personenAngaben);
+        String json = objectMapper.writeValueAsString(teilnehmerAngaben);
         logger.debug(json);
 
-        assertThat(json, hasJsonPath("$.vorname", is(personenAngaben.getVorname())));
-        assertThat(json, hasJsonPath("$.nachname", is(personenAngaben.getNachname())));
-        assertThat(json, hasJsonPath("$.email", is(personenAngaben.getEmail())));
-        assertThat(json, hasJsonPath("$.gender", jsonValue(personenAngaben.getGender())));
+        assertThat(json, hasJsonPath("$.vorname", is(teilnehmerAngaben.getVorname())));
+        assertThat(json, hasJsonPath("$.nachname", is(teilnehmerAngaben.getNachname())));
+        assertThat(json, hasJsonPath("$.email", is(teilnehmerAngaben.getEmail())));
+        assertThat(json, hasJsonPath("$.gender", jsonValue(teilnehmerAngaben.getGender())));
 
-        assertThat(json, hasJsonPath("$.street", is(personenAngaben.getStreet())));
-        assertThat(json, hasJsonPath("$.ort", is(personenAngaben.getOrt())));
+        assertThat(json, hasJsonPath("$.street", is(teilnehmerAngaben.getStreet())));
+        assertThat(json, hasJsonPath("$.ort", is(teilnehmerAngaben.getOrt())));
 
-        assertThat(json, hasJsonPath("$.personKategorie", jsonValue(personenAngaben.getPersonKategorie())));
-        assertThat(json, hasJsonPath("$.matrikelnummer", is(personenAngaben.getMatrikelnummer())));
-        assertThat(json, hasJsonPath("$.mitarbeiterNummer", is(personenAngaben.getMitarbeiterNummer())));
+        assertThat(json, hasJsonPath("$.personKategorie", jsonValue(teilnehmerAngaben.getTeilnehmerKategorie())));
+        assertThat(json, hasJsonPath("$.matrikelnummer", is(teilnehmerAngaben.getMatrikelnummer())));
+        assertThat(json, hasJsonPath("$.mitarbeiterNummer", is(teilnehmerAngaben.getMitarbeiterNummer())));
     }
 
     @Test
     public void shouldReadPersonenAngaben() throws Exception {
-        PersonenAngaben personenAngaben = this.personenAngaben;
-        String json = objectMapper.writeValueAsString(personenAngaben);
+        TeilnehmerAngaben teilnehmerAngaben = this.teilnehmerAngaben;
+        String json = objectMapper.writeValueAsString(teilnehmerAngaben);
         logger.debug(json);
 
-        PersonenAngaben readedPersonenAngaben = objectMapper.readValue(json, PersonenAngaben.class);
-        logger.debug("{}", readedPersonenAngaben);
-        assertThat(readedPersonenAngaben, equalTo(personenAngaben));
+        TeilnehmerAngaben readedTeilnehmerAngaben = objectMapper.readValue(json, TeilnehmerAngaben.class);
+        logger.debug("{}", readedTeilnehmerAngaben);
+        assertThat(readedTeilnehmerAngaben, equalTo(teilnehmerAngaben));
     }
 
 

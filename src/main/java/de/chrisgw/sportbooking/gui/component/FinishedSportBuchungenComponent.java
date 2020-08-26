@@ -8,7 +8,6 @@ import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
 import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
@@ -65,34 +64,34 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
         if (selectedRow < 0 || selectedRow >= applicationStateDao.getFinishedBuchungsJobs().size()) {
             return;
         }
-        SportBuchungsBestaetigung selectedBestaetigung = applicationStateDao.getFinishedBuchungsJobs().get(selectedRow);
+        SportBuchungsJob selectedBuchungsJob = applicationStateDao.getFinishedBuchungsJobs().get(selectedRow);
 
         new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
                 .setDescription("Aktion bitte auswählen")
                 .setCanCancel(true)
                 .addAction("Details", () -> {
                     // TODO action show details
-                    System.out.println("Details: " + selectedBestaetigung);
+                    System.out.println("Details: " + selectedBuchungsJob);
                 })
                 .addAction("Löschen", () -> {
                     // TODO action löschen
-                    System.out.println("Löschen: " + selectedBestaetigung);
+                    System.out.println("Löschen: " + selectedBuchungsJob);
                 })
                 .build()
                 .showDialog(getTextGUI());
     }
 
 
-    private void addFinishedBuchungsJob(SportBuchungsBestaetigung finishedBuchungsJob) {
+    private void addFinishedBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         List<String> rowValues = new ArrayList<>();
-        SportTermin sportTermin = finishedBuchungsJob.getSportTermin();
+        SportTermin sportTermin = sportBuchungsJob.getSportTermin();
         SportAngebot sportAngebot = sportTermin.getSportAngebot();
         String kursnummer = sportAngebot.getKursnummer();
         String sportArtName = sportAngebot.getSportArt().getName();
-        LocalDateTime timestamp = finishedBuchungsJob.getTimestamp();
+        LocalDateTime timestamp = sportBuchungsJob.lastSportBuchungsVersuch().getTimestamp();
         String formatBuchungsTimestamp = DateTimeFormatter.ofPattern("dd.MM. HH:mm").format(timestamp);
 
-        rowValues.add(String.valueOf(finishedBuchungsJob.getJobId()));
+        rowValues.add(String.valueOf(sportBuchungsJob.getJobId()));
         rowValues.add(String.format("%s - %s%n%s ", kursnummer, sportArtName, formatSportTermin(sportTermin)));
         rowValues.add(sportAngebot.getDetails() + "\nGebucht am " + formatBuchungsTimestamp + " ");
         finishedJobsTabel.getTableModel().addRow(rowValues);
@@ -117,8 +116,8 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
     }
 
     @Override
-    public void onFinishSportBuchungJob(SportBuchungsBestaetigung sportBuchungsBestaetigung) {
-        addFinishedBuchungsJob(sportBuchungsBestaetigung);
+    public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
+        addFinishedBuchungsJob(sportBuchungsJob);
     }
 
 

@@ -36,13 +36,13 @@ public class SportAngebotPreis {
                 || preisExterne.compareTo(BigInteger.ZERO) > 0 || preisAlumni.compareTo(BigInteger.ZERO) > 0;
     }
 
-    public boolean isPaymentRequierd(PersonKategorie personKategorie) {
-        return preisFor(personKategorie).compareTo(BigInteger.ZERO) > 0;
+    public boolean isPaymentRequierd(TeilnehmerKategorie teilnehmerKategorie) {
+        return preisFor(teilnehmerKategorie).compareTo(BigInteger.ZERO) > 0;
     }
 
 
-    public BigInteger preisFor(PersonKategorie personKategorie) {
-        switch (personKategorie) {
+    public BigInteger preisFor(TeilnehmerKategorie teilnehmerKategorie) {
+        switch (teilnehmerKategorie) {
         case STUDENT_FH:
         case STUDENT_RWTH:
         case STUDENT_NRW:
@@ -65,7 +65,7 @@ public class SportAngebotPreis {
             return preisExterne;
 
         default:
-            throw new IllegalArgumentException("Could not find Preis for " + personKategorie);
+            throw new IllegalArgumentException("Could not find Preis for " + teilnehmerKategorie);
         }
     }
 

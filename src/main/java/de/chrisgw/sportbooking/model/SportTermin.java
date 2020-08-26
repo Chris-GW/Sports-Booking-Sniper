@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
-import static de.chrisgw.sportbooking.repository.AachenSportKatalogRepository.DATE_TIME_FORMATTER;
+import static de.chrisgw.sportbooking.repository.HszRwthAachenSportKatalogRepository.DATE_TIME_FORMATTER;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 
 
@@ -25,11 +25,10 @@ public class SportTermin implements Comparable<SportTermin> {
 
     private SportAngebot sportAngebot;
 
-    private String passwort; // TODO anmeldung mit passwort
     private LocalDateTime buchungsBeginn;
     private LocalDateTime startZeit;
     private LocalDateTime endZeit;
-    private SportTerminStatus status = SportTerminStatus.WARTELISTE;
+    private boolean passwortGesichert = false;
 
 
     public boolean overlapseWith(SportTermin otherSportTermin) {
@@ -38,6 +37,9 @@ public class SportTermin implements Comparable<SportTermin> {
         return getStartZeit().isBefore(otherEndZeit) && getEndZeit().isAfter(otherStartZeit);
     }
 
+    public boolean isBevorstehend() {
+        return startZeit != null && LocalDateTime.now().isBefore(startZeit);
+    }
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
@@ -47,20 +49,6 @@ public class SportTermin implements Comparable<SportTermin> {
         String start = DATE_TIME_FORMATTER.format(getStartZeit());
         String end = ISO_LOCAL_TIME.format(getEndZeit());
         return String.format("%s (%s) von %s %s bis %s", sportName, kursnummer, dayOfWeekStr, start, end);
-    }
-
-
-    public SportTerminStatus getStatus() {
-        if (getBuchungsBeginn() != null && LocalDateTime.now().isBefore(getBuchungsBeginn())) {
-            setStatus(SportTerminStatus.GESCHLOSSEN);
-        } else if (getStartZeit() != null && LocalDateTime.now().isAfter(getStartZeit())) {
-            setStatus(SportTerminStatus.ABGELAUFEN);
-        }
-        return status;
-    }
-
-    public boolean hasStatus(SportTerminStatus terminStatus) {
-        return getStatus().equals(terminStatus);
     }
 
 
@@ -86,10 +74,6 @@ public class SportTermin implements Comparable<SportTermin> {
     @Override
     public String toString() {
         return getName();
-    }
-
-    public enum SportTerminStatus {
-        GESCHLOSSEN, OFFEN, WARTELISTE, ABGELAUFEN
     }
 
 }

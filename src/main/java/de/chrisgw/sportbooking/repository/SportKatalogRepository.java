@@ -10,7 +10,7 @@ import java.util.Set;
 
 public interface SportKatalogRepository {
 
-    SportKatalog currentSportKatalog();
+    SportKatalog findCurrentSportKatalog();
 
     Set<SportAngebot> findSportAngeboteFor(SportArt sportArt);
 
