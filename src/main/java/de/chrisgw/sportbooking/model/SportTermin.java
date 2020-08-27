@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +26,6 @@ public class SportTermin implements Comparable<SportTermin> {
 
     private SportAngebot sportAngebot;
 
-    private LocalDateTime buchungsBeginn;
     private LocalDateTime startZeit;
     private LocalDateTime endZeit;
     private boolean passwortGesichert = false;
@@ -35,6 +35,10 @@ public class SportTermin implements Comparable<SportTermin> {
         LocalDateTime otherStartZeit = otherSportTermin.getStartZeit();
         LocalDateTime otherEndZeit = otherSportTermin.getEndZeit();
         return getStartZeit().isBefore(otherEndZeit) && getEndZeit().isAfter(otherStartZeit);
+    }
+
+    public boolean isSameTimeSlotAs(SportTermin sportTermin) {
+        return startZeit.isEqual(sportTermin.getStartZeit()) && endZeit.isEqual(sportTermin.getEndZeit());
     }
 
     public boolean isBevorstehend() {
@@ -55,6 +59,11 @@ public class SportTermin implements Comparable<SportTermin> {
     @JsonIgnore
     public LocalDate getTerminDate() {
         return getStartZeit().toLocalDate();
+    }
+
+    @JsonIgnore
+    public DayOfWeek getDayOfWeek() {
+        return startZeit.getDayOfWeek();
     }
 
     @JsonIgnore

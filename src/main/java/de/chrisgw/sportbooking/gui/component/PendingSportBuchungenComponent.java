@@ -8,7 +8,7 @@ import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsJob;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao.SportBuchungJobListener;

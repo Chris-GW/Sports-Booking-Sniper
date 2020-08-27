@@ -1,17 +1,20 @@
 package de.chrisgw.sportbooking;
 
 import de.chrisgw.sportbooking.model.*;
-import de.chrisgw.sportbooking.model.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
 import de.chrisgw.sportbooking.model.TeilnehmerAngaben.Gender;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsStrategie;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
-import de.chrisgw.sportbooking.service.SportBookingSniperService;
+import de.chrisgw.sportbooking.service.SportBuchungsSniperService;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -20,8 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SportBookingApplicationTest {
 
-    private final static String SPORT_ART = "Softball Level 1 - 3";
-    private final static String KURSNUMMER = "15142116";
+    private final static String SPORT_ART = "Badmintoncourt Buchung";
+    private final static String KURSNUMMER = "K08415006";
 
     private final ConfigurableApplicationContext applicationContext;
 
@@ -81,7 +84,7 @@ public class SportBookingApplicationTest {
         sportBuchungsJob.setTeilnehmerAngaben(readTeilnehmerAngaben());
         sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
 
-        SportBookingSniperService bookingSniperService = applicationContext.getBean(SportBookingSniperService.class);
+        SportBuchungsSniperService bookingSniperService = applicationContext.getBean(SportBuchungsSniperService.class);
         CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submitSportBuchungsJob(
                 sportBuchungsJob);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = buchungsBestaetigungFuture.get();
@@ -144,8 +147,8 @@ public class SportBookingApplicationTest {
     }
 
 
-    public static Set<SportTermin> createSportTermine(SportAngebot sportAngebot, LocalDate firstTerminDate) {
-        Set<SportTermin> sportTermine = new TreeSet<>();
+    public static SortedSet<SportTermin> createSportTermine(SportAngebot sportAngebot, LocalDate firstTerminDate) {
+        SortedSet<SportTermin> sportTermine = new TreeSet<>();
         for (int i = 0; i < 3; i++) {
             SportTermin sportTermin = new SportTermin();
             sportTermin.setSportAngebot(sportAngebot);

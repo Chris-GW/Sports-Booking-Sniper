@@ -13,7 +13,7 @@ import de.chrisgw.sportbooking.gui.component.MainMenuBar;
 import de.chrisgw.sportbooking.gui.component.PendingSportBuchungenComponent;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
-import de.chrisgw.sportbooking.service.SportBookingSniperService;
+import de.chrisgw.sportbooking.service.SportBuchungsSniperService;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -27,7 +27,7 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 public class SportBookingMainWindow extends BasicWindow implements BasePaneListener<Window> {
 
     private final SportKatalogRepository sportKatalogRepository;
-    private final SportBookingSniperService bookingSniperService;
+    private final SportBuchungsSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
     private MainMenuBar mainMenuBar;
@@ -37,7 +37,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
 
 
     public SportBookingMainWindow(SportKatalogRepository sportKatalogRepository,
-            SportBookingSniperService bookingSniperService, ApplicationStateDao applicationStateDao) {
+            SportBuchungsSniperService bookingSniperService, ApplicationStateDao applicationStateDao) {
         super("Sportbuchungsbot - RWTH Hochschulsport");
         this.sportKatalogRepository = Objects.requireNonNull(sportKatalogRepository);
         this.bookingSniperService = Objects.requireNonNull(bookingSniperService);

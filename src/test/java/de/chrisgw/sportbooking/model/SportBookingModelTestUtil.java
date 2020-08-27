@@ -3,7 +3,7 @@ package de.chrisgw.sportbooking.model;
 import de.chrisgw.sportbooking.model.TeilnehmerAngaben.Gender;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 
@@ -62,8 +62,8 @@ public class SportBookingModelTestUtil {
     }
 
 
-    public static Set<SportTermin> createSportTermine(SportAngebot sportAngebot, LocalDate firstTerminDate) {
-        Set<SportTermin> sportTermine = new TreeSet<>();
+    public static SortedSet<SportTermin> createSportTermine(SportAngebot sportAngebot, LocalDate firstTerminDate) {
+        SortedSet<SportTermin> sportTermine = new TreeSet<>();
         for (int i = 0; i < 3; i++) {
             SportTermin sportTermin = new SportTermin();
             sportTermin.setSportAngebot(sportAngebot);

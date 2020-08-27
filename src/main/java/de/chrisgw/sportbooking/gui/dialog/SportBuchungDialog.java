@@ -6,6 +6,7 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import de.chrisgw.sportbooking.gui.bind.ModalForm;
 import de.chrisgw.sportbooking.gui.component.SearchableComboBox;
 import de.chrisgw.sportbooking.model.*;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;

@@ -6,6 +6,7 @@ import de.chrisgw.sportbooking.model.SportAngebot.SportAngebotBuchungsArt;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.LazyLoader;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -246,27 +247,49 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         }
         String anbeotName = doc.selectFirst("#bs_content .bs_head").text().trim();
         String leitung = doc.selectFirst("#bs_content .bs_verantw").text().trim();
+        if (leitung.startsWith("verantwortlich: ")) {
+            leitung = leitung.substring("verantwortlich: ".length());
+        }
 
-        Set<SportAngebot> sportAngebote = new LinkedHashSet<>();
+        List<SportAngebot> sportAngebote = new ArrayList<>();
         Elements sportAngebotBlocks = doc.select("#bs_content form .bs_angblock");
         for (Element sportAngebotBlock : sportAngebotBlocks) {
-            List<TextNode> beschreibungTextNodes = sportAngebotBlock.selectFirst(".bs_kursbeschreibung").textNodes();
-            String beschreibung = beschreibungTextNodes.get(0).getWholeText().trim();
-            String ort = beschreibungTextNodes.get(1).text().trim();
+            Element kursBeschreibungDiv = sportAngebotBlock.selectFirst(".bs_kursbeschreibung").child(0);
+            List<String> kursBeschreibungTexte = kursBeschreibungDiv.children().eachText();
+            String beschreibung = StringUtils.capitalize(StringUtils.lowerCase(kursBeschreibungTexte.get(0)));
+            String ort = kursBeschreibungTexte.get(1);
 
             Elements terminZeitfensterCells = sportAngebotBlock.select("table.bs_platz tr td.bs_sbuch");
             for (Element sportTerminCell : terminZeitfensterCells) {
                 if (sportTerminCell.text().equalsIgnoreCase("keine Buchung") || !sportTerminCell.hasAttr("title")) {
                     continue;
                 }
-                SportAngebot sportAngebot = parseSportPlatzZeitfensterAnbebot(sportArt, sportTerminCell);
+                SportAngebot sportAngebot = new SportAngebot();
                 sportAngebot.setSportArt(sportArt);
-                sportAngebot.setDetails(beschreibung);
+                sportAngebot.setKursnummer(sportTerminCell.selectFirst("a").id());
+                sportAngebot.setKursinfoUrl(null);
+                sportAngebot.setBuchungsArt(EINZEL_PLATZ_BUCHUNG);
+                sportAngebot.setPreis(new SportAngebotPreis());
+                sportAngebot.setSportArt(sportArt);
                 sportAngebot.setLeitung(leitung);
                 sportAngebot.setOrt(ort);
+                generateAllSportPlatzTermine(sportAngebot, sportTerminCell);
+                String details = beschreibung + " - " + sportTerminCell.attr("title");
+                sportAngebot.setDetails(details);
+                if (isNewPlatzAngebotTimeSlot(sportAngebote, sportAngebot)) {
+                    sportAngebote.add(sportAngebot);
+                }
             }
         }
-        return sportAngebote;
+        sportAngebote.sort(Comparator.comparing(SportAngebot::getZeitraumStart));
+        return new LinkedHashSet<>(sportAngebote);
+    }
+
+    private boolean isNewPlatzAngebotTimeSlot(Collection<SportAngebot> sportAngebote, SportAngebot sportAngebot) {
+        SportTermin firstTermin = sportAngebot.getSportTermine().first();
+        return sportAngebote.stream()
+                .map(otherSportAngebot -> otherSportAngebot.getSportTermine().first())
+                .noneMatch(firstTermin::isSameTimeSlotAs);
     }
 
     private boolean hasAnyEinzelSportPlatzAngebote(Document doc) {
@@ -274,17 +297,6 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
                 .stream()
                 .map(sportAngebotBlock -> sportAngebotBlock.select("table.bs_platz tr"))
                 .anyMatch(sportTerminRow -> !sportTerminRow.isEmpty());
-    }
-
-    private SportAngebot parseSportPlatzZeitfensterAnbebot(SportArt sportArt, Element sportTerminCell) {
-        SportAngebot sportAngebot = new SportAngebot();
-        sportAngebot.setSportArt(sportArt);
-        sportAngebot.setKursnummer(sportTerminCell.selectFirst("a").id());
-        sportAngebot.setKursinfoUrl(null);
-        sportAngebot.setBuchungsArt(EINZEL_PLATZ_BUCHUNG);
-        sportAngebot.setPreis(new SportAngebotPreis());
-        generateAllSportPlatzTermine(sportAngebot, sportTerminCell);
-        return sportAngebot;
     }
 
     private void generateAllSportPlatzTermine(SportAngebot sportAngebot, Element sportTerminCell) {
@@ -297,7 +309,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             throw new RuntimeException(message);
         }
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        DayOfWeek zeitfensterWochentag = DayOfWeek.of(sportTerminCell.elementSiblingIndex() - 1);
+        DayOfWeek zeitfensterWochentag = DayOfWeek.of(sportTerminCell.elementSiblingIndex());
         LocalTime zeitfensterStartZeit = LocalTime.parse(zeitfensterMatcher.group(1), timeFormatter);
         LocalTime zeitfensterEndZeit = LocalTime.parse(zeitfensterMatcher.group(2), timeFormatter);
         Duration zeitfensterDuration = Duration.between(zeitfensterStartZeit, zeitfensterEndZeit);
@@ -316,7 +328,6 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             SportTermin sportTermin = new SportTermin();
             sportTermin.setStartZeit(terminStart);
             sportTermin.setEndZeit(terminEnd);
-            sportTermin.setBuchungsBeginn(terminStart.minusWeeks(1));
             sportAngebot.addSportTermin(sportTermin);
         }
         sportAngebot.setZeitraumStart(firstTerminDate);
@@ -325,9 +336,9 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
 
 
     @Override
-    public Set<SportTermin> findSportTermineFor(SportAngebot sportAngebot) {
+    public SortedSet<SportTermin> findSportTermineFor(SportAngebot sportAngebot) {
         try {
-            Set<SportTermin> sportTermine = new TreeSet<>();
+            SortedSet<SportTermin> sportTermine = new TreeSet<>();
 
             String kursinfoUrl = sportAngebot.getKursinfoUrl();
             log.debug("fetchSportTermine() GET {}", kursinfoUrl);
@@ -358,15 +369,14 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         SportTermin sportTermin = new SportTermin();
         sportTermin.setStartZeit(terminDatum.atTime(startZeit));
         sportTermin.setEndZeit(terminDatum.atTime(endZeit));
-        sportTermin.setBuchungsBeginn(sportTermin.getStartZeit().minusWeeks(1));
         log.trace("readSportTermin {} from terminTr {}", sportTermin, terminTr);
         return sportTermin;
     }
 
 
     @SuppressWarnings("unchecked")
-    private Set<SportTermin> newTerminLazyLoader(final SportAngebot sportAngebot) {
-        return (Set<SportTermin>) Enhancer.create(Set.class, (LazyLoader) () -> {
+    private SortedSet<SportTermin> newTerminLazyLoader(final SportAngebot sportAngebot) {
+        return (SortedSet<SportTermin>) Enhancer.create(SortedSet.class, (LazyLoader) () -> {
             log.debug("lazy load SportTermine for {}", sportAngebot);
             return findSportTermineFor(sportAngebot);
         });

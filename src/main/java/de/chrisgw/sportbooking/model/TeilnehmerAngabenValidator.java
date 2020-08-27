@@ -23,6 +23,7 @@ public class TeilnehmerAngabenValidator implements Validator {
         rejectIfEmpty(errors, "gender", "gender.empty");
         rejectIfEmptyOrWhitespace(errors, "street", "street.empty");
         rejectIfEmptyOrWhitespace(errors, "ort", "ort.empty");
+        rejectIfEmptyOrWhitespace(errors, "telefon", "telefon.empty");
 
         rejectIfEmpty(errors, "teilnehmerKategorie", "teilnehmerKategorie.empty");
         TeilnehmerKategorie teilnehmerKategorie = teilnehmerAngaben.getTeilnehmerKategorie();

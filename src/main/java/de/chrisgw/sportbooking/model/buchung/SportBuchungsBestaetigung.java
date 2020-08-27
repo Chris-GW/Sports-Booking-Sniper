@@ -1,5 +1,8 @@
-package de.chrisgw.sportbooking.model;
+package de.chrisgw.sportbooking.model.buchung;
 
+import de.chrisgw.sportbooking.model.SportAngebot;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
+import de.chrisgw.sportbooking.model.TeilnehmerKategorie;
 import lombok.Data;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -15,7 +18,6 @@ public class SportBuchungsBestaetigung {
 
     private String buchungsNummer;
     private String buchungsBestaetigungUrl;
-    private byte[] buchungsBestaetigung;
 
 
     public BigInteger getPreis() {

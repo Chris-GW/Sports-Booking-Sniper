@@ -2,8 +2,7 @@ package de.chrisgw.sportbooking.repository;
 
 import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import de.chrisgw.sportbooking.model.SportAngebot;
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
-import de.chrisgw.sportbooking.model.SportBuchungsJob;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
 import lombok.Data;
 
 import java.math.BigInteger;

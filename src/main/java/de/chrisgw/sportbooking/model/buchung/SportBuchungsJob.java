@@ -1,8 +1,11 @@
-package de.chrisgw.sportbooking.model;
+package de.chrisgw.sportbooking.model.buchung;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import de.chrisgw.sportbooking.model.SportAngebot;
+import de.chrisgw.sportbooking.model.SportTermin;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -17,7 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportbooking.model.SportBuchungsStrategieImpl.defaultSportBuchungStrategie;
+import static de.chrisgw.sportbooking.model.buchung.SportBuchungsStrategieImpl.defaultSportBuchungStrategie;
 
 
 @Data
@@ -32,11 +35,9 @@ public class SportBuchungsJob {
     private SportBuchungsStrategie buchungsStrategie = defaultSportBuchungStrategie();
 
     private boolean pausiert = false;
+    private LocalDateTime buchungsBeginn;
     private LocalDateTime bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
     private List<SportBuchungsVersuch> buchungsVersuche = new ArrayList<>();
-
-
-
 
 
     public LocalDateTime getBevorstehenderBuchungsVersuch() {

@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.model;
+package de.chrisgw.sportbooking.model.buchung;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;

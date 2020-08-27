@@ -50,6 +50,7 @@ public class MainMenuBar extends SportBookingComponent {
 
         viewMenu = new Menu("View");
         addViewMenuItemsFor(this);
+        viewMenu.add(createSwitchThemeMenuItem());
         viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
 
         navigationMenu = new Menu("Navigation");

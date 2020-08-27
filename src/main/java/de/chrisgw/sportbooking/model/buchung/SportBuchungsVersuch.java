@@ -1,10 +1,10 @@
-package de.chrisgw.sportbooking.model;
+package de.chrisgw.sportbooking.model.buchung;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
-import static de.chrisgw.sportbooking.model.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
+import static de.chrisgw.sportbooking.model.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
 
 
 @Data

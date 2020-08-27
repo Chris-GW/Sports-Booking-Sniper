@@ -3,10 +3,11 @@ package de.chrisgw.sportbooking.repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
-import de.chrisgw.sportbooking.model.*;
+import de.chrisgw.sportbooking.model.SportAngebot;
+import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class ApplicationStateDao implements InitializingBean, DisposableBean {
+public class ApplicationStateDao implements InitializingBean {
 
     private final Resource savedApplicationDataResource;
     private final ObjectMapper objectMapper;
@@ -192,12 +193,6 @@ public class ApplicationStateDao implements InitializingBean, DisposableBean {
         applicationState = loadApplicationData();
         Locale.setDefault(applicationState.getLanguage());
         log.trace("on initialize load application data: {}", applicationState);
-    }
-
-    @Override
-    public void destroy() {
-        log.trace("on destroy save application data last time: {}", applicationState);
-        saveApplicationData();
     }
 
 

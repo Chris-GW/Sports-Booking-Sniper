@@ -25,6 +25,5 @@
   <logger name="de.chrisgw.sportbooking" level="INFO"/>
   <logger name="de.chrisgw.sportbooking.gui" level="DEBUG"/>
   <logger name="de.chrisgw.sportbooking.SportBookingApplication" level="INFO"/>
-  <logger name="de.chrisgw.sportbooking.service.SportBookingSniperService" level="DEBUG"/>
-  <logger name="de.chrisgw.sportbooking.service.HszRwthAachenSportBookingService" level="DEBUG"/>
+  <logger name="de.chrisgw.sportbooking.service.SportBuchungsSniperService" level="DEBUG"/>
 </configuration>

@@ -2,6 +2,7 @@ package de.chrisgw.sportbooking.model;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ public class SportKatalog implements Iterable<SportArt> {
     private LocalDate zeitraumStart;
     private LocalDate zeitraumEnde;
     private LocalDateTime abrufzeitpunkt = LocalDateTime.now();
+
+    @EqualsAndHashCode.Exclude
     private Set<SportArt> sportArten = new TreeSet<>();
 
 

@@ -19,9 +19,7 @@ import de.chrisgw.sportbooking.model.TeilnehmerAngaben;
 import de.chrisgw.sportbooking.repository.ApplicationStateDao;
 import de.chrisgw.sportbooking.repository.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportbooking.repository.SportKatalogRepository;
-import de.chrisgw.sportbooking.service.HszRwthAachenSportBookingService;
-import de.chrisgw.sportbooking.service.SportBookingService;
-import de.chrisgw.sportbooking.service.SportBookingSniperService;
+import de.chrisgw.sportbooking.service.SportBuchungsSniperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -46,18 +44,13 @@ public class SportBookingApplication {
 
 
     @Bean(destroyMethod = "shutdownNow")
-    public SportBookingSniperService sportBookingSniperService() {
-        return new SportBookingSniperService(sportBookingService());
+    public SportBuchungsSniperService sportBookingSniperService() {
+        return new SportBuchungsSniperService();
     }
 
     @Bean
     public SportKatalogRepository sportKatalogRepository() {
         return new HszRwthAachenSportKatalogRepository();
-    }
-
-    @Bean
-    public SportBookingService sportBookingService() {
-        return new HszRwthAachenSportBookingService();
     }
 
 

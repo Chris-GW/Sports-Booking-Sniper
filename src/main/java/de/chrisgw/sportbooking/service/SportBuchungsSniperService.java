@@ -1,8 +1,9 @@
 package de.chrisgw.sportbooking.service;
 
-import de.chrisgw.sportbooking.model.SportBuchungsBestaetigung;
-import de.chrisgw.sportbooking.model.SportBuchungsJob;
 import de.chrisgw.sportbooking.model.SportTermin;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsBestaetigung;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsJob;
+import de.chrisgw.sportbooking.model.buchung.SportBuchungsVersuch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -14,23 +15,22 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static de.chrisgw.sportbooking.service.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
+
+
 @Slf4j
 @Service
-public class SportBookingSniperService {
+public class SportBuchungsSniperService {
 
-    private final SportBookingService sportBookingService;
     private final AtomicInteger jobIdCounter = new AtomicInteger();
     private final ScheduledExecutorService executorService;
 
-    private Map<SportBuchungsJob, CompletableFuture<SportBuchungsBestaetigung>> ausstehendeBuchungsJobs;
-    private Map<SportBuchungsJob, SportBuchungsBestaetigung> beendeteBuchungsJobs;
+    private final Map<SportBuchungsJob, CompletableFuture<SportBuchungsBestaetigung>> ausstehendeBuchungsJobs;
 
 
-    public SportBookingSniperService(SportBookingService sportBookingService) {
-        this.sportBookingService = Objects.requireNonNull(sportBookingService);
+    public SportBuchungsSniperService() {
         this.executorService = Executors.newSingleThreadScheduledExecutor();
         this.ausstehendeBuchungsJobs = Collections.synchronizedMap(new HashMap<>());
-        this.beendeteBuchungsJobs = Collections.synchronizedMap(new HashMap<>());
     }
 
 
@@ -74,10 +74,6 @@ public class SportBookingSniperService {
         return Collections.unmodifiableMap(ausstehendeBuchungsJobs);
     }
 
-    public Map<SportBuchungsJob, SportBuchungsBestaetigung> getBeendeteBuchungsJobs() {
-        return Collections.unmodifiableMap(beendeteBuchungsJobs);
-    }
-
 
     private class SportBookingSniperTask implements Runnable {
 
@@ -110,16 +106,16 @@ public class SportBookingSniperService {
                 if (tryToBookOpenSportTermin()) {
                     return;
                 }
-                SportBookingSniperService.this.scheduleBookingSnipeTask(this);
+                scheduleBookingSnipeTask(this);
             } catch (Exception e) {
                 log.error("Error happens while try to complete SportBuchungsJob", e);
                 if (++errorCount <= 3) {
                     log.debug("reschedule not finished SportBuchungsJob after exception: {}", sportBuchungsJob);
-                    SportBookingSniperService.this.scheduleBookingSnipeTask(this);
+                    scheduleBookingSnipeTask(this);
                 } else {
                     log.warn("This SportBuchungsJob complete exceptionally and will be no longer reschedule {}", this);
                     buchungsBestaetigungFuture.completeExceptionally(e);
-                    SportBookingSniperService.this.ausstehendeBuchungsJobs.remove(this.getSportBuchungsJob());
+                    ausstehendeBuchungsJobs.remove(this.getSportBuchungsJob());
                 }
             }
         }
@@ -127,16 +123,15 @@ public class SportBookingSniperService {
         private boolean tryToBookOpenSportTermin() {
             log.info("try to final book open SportBuchungsJob {} with PersonenAngaben ", sportBuchungsJob,
                     sportBuchungsJob.getTeilnehmerAngaben());
-            SportBuchungsBestaetigung sportBuchungsBestaetigung = sportBookingService.versucheVerbindlichZuBuchen(
-                    sportBuchungsJob);
-            if (sportBuchungsBestaetigung == null) {
+            SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(sportBuchungsJob);
+            SportBuchungsBestaetigung buchungsBestaetigung = buchungsVersuch.getBuchungsBestaetigung();
+            if (buchungsBestaetigung == null) {
                 log.warn("could not final book: {}", sportBuchungsJob);
                 return false;
             }
-            log.info("finish booking {} with baestaetigung {}", sportBuchungsJob, sportBuchungsBestaetigung);
-            buchungsBestaetigungFuture.complete(sportBuchungsBestaetigung);
+            log.info("finish booking {} with baestaetigung {}", sportBuchungsJob, buchungsBestaetigung);
+            buchungsBestaetigungFuture.complete(buchungsBestaetigung);
             ausstehendeBuchungsJobs.remove(sportBuchungsJob);
-            beendeteBuchungsJobs.put(sportBuchungsJob, sportBuchungsBestaetigung);
             return true;
         }
 

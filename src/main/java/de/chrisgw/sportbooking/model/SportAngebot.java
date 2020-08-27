@@ -12,7 +12,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
@@ -38,7 +38,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private LocalDate zeitraumEnde;
 
     @EqualsAndHashCode.Exclude
-    private Set<SportTermin> sportTermine = new TreeSet<>();
+    private SortedSet<SportTermin> sportTermine = new TreeSet<>();
 
 
     public boolean isBevorstehend() {

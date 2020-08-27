@@ -1,4 +1,4 @@
-package de.chrisgw.sportbooking.model;
+package de.chrisgw.sportbooking.model.buchung;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -112,8 +112,7 @@ public class SportBuchungsStrategieImpl {
 
         @Override
         public LocalDateTime getNextTimeForCheck(SportBuchungsJob sportBuchungsJob) {
-            SportTermin sportTermin = sportBuchungsJob.getSportTermin();
-            LocalDateTime buchungsBeginn = sportTermin.getBuchungsBeginn();
+            LocalDateTime buchungsBeginn = sportBuchungsJob.getBuchungsBeginn();
             LocalDateTime now = LocalDateTime.now();
             if (buchungsBeginn != null && now.isBefore(buchungsBeginn)) {
                 return buchungsBeginn;
