@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 
-public class ConfirmTeilnehmerAngabenSchritt extends SeleniumSportBuchungsSchritt {
+public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
 
-    public ConfirmTeilnehmerAngabenSchritt(WebDriver driver) {
+    public ConfirmTeilnehmerFormSchritt(WebDriver driver) {
         super(driver);
     }
 
@@ -23,7 +23,7 @@ public class ConfirmTeilnehmerAngabenSchritt extends SeleniumSportBuchungsSchrit
     }
 
     @Override
-    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte() {
+    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob) {
         return Stream.of(new SportBuchungBestaetigungSchritt(driver));
     }
 
@@ -36,8 +36,12 @@ public class ConfirmTeilnehmerAngabenSchritt extends SeleniumSportBuchungsSchrit
                 .filter(this::isVerbindlichBuchenFormBtn)
                 .findAny()
                 .orElseThrow(() -> new IllegalStateException("No 'weiter zur Buchung' submit Button found"));
-        weiterZurBuchungBtn.submit();
-        return super.executeBuchungsSchritt(buchungsJob);
+        if (buchungsJob.getJobId() == -1) { // TODO always submit
+            weiterZurBuchungBtn.submit();
+            return super.executeBuchungsSchritt(buchungsJob);
+        } else {
+            return null;
+        }
     }
 
     private boolean isVerbindlichBuchenFormBtn(WebElement bsFormButton) {

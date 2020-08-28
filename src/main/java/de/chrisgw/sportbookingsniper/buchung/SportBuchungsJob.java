@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,10 +26,9 @@ import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsStrategieImpl.d
 public class SportBuchungsJob {
 
     private int jobId;
-    private SportAngebot sportAngebot;
     private SportTermin sportTermin;
-    private TeilnehmerAngaben teilnehmerAngaben;
     private String passwort;
+    private List<Teilnehmer> teilnehmerListe = new ArrayList<>();
     private SportBuchungsStrategie buchungsStrategie = defaultSportBuchungStrategie();
 
     private boolean pausiert = false;
@@ -74,14 +72,15 @@ public class SportBuchungsJob {
         buchungsVersuche.add(Objects.requireNonNull(buchungsVersuch));
     }
 
-    public BigInteger getPreis() {
-        return getSportAngebot().preisFor(teilnehmerAngaben.getTeilnehmerKategorie());
+
+    public SportAngebot getSportAngebot() {
+        return sportTermin.getSportAngebot();
     }
 
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
-        return String.format("(%d) %s", getJobId(), getSportTermin().getName());
+        return String.format("(%d) %s", jobId, sportTermin.getName());
     }
 
 

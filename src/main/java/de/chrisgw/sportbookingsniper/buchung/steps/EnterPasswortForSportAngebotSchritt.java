@@ -21,8 +21,8 @@ public class EnterPasswortForSportAngebotSchritt extends SeleniumSportBuchungsSc
     }
 
     @Override
-    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte() {
-        return Stream.of(new SelectSportTerminSchritt(driver), new SubmitTeilnehmerAngabenSchritt(driver));
+    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob) {
+        return Stream.of(new SelectSportTerminRadioOptionSchritt(driver), new SubmitTeilnehmerFormSchritt(driver));
     }
 
     @Override

@@ -118,8 +118,8 @@ public class SportBuchungsSniperService {
         }
 
         private boolean tryToBookOpenSportTermin() {
-            log.info("try to final book open SportBuchungsJob {} with PersonenAngaben ", sportBuchungsJob,
-                    sportBuchungsJob.getTeilnehmerAngaben());
+            log.info("try to final book open SportBuchungsJob {} with TeilnehmerListe {}", //
+                    sportBuchungsJob, sportBuchungsJob.getTeilnehmerListe());
             SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(sportBuchungsJob);
             SportBuchungsBestaetigung buchungsBestaetigung = buchungsVersuch.getBuchungsBestaetigung();
             if (buchungsBestaetigung == null) {

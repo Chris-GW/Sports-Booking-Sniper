@@ -13,9 +13,9 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportbookingsniper.gui.SportBookingMainWindow;
-import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerAngabenDialog;
+import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
 import de.chrisgw.sportbookingsniper.gui.dialog.WelcomeDialog;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
@@ -159,9 +159,9 @@ public class SportBookingSniperApplication {
         log.trace("showFirstVisiteDialog");
         new WelcomeDialog().showDialog(windowTextGUI);
 
-        TeilnehmerAngabenDialog teilnehmerAngabenDialog = new TeilnehmerAngabenDialog(applicationStateDao, true);
-        Optional<TeilnehmerAngaben> teilnehmerAngaben = teilnehmerAngabenDialog.showDialog(windowTextGUI);
-        applicationStateDao.updateTeilnehmerAngaben(teilnehmerAngaben.orElseThrow(RuntimeException::new));
+        TeilnehmerModalDialog teilnehmerModalDialog = new TeilnehmerModalDialog(applicationStateDao, true);
+        Optional<Teilnehmer> teilnehmerAngaben = teilnehmerModalDialog.showDialog(windowTextGUI);
+        applicationStateDao.addTeilnehmer(teilnehmerAngaben.orElseThrow(RuntimeException::new));
         applicationStateDao.setFirstVisite(false);
     }
 

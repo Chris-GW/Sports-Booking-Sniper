@@ -38,9 +38,10 @@ public class SelectEinzelPlatzSportAngebotSchritt extends SeleniumSportBuchungsS
 
 
     @Override
-    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte() {
+    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob) {
         return Stream.of(new EnterPasswortForSportAngebotSchritt(driver), //
-                new SelectSportTerminSchritt(driver));
+                new SelectSportTerminRadioOptionSchritt(driver), //
+                new ClickSportTerminBuchenBtnSchritt(driver));
     }
 
 
@@ -48,7 +49,7 @@ public class SelectEinzelPlatzSportAngebotSchritt extends SeleniumSportBuchungsS
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
         List<WebElement> platzBuchenCells = findPlatzBuchenCells(driver, buchungsJob);
         Optional<WebElement> openPlatzBuchenBtn = platzBuchenCells.stream()
-                .map(SeleniumSportBuchungsSchritt.findElement(By.className("bs_btn_buchen")))
+                .map(findElement(By.className("bs_btn_buchen")))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findAny();
@@ -60,15 +61,15 @@ public class SelectEinzelPlatzSportAngebotSchritt extends SeleniumSportBuchungsS
             return super.executeBuchungsSchritt(buchungsJob);
         }
 
-        Optional<WebElement> wartezeitElement = platzBuchenCells.stream()
-                .map(SeleniumSportBuchungsSchritt.findElement(By.className("bs_btn_autostart")))
+        Optional<WebElement> buchungsBeginnSpan = platzBuchenCells.stream()
+                .map(findElement(By.className("bs_btn_autostart")))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findAny();
-        if (wartezeitElement.isPresent()) {
-            String wartezeitText = wartezeitElement.get().getText();
-            log.debug("couldn't find SportAngebot .bs_btn_buchen, but buchungsBeginn {}", wartezeitElement.get());
-            readBuchungsBeginn(wartezeitText).ifPresent(buchungsJob::setBuchungsBeginn);
+        if (buchungsBeginnSpan.isPresent()) {
+            String buchungsBeginnText = buchungsBeginnSpan.get().getText();
+            log.debug("couldn't find SportAngebot .bs_btn_buchen, but buchungsBeginn {}", buchungsBeginnSpan.get());
+            readBuchungsBeginn(buchungsBeginnText).ifPresent(buchungsJob::setBuchungsBeginn);
             return newBuchungsVersuch(BUCHUNG_GESCHLOSSEN);
         }
         return newBuchungsVersuch(BUCHUNG_WARTELISTE);

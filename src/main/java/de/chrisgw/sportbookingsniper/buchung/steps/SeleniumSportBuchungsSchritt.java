@@ -3,14 +3,13 @@ package de.chrisgw.sportbookingsniper.buchung.steps;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,21 +24,25 @@ import java.util.function.Function;
 import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLGESCHLAGEN;
 
 
+@Slf4j
 @RequiredArgsConstructor
 public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchritt {
 
-    protected static final Logger log = LoggerFactory.getLogger(SeleniumSportBuchungsSchritt.class);
     protected final WebDriver driver;
 
 
     public static SportBuchungsVersuch newVerbindlicherBuchungsVersuch(SportBuchungsJob buchungsJob) {
+        WebDriver driver = newWebDriver();
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(350, TimeUnit.MILLISECONDS);
+        return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
+    }
+
+    public static SportBuchungsVersuch newVerbindlicherBuchungsVersuch(WebDriver driver, SportBuchungsJob buchungsJob) {
         if (buchungsJob == null) {
             throw new NullPointerException("SportBuchungsJob must be non null");
         }
-        WebDriver driver = newWebDriver();
         try {
-            driver.manage().window().maximize();
-            driver.manage().timeouts().implicitlyWait(1, TimeUnit.SECONDS);
             log.debug("versucheVerbindlichZuBuchen() for {} with driver={}", buchungsJob, driver);
             return new GetSportAngebotWebpageSchritt(driver).executeBuchungsSchritt(buchungsJob);
         } catch (Exception e) {
@@ -53,19 +56,21 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
     private static WebDriver newWebDriver() {
         if (System.getProperty("webdriver.chrome.driver") != null) {
             return new ChromeDriver();
-        } else {
-            return new HtmlUnitDriver(true);
         }
+        return new HtmlUnitDriver(true);
     }
 
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
-        return possibleNextBuchungsSchritte() //
+        return possibleNextBuchungsSchritte(buchungsJob) //
                 .filter(buchungsSchritt -> buchungsSchritt.isNextBuchungsSchritt(buchungsJob))
                 .findAny()
                 .map(nextBuchungsSchritt -> nextBuchungsSchritt.executeBuchungsSchritt(buchungsJob))
-                .orElse(null);
+                .orElseGet(() -> {
+                    log.warn("Could not find next BuchungsSchritt on page:\n{}", driver.getPageSource());
+                    return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLGESCHLAGEN);
+                });
     }
 
 
@@ -73,6 +78,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         String currentWindowHandle = driver.getWindowHandle();
         for (String windowHandle : driver.getWindowHandles()) {
             if (!currentWindowHandle.equals(windowHandle)) {
+                log.trace("close WebDriver window {}", windowHandle);
                 driver.close();
                 driver.switchTo().window(windowHandle);
                 break;

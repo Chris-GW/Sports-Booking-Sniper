@@ -14,7 +14,7 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportbookingsniper.angebot.SportArt;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalog;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -39,7 +39,7 @@ public class ModelJsonMappingTest {
 
     private ObjectMapper objectMapper;
 
-    private TeilnehmerAngaben teilnehmerAngaben;
+    private Teilnehmer teilnehmer;
     private SportKatalog sportKatalog;
 
     private SportArt badminton;
@@ -50,7 +50,7 @@ public class ModelJsonMappingTest {
     public void setUp() {
         setUpJackson();
 
-        teilnehmerAngaben = SportBookingModelTestUtil.createPersonenAngaben();
+        teilnehmer = SportBookingModelTestUtil.createTeilnehmer();
         sportKatalog = new SportKatalog();
 
         badminton = new SportArt("Badminton", "http://www.badminton.de");
@@ -65,34 +65,34 @@ public class ModelJsonMappingTest {
 
 
     @Test
-    public void shouldSeralizePersonenAngaben() throws Exception {
-        TeilnehmerAngaben teilnehmerAngaben = SportBookingModelTestUtil.createPersonenAngaben();
+    public void shouldSeralizeTeilnehmer() throws Exception {
+        Teilnehmer teilnehmer = SportBookingModelTestUtil.createTeilnehmer();
 
-        String json = objectMapper.writeValueAsString(teilnehmerAngaben);
+        String json = objectMapper.writeValueAsString(teilnehmer);
         logger.debug(json);
 
-        assertThat(json, hasJsonPath("$.vorname", is(teilnehmerAngaben.getVorname())));
-        assertThat(json, hasJsonPath("$.nachname", is(teilnehmerAngaben.getNachname())));
-        assertThat(json, hasJsonPath("$.email", is(teilnehmerAngaben.getEmail())));
-        assertThat(json, hasJsonPath("$.gender", jsonValue(teilnehmerAngaben.getGender())));
+        assertThat(json, hasJsonPath("$.vorname", is(teilnehmer.getVorname())));
+        assertThat(json, hasJsonPath("$.nachname", is(teilnehmer.getNachname())));
+        assertThat(json, hasJsonPath("$.email", is(teilnehmer.getEmail())));
+        assertThat(json, hasJsonPath("$.gender", jsonValue(teilnehmer.getGender())));
 
-        assertThat(json, hasJsonPath("$.street", is(teilnehmerAngaben.getStreet())));
-        assertThat(json, hasJsonPath("$.ort", is(teilnehmerAngaben.getOrt())));
+        assertThat(json, hasJsonPath("$.street", is(teilnehmer.getStreet())));
+        assertThat(json, hasJsonPath("$.ort", is(teilnehmer.getOrt())));
 
-        assertThat(json, hasJsonPath("$.personKategorie", jsonValue(teilnehmerAngaben.getTeilnehmerKategorie())));
-        assertThat(json, hasJsonPath("$.matrikelnummer", is(teilnehmerAngaben.getMatrikelnummer())));
-        assertThat(json, hasJsonPath("$.mitarbeiterNummer", is(teilnehmerAngaben.getMitarbeiterNummer())));
+        assertThat(json, hasJsonPath("$.personKategorie", jsonValue(teilnehmer.getTeilnehmerKategorie())));
+        assertThat(json, hasJsonPath("$.matrikelnummer", is(teilnehmer.getMatrikelnummer())));
+        assertThat(json, hasJsonPath("$.mitarbeiterNummer", is(teilnehmer.getMitarbeiterNummer())));
     }
 
     @Test
-    public void shouldReadPersonenAngaben() throws Exception {
-        TeilnehmerAngaben teilnehmerAngaben = this.teilnehmerAngaben;
-        String json = objectMapper.writeValueAsString(teilnehmerAngaben);
+    public void shouldReadTeilnehmer() throws Exception {
+        Teilnehmer teilnehmer = this.teilnehmer;
+        String json = objectMapper.writeValueAsString(teilnehmer);
         logger.debug(json);
 
-        TeilnehmerAngaben readedTeilnehmerAngaben = objectMapper.readValue(json, TeilnehmerAngaben.class);
-        logger.debug("{}", readedTeilnehmerAngaben);
-        assertThat(readedTeilnehmerAngaben, equalTo(teilnehmerAngaben));
+        Teilnehmer readedTeilnehmer = objectMapper.readValue(json, Teilnehmer.class);
+        logger.debug("{}", readedTeilnehmer);
+        assertThat(readedTeilnehmer, equalTo(teilnehmer));
     }
 
 

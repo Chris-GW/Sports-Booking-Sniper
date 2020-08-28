@@ -5,15 +5,14 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import com.googlecode.lanterna.input.KeyStroke;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer.Gender;
+import de.chrisgw.sportbookingsniper.buchung.TeilnehmerValidator;
+import de.chrisgw.sportbookingsniper.buchung.TeilnehmerKategorie;
 import de.chrisgw.sportbookingsniper.gui.bind.ConcealableComponent;
 import de.chrisgw.sportbookingsniper.gui.bind.ModalField;
 import de.chrisgw.sportbookingsniper.gui.bind.ModalForm;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngabenValidator;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerKategorie;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben.Gender;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportbookingsniper.gui.state.TeilnehmerAngabenListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -35,28 +34,27 @@ import static java.util.Objects.requireNonNull;
 
 
 @Slf4j
-public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListener, TeilnehmerAngabenListener {
+public class TeilnehmerModalDialog extends DialogWindow implements WindowListener {
 
 
-    private final ApplicationStateDao applicationDataService;
-    private final boolean forceValidPersonenAngaben;
-    private TeilnehmerAngaben teilnehmerAngaben;
+    private final ApplicationStateDao applicationStateDao;
+    private final boolean forceValidTeilnehmerForm;
+    private Teilnehmer teilnehmer;
     private ModalForm modalForm = new ModalForm();
 
 
-    public TeilnehmerAngabenDialog(ApplicationStateDao applicationDataService) {
-        this(applicationDataService, false);
+    public TeilnehmerModalDialog(ApplicationStateDao applicationStateDao) {
+        this(applicationStateDao, false);
     }
 
-    public TeilnehmerAngabenDialog(ApplicationStateDao applicationDataService, boolean forceValidPersonenAngaben) {
+    public TeilnehmerModalDialog(ApplicationStateDao applicationStateDao, boolean forceValidTeilnehmerForm) {
         super("Personenangaben");
-        this.applicationDataService = requireNonNull(applicationDataService);
-        this.applicationDataService.addTeilnehmerAngabenListener(this);
-        this.forceValidPersonenAngaben = forceValidPersonenAngaben;
+        this.applicationStateDao = requireNonNull(applicationStateDao);
+        this.forceValidTeilnehmerForm = forceValidTeilnehmerForm;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setComponent(createContentPane());
-        setPersonenAngaben(applicationDataService.getTeilnehmerAngaben());
-        setCloseWindowWithEscape(!forceValidPersonenAngaben);
+        setTeilnehmer(applicationStateDao.getTeilnehmerListe().get(0));
+        setCloseWindowWithEscape(!forceValidTeilnehmerForm);
     }
 
 
@@ -102,7 +100,8 @@ public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListe
     }
 
     private void createPersonenKategorieFields(Panel formularGridPanel) {
-        ComboBox<TeilnehmerKategorie> kategorieComboBox = newComboBoxField("teilnehmerKategorie", TeilnehmerKategorie.values()) //
+        ComboBox<TeilnehmerKategorie> kategorieComboBox = newComboBoxField("teilnehmerKategorie",
+                TeilnehmerKategorie.values()) //
                 .withLabel("Kategorie:*") //
                 .addTo(modalForm) //
                 .addToGrid(formularGridPanel) //
@@ -143,42 +142,42 @@ public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListe
 
     private Panel createLowerButtonPanel() {
         Panel lowerButtonPanel = new Panel();
-        if (!forceValidPersonenAngaben) {
+        if (!forceValidTeilnehmerForm) {
             new Button(LocalizedString.Cancel.toString(), this::close).addTo(lowerButtonPanel);
         }
-        new Button("Reset", this::resetPersonenAngaben).addTo(lowerButtonPanel);
-        new Button("Save", this::savePersonenAngaben).addTo(lowerButtonPanel);
+        new Button("Reset", this::resetTeilnehmerForm).addTo(lowerButtonPanel);
+        new Button("Save", this::saveTeilnehmer).addTo(lowerButtonPanel);
         lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()).setHorizontalSpacing(1));
         return lowerButtonPanel;
     }
 
 
-    private void resetPersonenAngaben() {
-        setPersonenAngaben(new TeilnehmerAngaben());
+    private void resetTeilnehmerForm() {
+        setTeilnehmer(new Teilnehmer());
     }
 
 
-    private void savePersonenAngaben() {
-        BindingResult bindingResult = bindPersonenAngabenModalData();
+    private void saveTeilnehmer() {
+        BindingResult bindingResult = bindTeilnehmerModalData();
 
         if (!bindingResult.hasErrors()) {
-            this.teilnehmerAngaben = (TeilnehmerAngaben) bindingResult.getTarget();
+            this.teilnehmer = (Teilnehmer) bindingResult.getTarget();
             this.close();
         }
     }
 
 
-    private BindingResult bindPersonenAngabenModalData() {
-        DataBinder dataBinder = new DataBinder(new TeilnehmerAngaben());
+    private BindingResult bindTeilnehmerModalData() {
+        DataBinder dataBinder = new DataBinder(new Teilnehmer());
         dataBinder.setAllowedFields("vorname", "nachname", "email", "telefon", "gender", "street", "ort",
                 "teilnehmerKategorie", "matrikelnummer", "mitarbeiterNummer", "iban", "kontoInhaber");
-        dataBinder.addValidators(new TeilnehmerAngabenValidator());
+        dataBinder.addValidators(new TeilnehmerValidator());
         return modalForm.bindData(dataBinder);
     }
 
 
-    public void setPersonenAngaben(TeilnehmerAngaben teilnehmerAngaben) {
-        BeanWrapper beanWrapper = new BeanWrapperImpl(teilnehmerAngaben);
+    public void setTeilnehmer(Teilnehmer teilnehmer) {
+        BeanWrapper beanWrapper = new BeanWrapperImpl(teilnehmer);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
             String propertyName = propertyDescriptor.getName();
@@ -189,16 +188,10 @@ public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListe
     }
 
 
-    public Optional<TeilnehmerAngaben> getPersonenAngaben() {
-        return Optional.ofNullable(teilnehmerAngaben);
+    public Optional<Teilnehmer> getTeilnehmer() {
+        return Optional.ofNullable(teilnehmer);
     }
 
-
-    @Override
-    public void close() {
-        applicationDataService.removeTeilnehmerAngabenListener(this);
-        super.close();
-    }
 
     @Override
     public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
@@ -213,10 +206,10 @@ public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListe
     @Override
     public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
         if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 's') {
-            savePersonenAngaben();
+            saveTeilnehmer();
             deliverEvent.set(false);
         } else if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'r') {
-            resetPersonenAngaben();
+            resetTeilnehmerForm();
             deliverEvent.set(false);
         } else {
             deliverEvent.set(true);
@@ -228,16 +221,11 @@ public class TeilnehmerAngabenDialog extends DialogWindow implements WindowListe
         // noop
     }
 
-    @Override
-    public void onChangedTeilnehmerAngaben(TeilnehmerAngaben changedTeilnehmerAngaben) {
-        setPersonenAngaben(changedTeilnehmerAngaben);
-    }
-
 
     @Override
-    public Optional<TeilnehmerAngaben> showDialog(WindowBasedTextGUI textGUI) {
+    public Optional<Teilnehmer> showDialog(WindowBasedTextGUI textGUI) {
         super.showDialog(textGUI);
-        return getPersonenAngaben();
+        return getTeilnehmer();
     }
 
 }

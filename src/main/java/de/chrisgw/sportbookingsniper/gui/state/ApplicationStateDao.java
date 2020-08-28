@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -32,7 +32,7 @@ public class ApplicationStateDao implements InitializingBean {
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
 
-    private final List<TeilnehmerAngabenListener> teilnehmerAngabenListeners = new ArrayList<>();
+    private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
     private final List<SportBuchungJobListener> sportBuchungJobListeners = new ArrayList<>();
 
 
@@ -52,26 +52,37 @@ public class ApplicationStateDao implements InitializingBean {
     }
 
 
-    // PersonenAngaben
+    // Teilnehmer
 
-    public TeilnehmerAngaben getTeilnehmerAngaben() {
-        return applicationState.getTeilnehmerAngaben();
+    public void addTeilnehmer(Teilnehmer teilnehmer) {
+        List<Teilnehmer> newTeilnehmerListe = new ArrayList<>(getTeilnehmerListe().size() + 1);
+        newTeilnehmerListe.add(teilnehmer);
+        newTeilnehmerListe.addAll(getTeilnehmerListe());
+        applicationState.setTeilnehmerListe(newTeilnehmerListe);
+        for (TeilnehmerListeListener teilnehmerListeListener : teilnehmerListeListeners) {
+            teilnehmerListeListener.onChangedTeilnehmerListe(newTeilnehmerListe);
+        }
+        saveApplicationData();
     }
 
-    public void updateTeilnehmerAngaben(TeilnehmerAngaben teilnehmerAngaben) {
-        applicationState.setTeilnehmerAngaben(teilnehmerAngaben);
+    public List<Teilnehmer> getTeilnehmerListe() {
+        return applicationState.getTeilnehmerListe();
+    }
+
+    public void updateTeilnehmerListe(List<Teilnehmer> neueTeilnehmerListe) {
+        applicationState.setTeilnehmerListe(neueTeilnehmerListe);
         saveApplicationData();
-        for (TeilnehmerAngabenListener teilnehmerAngabenListener : teilnehmerAngabenListeners) {
-            teilnehmerAngabenListener.onChangedTeilnehmerAngaben(teilnehmerAngaben);
+        for (TeilnehmerListeListener teilnehmerListeListener : teilnehmerListeListeners) {
+            teilnehmerListeListener.onChangedTeilnehmerListe(neueTeilnehmerListe);
         }
     }
 
-    public void addTeilnehmerAngabenListener(TeilnehmerAngabenListener teilnehmerAngabenListener) {
-        teilnehmerAngabenListeners.add(teilnehmerAngabenListener);
+    public void addTeilnehmerListeListener(TeilnehmerListeListener teilnehmerListeListener) {
+        teilnehmerListeListeners.add(teilnehmerListeListener);
     }
 
-    public void removeTeilnehmerAngabenListener(TeilnehmerAngabenListener teilnehmerAngabenListener) {
-        teilnehmerAngabenListeners.remove(teilnehmerAngabenListener);
+    public void removeTeilnehmerListeListener(TeilnehmerListeListener teilnehmerListeListener) {
+        teilnehmerListeListeners.remove(teilnehmerListeListener);
     }
 
 
@@ -178,10 +189,10 @@ public class ApplicationStateDao implements InitializingBean {
             fileLock.lock();
             applicationState.setSaveTime(LocalDateTime.now());
             File saveFile = savedApplicationDataResource.getFile();
-            log.trace("write personenAngaben {} to {}", applicationState, saveFile);
+            log.trace("write applicationState {} to {}", applicationState, saveFile);
             objectMapper.writeValue(saveFile, applicationState);
         } catch (Exception e) {
-            throw new RuntimeException("Could not write PersonenAngaben to file " + savedApplicationDataResource, e);
+            throw new RuntimeException("Could not write applicationState to file " + savedApplicationDataResource, e);
         } finally {
             fileLock.lock();
         }

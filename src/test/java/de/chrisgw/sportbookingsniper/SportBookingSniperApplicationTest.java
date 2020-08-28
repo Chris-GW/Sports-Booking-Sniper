@@ -2,14 +2,14 @@ package de.chrisgw.sportbookingsniper;
 
 import de.chrisgw.sportbookingsniper.angebot.*;
 import de.chrisgw.sportbookingsniper.buchung.*;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben.Gender;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -18,15 +18,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 
-public class SportBookingApplicationTest {
+public class SportBookingSniperApplicationTest {
 
     private final static String SPORT_ART = "Badmintoncourt Buchung";
-    private final static String KURSNUMMER = "K08415006";
+    private final static String KURSNUMMER = "K08415044";
 
     private final ConfigurableApplicationContext applicationContext;
 
 
-    public SportBookingApplicationTest(ConfigurableApplicationContext applicationContext) {
+    public SportBookingSniperApplicationTest(ConfigurableApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
@@ -34,7 +34,8 @@ public class SportBookingApplicationTest {
     public static void main(String[] args) {
         try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
                 SportBookingSniperApplication.class)) {
-            SportBookingApplicationTest testApplication = new SportBookingApplicationTest(applicationContext);
+            SportBookingSniperApplicationTest testApplication = new SportBookingSniperApplicationTest(
+                    applicationContext);
             System.setProperty("webdriver.chrome.driver", "C:\\01_Programmieren\\chromedriver.exe");
 
             SportAngebot sportAngebot = testApplication.findSportAngebot(SPORT_ART, KURSNUMMER);
@@ -76,9 +77,8 @@ public class SportBookingApplicationTest {
 
     private void bucheSportTermin(SportTermin sportTermin) throws ExecutionException, InterruptedException {
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob();
-        sportBuchungsJob.setSportAngebot(sportTermin.getSportAngebot());
         sportBuchungsJob.setSportTermin(sportTermin);
-        sportBuchungsJob.setTeilnehmerAngaben(readTeilnehmerAngaben());
+        sportBuchungsJob.setTeilnehmerListe(readTeilnehmerListe());
         sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
 
         SportBuchungsSniperService bookingSniperService = applicationContext.getBean(SportBuchungsSniperService.class);
@@ -89,9 +89,9 @@ public class SportBookingApplicationTest {
     }
 
 
-    private TeilnehmerAngaben readTeilnehmerAngaben() {
+    private List<Teilnehmer> readTeilnehmerListe() {
         ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
-        return applicationStateDao.getTeilnehmerAngaben();
+        return applicationStateDao.getTeilnehmerListe();
     }
 
 
@@ -100,20 +100,20 @@ public class SportBookingApplicationTest {
     }
 
 
-    public static TeilnehmerAngaben createTeilnehmerAngaben() {
-        TeilnehmerAngaben teilnehmerAngaben = new TeilnehmerAngaben();
-        teilnehmerAngaben.setVorname("Vorname");
-        teilnehmerAngaben.setNachname("Nachname");
-        teilnehmerAngaben.setEmail("Email");
-        teilnehmerAngaben.setGender(Gender.FEMALE);
+    public static Teilnehmer createTeilnehmer() {
+        Teilnehmer teilnehmer = new Teilnehmer();
+        teilnehmer.setVorname("Vorname");
+        teilnehmer.setNachname("Nachname");
+        teilnehmer.setEmail("Email");
+        teilnehmer.setGender(Gender.FEMALE);
 
-        teilnehmerAngaben.setStreet("Street");
-        teilnehmerAngaben.setOrt("Ort");
+        teilnehmer.setStreet("Street");
+        teilnehmer.setOrt("Ort");
 
-        teilnehmerAngaben.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
-        teilnehmerAngaben.setMitarbeiterNummer("MitarbeiterNummer");
-        teilnehmerAngaben.setMatrikelnummer("Matrikelnummer");
-        return teilnehmerAngaben;
+        teilnehmer.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
+        teilnehmer.setMitarbeiterNummer("MitarbeiterNummer");
+        teilnehmer.setMatrikelnummer("Matrikelnummer");
+        return teilnehmer;
     }
 
 

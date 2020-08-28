@@ -4,8 +4,8 @@ import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebotPreis;
 import de.chrisgw.sportbookingsniper.angebot.SportArt;
 import de.chrisgw.sportbookingsniper.angebot.SportTermin;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben.Gender;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportbookingsniper.buchung.TeilnehmerKategorie;
 
 import java.time.LocalDate;
@@ -20,20 +20,20 @@ public class SportBookingModelTestUtil {
     }
 
 
-    public static TeilnehmerAngaben createPersonenAngaben() {
-        TeilnehmerAngaben teilnehmerAngaben = new TeilnehmerAngaben();
-        teilnehmerAngaben.setVorname("Vorname");
-        teilnehmerAngaben.setNachname("Nachname");
-        teilnehmerAngaben.setEmail("Email");
-        teilnehmerAngaben.setGender(Gender.FEMALE);
+    public static Teilnehmer createTeilnehmer() {
+        Teilnehmer teilnehmer = new Teilnehmer();
+        teilnehmer.setVorname("Vorname");
+        teilnehmer.setNachname("Nachname");
+        teilnehmer.setEmail("Email");
+        teilnehmer.setGender(Gender.FEMALE);
 
-        teilnehmerAngaben.setStreet("Street");
-        teilnehmerAngaben.setOrt("Ort");
+        teilnehmer.setStreet("Street");
+        teilnehmer.setOrt("Ort");
 
-        teilnehmerAngaben.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
-        teilnehmerAngaben.setMitarbeiterNummer("MitarbeiterNummer");
-        teilnehmerAngaben.setMatrikelnummer("Matrikelnummer");
-        return teilnehmerAngaben;
+        teilnehmer.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
+        teilnehmer.setMitarbeiterNummer("MitarbeiterNummer");
+        teilnehmer.setMatrikelnummer("Matrikelnummer");
+        return teilnehmer;
     }
 
 

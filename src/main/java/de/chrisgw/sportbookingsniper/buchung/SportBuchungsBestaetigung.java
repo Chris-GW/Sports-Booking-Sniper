@@ -1,10 +1,7 @@
 package de.chrisgw.sportbookingsniper.buchung;
 
-import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import lombok.Data;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import java.math.BigInteger;
 
 import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
@@ -16,14 +13,7 @@ public class SportBuchungsBestaetigung {
 
     private String buchungsNummer;
     private String buchungsBestaetigungUrl;
-
-
-    public BigInteger getPreis() {
-        TeilnehmerAngaben teilnehmerAngaben = buchungsJob.getTeilnehmerAngaben();
-        TeilnehmerKategorie teilnehmerKategorie = teilnehmerAngaben.getTeilnehmerKategorie();
-        SportAngebot sportAngebot = buchungsJob.getSportAngebot();
-        return sportAngebot.preisFor(teilnehmerKategorie);
-    }
+    private byte[] screenshotBytes;
 
 
     @Override

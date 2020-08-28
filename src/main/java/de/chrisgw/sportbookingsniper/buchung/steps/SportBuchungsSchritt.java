@@ -12,6 +12,6 @@ public interface SportBuchungsSchritt {
 
     SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob);
 
-    Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte();
+    Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob);
 
 }

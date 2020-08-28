@@ -5,7 +5,7 @@ import lombok.Data;
 
 
 @Data
-public class TeilnehmerAngaben {
+public class Teilnehmer {
 
     private String vorname;
     private String nachname;

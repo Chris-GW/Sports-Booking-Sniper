@@ -16,6 +16,8 @@ import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.newErfo
 @Slf4j
 public class SportBuchungBestaetigungSchritt extends SeleniumSportBuchungsSchritt {
 
+    private static final Pattern BESTAETIGUNG_URL_PATTERN = Pattern.compile("Bestaetigung_(\\w+)");
+
     public SportBuchungBestaetigungSchritt(WebDriver driver) {
         super(driver);
     }
@@ -23,12 +25,14 @@ public class SportBuchungBestaetigungSchritt extends SeleniumSportBuchungsSchrit
 
     @Override
     public boolean isNextBuchungsSchritt(SportBuchungsJob buchungsJob) {
-        return extractBuchungsNummerFromUrl(driver.getCurrentUrl()) != null;
+        String currentUrl = driver.getCurrentUrl();
+        Matcher matcher = BESTAETIGUNG_URL_PATTERN.matcher(currentUrl);
+        return matcher.find();
     }
 
 
     @Override
-    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte() {
+    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob) {
         return Stream.empty();
     }
 
@@ -36,21 +40,25 @@ public class SportBuchungBestaetigungSchritt extends SeleniumSportBuchungsSchrit
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
         String buchungsNummer = extractBuchungsNummerFromUrl(driver.getCurrentUrl());
-        log.info("buchungsBestaetigung document\n{}", driver.getPageSource());
-        SportBuchungsBestaetigung sportBuchungsBestaetigung = new SportBuchungsBestaetigung();
-        sportBuchungsBestaetigung.setBuchungsJob(buchungsJob);
-        sportBuchungsBestaetigung.setBuchungsBestaetigungUrl(driver.getCurrentUrl());
-        sportBuchungsBestaetigung.setBuchungsNummer(buchungsNummer);
-        return newErfolgreicherBuchungsVersuch(sportBuchungsBestaetigung);
+        SportBuchungsBestaetigung buchungsBestaetigung = new SportBuchungsBestaetigung();
+        buchungsBestaetigung.setBuchungsJob(buchungsJob);
+        buchungsBestaetigung.setBuchungsBestaetigungUrl(driver.getCurrentUrl());
+        buchungsBestaetigung.setBuchungsNummer(buchungsNummer);
+        log.info("{}: buchungsBestaetigung={} with buchungsNummer={}", buchungsJob, buchungsBestaetigung,
+                buchungsNummer);
+        if (log.isTraceEnabled()) {
+            log.trace("buchungsBestaetigung document {}\n{}", driver.getCurrentUrl(), driver.getPageSource());
+        }
+        return newErfolgreicherBuchungsVersuch(buchungsBestaetigung);
     }
 
     private String extractBuchungsNummerFromUrl(String currentUrl) {
-        Pattern bestaetigungUrlPattern = Pattern.compile("Bestaetigung_(\\w+)");
-        Matcher matcher = bestaetigungUrlPattern.matcher(currentUrl);
-        if (matcher.find()) {
+        Matcher matcher = BESTAETIGUNG_URL_PATTERN.matcher(currentUrl);
+        if (!matcher.find()) {
             return matcher.group(1);
         }
-        log.warn("Could not extract buchungsNummer of url {} for pattern {}", currentUrl, bestaetigungUrlPattern);
-        return null;
+        throw new RuntimeException(String.format("Could not extract buchungsNummer of url %s for pattern %s", //
+                currentUrl, BESTAETIGUNG_URL_PATTERN));
     }
+
 }

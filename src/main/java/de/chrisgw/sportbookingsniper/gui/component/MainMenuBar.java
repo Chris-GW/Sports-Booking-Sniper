@@ -15,8 +15,8 @@ import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbookingsniper.gui.dialog.SportBuchungDialog;
-import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerAngabenDialog;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
+import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
 import lombok.Getter;
@@ -124,13 +124,13 @@ public class MainMenuBar extends SportBookingComponent {
 
             @Override
             public String getLabel() {
-                TeilnehmerAngaben teilnehmerAngaben = applicationStateDao.getTeilnehmerAngaben();
-                return teilnehmerAngaben.getName();
+                Teilnehmer teilnehmer = applicationStateDao.getTeilnehmerListe().get(0);
+                return teilnehmer.getName();
             }
         };
 
-        menu.add(new MenuItem("edit PersonenAngaben", () -> {
-            new TeilnehmerAngabenDialog(applicationStateDao).showDialog(getTextGUI());
+        menu.add(new MenuItem("edit Teilnehmer", () -> {
+            new TeilnehmerModalDialog(applicationStateDao).showDialog(getTextGUI());
         }));
         return menu;
     }

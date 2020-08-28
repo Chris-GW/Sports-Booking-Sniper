@@ -5,10 +5,10 @@ import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
-import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -28,43 +28,49 @@ public class SelectSportAngebotSchritt extends SeleniumSportBuchungsSchritt {
     @Override
     public boolean isNextBuchungsSchritt(SportBuchungsJob buchungsJob) {
         SportAngebot sportAngebot = buchungsJob.getSportAngebot();
-        return findAngebotBuchenCell(driver, sportAngebot).isPresent();
+        return findAngebotBuchenCell(sportAngebot).isPresent();
     }
 
 
     @Override
-    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte() {
+    public Stream<SportBuchungsSchritt> possibleNextBuchungsSchritte(SportBuchungsJob buchungsJob) {
         return Stream.of(new EnterPasswortForSportAngebotSchritt(driver), //
-                new SelectSportTerminSchritt(driver), //
-                new SubmitTeilnehmerAngabenSchritt(driver));
+                new SelectSportTerminRadioOptionSchritt(driver), //
+                new ClickSportTerminBuchenBtnSchritt(driver), //
+                new SubmitTeilnehmerFormSchritt(driver));
     }
 
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
         SportAngebot sportAngebot = buchungsJob.getSportAngebot();
-        Optional<WebElement> angebotRow = findAngebotBuchenCell(driver, sportAngebot);
+        Optional<WebElement> angebotRow = findAngebotBuchenCell(sportAngebot);
         Optional<WebElement> angebotBuchenBtn = angebotRow.flatMap(findElement(By.className("bs_btn_buchen")));
         if (angebotBuchenBtn.isPresent()) {
             String buchungsKursId = angebotBuchenBtn.get().getAttribute("name");
-            log.debug("found SportAngebot input.bs_btn_buchen and click onto {}", buchungsKursId);
+            log.debug("{}: click on found SportAngebot {} <input.bs_btn_buchen> for kursId={}", //
+                    buchungsJob, sportAngebot, buchungsKursId);
             angebotBuchenBtn.get().click();
             switchToNewOpenWindow();
             return super.executeBuchungsSchritt(buchungsJob);
         }
-        Optional<WebElement> wartezeitElement = angebotRow.flatMap(findElement(By.className("bs_btn_autostart")));
-        if (wartezeitElement.isPresent()) {
-            String wartezeitText = wartezeitElement.get().getText();
-            log.debug("couldn't find SportAngebot input.bs_btn_buchen {}", wartezeitElement.get());
-            readBuchungsBeginn(wartezeitText).ifPresent(buchungsJob::setBuchungsBeginn);
+        Optional<WebElement> buchungsBeginnSpan = angebotRow.flatMap(findElement(By.className("bs_btn_autostart")));
+        if (buchungsBeginnSpan.isPresent()) {
+            String buchungsBeginnText = buchungsBeginnSpan.get().getText();
+            Optional<LocalDateTime> buchungsBeginn = readBuchungsBeginn(buchungsBeginnText);
+            buchungsBeginn.ifPresent(buchungsJob::setBuchungsBeginn);
+            log.info("{}: only found <input.bs_btn_autostart> for SportAngebot {} with text={}", //
+                    buchungsJob, sportAngebot, buchungsBeginn.map(LocalDateTime::toString).orElse(buchungsBeginnText));
             return newBuchungsVersuch(BUCHUNG_GESCHLOSSEN);
+        } else {
+            log.info("{}: only Warteliste found for SportAngebot {}", buchungsJob, sportAngebot);
+            return newBuchungsVersuch(BUCHUNG_WARTELISTE);
         }
-        return newBuchungsVersuch(BUCHUNG_WARTELISTE);
     }
 
-    private Optional<WebElement> findAngebotBuchenCell(SearchContext searchContext, SportAngebot sportAngebot) {
+    private Optional<WebElement> findAngebotBuchenCell(SportAngebot sportAngebot) {
         String kursnummer = sportAngebot.getKursnummer();
-        return searchContext.findElements(By.cssSelector("#bs_content table.bs_kurse tbody tr"))
+        return driver.findElements(By.cssSelector("#bs_content table.bs_kurse tbody tr"))
                 .stream()
                 .filter(angebotRow -> {
                     WebElement kursnummerCell = angebotRow.findElement(By.className("bs_sknr"));

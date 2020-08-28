@@ -6,8 +6,8 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportbookingsniper.angebot.SportArt;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalog;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngaben;
-import de.chrisgw.sportbookingsniper.buchung.TeilnehmerAngabenValidator;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportbookingsniper.buchung.TeilnehmerValidator;
 import de.chrisgw.sportbookingsniper.gui.bind.ModalForm;
 import de.chrisgw.sportbookingsniper.gui.component.SearchableComboBox;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
@@ -134,7 +134,7 @@ public class SportBuchungDialog extends DialogWindow {
 
 
     private void saveSportBuchungsJob() {
-        BindingResult bindingResult = bindPersonenAngabenModalData();
+        BindingResult bindingResult = bindTeilnehmerModalData();
 
         if (!bindingResult.hasErrors()) {
             this.sportBuchungsJob = (SportBuchungsJob) bindingResult.getTarget();
@@ -143,10 +143,10 @@ public class SportBuchungDialog extends DialogWindow {
     }
 
 
-    private BindingResult bindPersonenAngabenModalData() {
-        DataBinder dataBinder = new DataBinder(new TeilnehmerAngaben());
+    private BindingResult bindTeilnehmerModalData() {
+        DataBinder dataBinder = new DataBinder(new Teilnehmer());
         dataBinder.setAllowedFields("TODO");
-        dataBinder.addValidators(new TeilnehmerAngabenValidator());
+        dataBinder.addValidators(new TeilnehmerValidator());
         return modalForm.bindData(dataBinder);
     }
 
