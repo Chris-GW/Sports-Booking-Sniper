@@ -22,7 +22,6 @@ public class ModalField<I extends Interactable, T> {
     private final String propertyName;
     private final Label label;
     private final Label errorLabel;
-    private final ConcealableComponent concealableErrorLabel;
 
     private final I inputField;
     private final BiConsumer<I, T> inputFieldWriter;
@@ -53,15 +52,21 @@ public class ModalField<I extends Interactable, T> {
     private void setErrorMessage(FieldError fieldError) {
         String errorMessage = defaultString(fieldError.getDefaultMessage());
         errorLabel.setText(errorMessage);
-        concealableErrorLabel.setVisible(isNotEmpty(errorMessage));
+        errorLabel.setVisible(isNotEmpty(errorMessage));
     }
 
 
     public ModalField<I, T> addToGrid(Panel panel) {
         panel.addComponent(getLabel());
         panel.addComponent(getInputField(), createHorizontallyFilledLayoutData(1));
-        panel.addComponent(getConcealableErrorLabel(), createHorizontallyFilledLayoutData(2));
+        panel.addComponent(errorLabel, createHorizontallyFilledLayoutData(2));
         return this;
+    }
+
+    public void setVisible(boolean visible) {
+        label.setVisible(visible);
+        inputField.setVisible(visible);
+        errorLabel.setVisible(visible);
     }
 
 }

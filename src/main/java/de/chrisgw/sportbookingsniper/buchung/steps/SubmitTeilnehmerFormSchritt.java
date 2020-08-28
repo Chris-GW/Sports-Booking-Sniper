@@ -191,7 +191,11 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
         private void fillInput(String inputName, String value) {
             WebElement inputElement = bsForm.findElement(byNameX(inputName));
             inputElement.clear();
-            inputElement.sendKeys(value);
+            if (value != null) {
+                inputElement.sendKeys(value);
+            } else {
+                log.warn("tried to fillInput {} with sendKeys({})", inputName, value);
+            }
         }
 
         private By byNameX(String inputName) {

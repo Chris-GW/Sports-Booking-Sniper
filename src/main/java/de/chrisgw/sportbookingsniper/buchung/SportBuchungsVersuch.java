@@ -26,6 +26,21 @@ public class SportBuchungsVersuch {
 
     public enum SportBuchungsVersuchStatus {
         BUCHUNG_GESCHLOSSEN, BUCHUNG_WARTELISTE, BUCHUNG_ABGELAUFEN, BUCHUNG_ERFOLGREICH, BUCHUNG_FEHLGESCHLAGEN;
+
+        public boolean canContineNextBuchungsVersuch() {
+            switch (this) {
+            case BUCHUNG_GESCHLOSSEN:
+            case BUCHUNG_WARTELISTE:
+                return true;
+            case BUCHUNG_ABGELAUFEN:
+            case BUCHUNG_ERFOLGREICH:
+            case BUCHUNG_FEHLGESCHLAGEN:
+                return false;
+            default:
+                throw new IllegalArgumentException("unknown SportBuchungsVersuchStatus" + this);
+            }
+        }
+
     }
 
 }

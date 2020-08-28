@@ -1,6 +1,5 @@
 package de.chrisgw.sportbookingsniper.buchung;
 
-import de.chrisgw.sportbookingsniper.angebot.SportTermin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
 import static de.chrisgw.sportbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
 
 
@@ -74,14 +74,14 @@ public class SportBuchungsSniperService {
 
     private class SportBookingSniperTask implements Runnable {
 
-        private final SportBuchungsJob sportBuchungsJob;
+        private final SportBuchungsJob buchungsJob;
         private final CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture;
         private int errorCount = 0;
 
 
-        public SportBookingSniperTask(SportBuchungsJob sportBuchungsJob,
+        public SportBookingSniperTask(SportBuchungsJob buchungsJob,
                 CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture) {
-            this.sportBuchungsJob = Objects.requireNonNull(sportBuchungsJob);
+            this.buchungsJob = Objects.requireNonNull(buchungsJob);
             this.buchungsBestaetigungFuture = Objects.requireNonNull(buchungsBestaetigungFuture);
         }
 
@@ -90,61 +90,61 @@ public class SportBuchungsSniperService {
         public void run() {
             try {
                 if (buchungsBestaetigungFuture.isDone()) {
-                    log.warn("SportBuchungsJob is already done {} {}", sportBuchungsJob, buchungsBestaetigungFuture);
-                    return;
+                    log.warn("SportBuchungsJob is already done {} {}", buchungsJob, buchungsBestaetigungFuture);
+                    cancelSportBuchungsJob(buchungsJob);
+                } else if (buchungsJob.isPausiert()) {
+                    log.warn("SportBuchungsJob is pausiert {} {}", buchungsJob, buchungsBestaetigungFuture);
+                    cancelSportBuchungsJob(buchungsJob);
+                } else if (!ausstehendeBuchungsJobs.containsKey(buchungsJob)) {
+                    log.info("SportBuchungsJob is no longer needed {}", buchungsJob);
+                    cancelSportBuchungsJob(buchungsJob);
+                } else {
+                    executeNewVerbindlicherBuchungsVersuch();
                 }
-                if (!ausstehendeBuchungsJobs.containsKey(sportBuchungsJob)) {
-                    log.info("SportBuchungsJob is no longer needed {}", sportBuchungsJob);
-                    buchungsBestaetigungFuture.cancel(false);
-                    return;
-                }
-                SportTermin sportTermin = sportBuchungsJob.getSportTermin();
-                log.debug("check sportTermin: {}", sportTermin.getName());
-                if (tryToBookOpenSportTermin()) {
-                    return;
-                }
-                scheduleBookingSnipeTask(this);
             } catch (Exception e) {
                 log.error("Error happens while try to complete SportBuchungsJob", e);
                 if (++errorCount <= 3) {
-                    log.debug("reschedule not finished SportBuchungsJob after exception: {}", sportBuchungsJob);
+                    log.debug("reschedule not finished SportBuchungsJob after exception: {}", buchungsJob);
                     scheduleBookingSnipeTask(this);
                 } else {
                     log.warn("This SportBuchungsJob complete exceptionally and will be no longer reschedule {}", this);
                     buchungsBestaetigungFuture.completeExceptionally(e);
-                    ausstehendeBuchungsJobs.remove(this.getSportBuchungsJob());
+                    cancelSportBuchungsJob(buchungsJob);
                 }
             }
         }
 
-        private boolean tryToBookOpenSportTermin() {
+        private void executeNewVerbindlicherBuchungsVersuch() {
             log.info("try to final book open SportBuchungsJob {} with TeilnehmerListe {}", //
-                    sportBuchungsJob, sportBuchungsJob.getTeilnehmerListe());
-            SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(sportBuchungsJob);
-            SportBuchungsBestaetigung buchungsBestaetigung = buchungsVersuch.getBuchungsBestaetigung();
-            if (buchungsBestaetigung == null) {
-                log.warn("could not final book: {}", sportBuchungsJob);
-                return false;
+                    buchungsJob, buchungsJob.getTeilnehmerListe());
+            SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(buchungsJob);
+            log.info("finish booking {} with SportBuchungsVersuch {}", buchungsJob, buchungsVersuch);
+            if (BUCHUNG_ERFOLGREICH.equals(buchungsVersuch.getStatus())) {
+                SportBuchungsBestaetigung buchungsBestaetigung = buchungsVersuch.getBuchungsBestaetigung();
+                buchungsBestaetigungFuture.complete(buchungsBestaetigung);
+                ausstehendeBuchungsJobs.remove(buchungsJob);
+            } else if (buchungsVersuch.getStatus().canContineNextBuchungsVersuch()) {
+                scheduleBookingSnipeTask(this);
+            } else {
+                log.warn("can not continue SportBookingSniperTask for job {} after SportBuchungsVersuch {}",
+                        buchungsJob, buchungsVersuch);
+                cancelSportBuchungsJob(buchungsJob);
             }
-            log.info("finish booking {} with baestaetigung {}", sportBuchungsJob, buchungsBestaetigung);
-            buchungsBestaetigungFuture.complete(buchungsBestaetigung);
-            ausstehendeBuchungsJobs.remove(sportBuchungsJob);
-            return true;
         }
 
 
         public Duration getDurationUntilNextTerminCheck() {
-            return Duration.between(LocalDateTime.now(), sportBuchungsJob.getBevorstehenderBuchungsVersuch());
+            return Duration.between(LocalDateTime.now(), buchungsJob.getBevorstehenderBuchungsVersuch());
         }
 
-        public SportBuchungsJob getSportBuchungsJob() {
-            return sportBuchungsJob;
+        public SportBuchungsJob getBuchungsJob() {
+            return buchungsJob;
         }
 
 
         @Override
         public String toString() {
-            return sportBuchungsJob.toString();
+            return buchungsJob.toString();
         }
 
     }

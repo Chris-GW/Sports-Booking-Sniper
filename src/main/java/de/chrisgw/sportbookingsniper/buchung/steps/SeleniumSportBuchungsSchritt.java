@@ -16,10 +16,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLGESCHLAGEN;
 
@@ -100,6 +102,21 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         }
         log.trace("readBuchungsBeginn from .bs_btn_autostart {} -> {}", buchungsBeginnText, buchungsBeginn);
         return Optional.of(buchungsBeginn);
+    }
+
+
+    protected Optional<WebElement> findFormSubmitBtn(String submitBtnValue, String... submitBtnValues) {
+        WebElement bsFormFooter = driver.findElement(By.id("bs_foot"));
+        List<WebElement> bsFormButtons = bsFormFooter.findElements(By.tagName("input"));
+        return bsFormButtons.stream().filter(hasValueAttribute(submitBtnValue, submitBtnValues)).findAny();
+    }
+
+    protected Predicate<WebElement> hasValueAttribute(String submitBtnValue, String[] submitBtnValues) {
+        return webElement -> {
+            String value = webElement.getAttribute("value");
+            return submitBtnValue.equalsIgnoreCase(value) || (submitBtnValues != null && //
+                    Arrays.stream(submitBtnValues).anyMatch(value::equalsIgnoreCase));
+        };
     }
 
 

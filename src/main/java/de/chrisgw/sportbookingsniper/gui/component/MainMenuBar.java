@@ -14,11 +14,12 @@ import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
+import de.chrisgw.sportbookingsniper.angebot.*;
+import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportbookingsniper.gui.dialog.SportBuchungDialog;
 import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
-import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -49,9 +50,9 @@ public class MainMenuBar extends SportBookingComponent {
         setLayoutManager(new BorderLayout());
 
         viewMenu = new Menu("View");
-        addViewMenuItemsFor(this);
-        viewMenu.add(createSwitchThemeMenuItem());
         viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
+        viewMenu.add(createSwitchThemeMenuItem());
+        addViewMenuItemsFor(this);
 
         navigationMenu = new Menu("Navigation");
         addNavigationMenuItemsFor(this);
@@ -160,7 +161,31 @@ public class MainMenuBar extends SportBookingComponent {
 
 
     private Menu debugMenu() {
-        return new Menu("Debug");
+        Menu debugMenu = new Menu("Debug");
+        debugMenu.add(new MenuItem("new dummy pending SportBuchungsJob", this::addPendingDummySportBookingJob));
+        debugMenu.add(new MenuItem("new dummy finished SportBuchungsJob", this::addFinishDummySportBookingJob));
+        return debugMenu;
+    }
+
+    private void addPendingDummySportBookingJob() {
+        SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+        String sportArtName = "Fechten Level 2 - 3";
+        String kursnummer = "33432242";
+        SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);
+        SportAngebot sportAngebot = sportArt.findSportAngebot(kursnummer).orElseThrow(RuntimeException::new);
+        SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
+                .findFirst()
+                .orElseThrow(RuntimeException::new);
+
+        SportBuchungsJob buchungsJob = new SportBuchungsJob();
+        buchungsJob.setJobId(5);
+        buchungsJob.setTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
+        buchungsJob.setSportTermin(sportTermin);
+        applicationStateDao.addSportBuchungsJob(buchungsJob);
+    }
+
+    private void addFinishDummySportBookingJob() {
+
     }
 
 

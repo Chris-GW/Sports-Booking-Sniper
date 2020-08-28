@@ -7,13 +7,13 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
+import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
+import de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportbookingsniper.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportbookingsniper.gui.component.MainMenuBar;
 import de.chrisgw.sportbookingsniper.gui.component.PendingSportBuchungenComponent;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
-import de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService;
 
 import java.util.Arrays;
 import java.util.Objects;

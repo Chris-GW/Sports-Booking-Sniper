@@ -9,7 +9,6 @@ import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportbookingsniper.buchung.TeilnehmerValidator;
 import de.chrisgw.sportbookingsniper.buchung.TeilnehmerKategorie;
-import de.chrisgw.sportbookingsniper.gui.bind.ConcealableComponent;
 import de.chrisgw.sportbookingsniper.gui.bind.ModalField;
 import de.chrisgw.sportbookingsniper.gui.bind.ModalForm;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
@@ -114,28 +113,10 @@ public class TeilnehmerModalDialog extends DialogWindow implements WindowListene
                 .withLabel("Mitarbeiternr.:*") //
                 .addTo(modalForm);
 
-        ConcealableComponent label = new ConcealableComponent().addTo(formularGridPanel);
-        ConcealableComponent input = new ConcealableComponent() //
-                .setLayoutData(createHorizontallyFilledLayoutData(1)) //
-                .addTo(formularGridPanel);
-        ConcealableComponent errorLabel = new ConcealableComponent() //
-                .setLayoutData(createHorizontallyFilledLayoutData(2)) //
-                .addTo(formularGridPanel);
-
         kategorieComboBox.addListener((selectedIndex, previousSelection) -> {
-            if (selectedIndex >= 0 && kategorieComboBox.getItem(selectedIndex).requiresMatrikelnummer()) {
-                label.setComponent(matrikelnummerField.getLabel());
-                input.setComponent(matrikelnummerField.getInputField());
-                errorLabel.setComponent(matrikelnummerField.getConcealableErrorLabel());
-            } else if (selectedIndex >= 0 && kategorieComboBox.getItem(selectedIndex).requiresMitarbeiterNummer()) {
-                label.setComponent(mitarbeiterNummerField.getLabel());
-                input.setComponent(mitarbeiterNummerField.getInputField());
-                errorLabel.setComponent(mitarbeiterNummerField.getConcealableErrorLabel());
-            } else {
-                label.setComponent(null);
-                input.setComponent(null);
-                errorLabel.setComponent(null);
-            }
+            TeilnehmerKategorie selectedItem = kategorieComboBox.getItem(selectedIndex);
+            matrikelnummerField.setVisible(selectedIndex >= 0 && selectedItem.requiresMatrikelnummer());
+            mitarbeiterNummerField.setVisible(selectedIndex >= 0 && selectedItem.requiresMitarbeiterNummer());
         });
     }
 

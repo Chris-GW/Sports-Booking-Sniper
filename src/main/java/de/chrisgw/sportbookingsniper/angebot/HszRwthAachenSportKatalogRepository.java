@@ -157,13 +157,23 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         sportAngebot.setKursinfoUrl(kursinfoUrl);
         sportAngebot.setLeitung(leitung);
         sportAngebot.setPreis(preis);
+        sportAngebot.setPasswortGesichert(isPasswortGesichert(tableRow));
         sportAngebot.setSportTermine(newTerminLazyLoader(sportAngebot));
         return sportAngebot;
     }
 
+
+    private boolean isPasswortGesichert(Element tableRow) {
+        Element buchenBtn = tableRow.selectFirst("input.bs_btn_buchen");
+        return buchenBtn != null && "booking - password protected".equalsIgnoreCase(buchenBtn.attr("title"));
+    }
+
+
     private void setReadZeitraum(SportAngebot sportAngebot, Element zeitraumTd) {
         Pattern sportAngebotZeitraumPattern = Pattern.compile("(\\d+)\\.(\\d+)\\.-(\\d+)\\.(\\d+)\\.");
+        Pattern sportAngebotEinzelterminPattern = Pattern.compile("(\\d+)\\.(\\d+)\\.");
         Matcher zeitraumMatcher = sportAngebotZeitraumPattern.matcher(zeitraumTd.text());
+        Matcher einzelTerminMatcher = sportAngebotEinzelterminPattern.matcher(zeitraumTd.text());
         if (zeitraumMatcher.matches()) {
             int year = LocalDate.now().getYear();
             int startDay = parseInt(zeitraumMatcher.group(1));
@@ -179,9 +189,16 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             }
             sportAngebot.setZeitraumStart(zeitraumStart);
             sportAngebot.setZeitraumEnde(zeitraumEnde);
+        } else if (einzelTerminMatcher.matches()) {
+            int year = LocalDate.now().getYear();
+            int startDay = parseInt(einzelTerminMatcher.group(1));
+            int startMonth = parseInt(einzelTerminMatcher.group(2));
+            LocalDate einzelTerminDate = LocalDate.of(year, startMonth, startDay);
+            sportAngebot.setZeitraumStart(einzelTerminDate);
+            sportAngebot.setZeitraumEnde(einzelTerminDate);
         } else {
             throw new RuntimeException(String.format("expect zeitraum tb cell to match '%s' but was: '%s'", //
-                    sportAngebotZeitraumPattern, zeitraumTd.text()));
+                    sportAngebotEinzelterminPattern, zeitraumTd.text()));
         }
     }
 

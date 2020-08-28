@@ -50,17 +50,6 @@ public class SportBookingComponent extends Panel implements WindowListener {
     }
 
 
-    public synchronized void setVisible(boolean visible) {
-        this.visible = visible;
-        invalidate();
-    }
-
-    public synchronized void toggleVisibility() {
-        visible = !visible;
-        invalidate();
-    }
-
-
     @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
@@ -87,7 +76,7 @@ public class SportBookingComponent extends Panel implements WindowListener {
     @Override
     public void onInput(Window baseWindow, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
         if (keyStroke.isShiftDown() && keyStroke.getKeyType().equals(shortKeyType)) {
-            toggleVisibility();
+            setVisible(!isVisible());
             deliverEvent.set(true);
         } else if (keyStroke.getKeyType().equals(shortKeyType)) {
             focus();
@@ -130,9 +119,9 @@ public class SportBookingComponent extends Panel implements WindowListener {
     protected void onAfterDrawing(TextGUIGraphics graphics) {
         super.onAfterDrawing(graphics);
         // draw sizeInfo bottomRight
-//        String sizeInfo = String.format("[%s/%s]", getPreferredSize(), getSize());
-//        TerminalPosition bottomRight = new TerminalPosition(0, getSize().getRows() - 1);
-//        graphics.setForegroundColor(ANSI.BLACK).setBackgroundColor(ANSI.GREEN).putString(bottomRight, sizeInfo);
+        //        String sizeInfo = String.format("[%s/%s]", getPreferredSize(), getSize());
+        //        TerminalPosition bottomRight = new TerminalPosition(0, getSize().getRows() - 1);
+        //        graphics.setForegroundColor(ANSI.BLACK).setBackgroundColor(ANSI.GREEN).putString(bottomRight, sizeInfo);
     }
 
 

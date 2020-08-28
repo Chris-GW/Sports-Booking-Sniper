@@ -95,9 +95,8 @@ public final class ModalFieldBuilder<I extends Interactable, T> {
 
 
     public ModalField<I, T> build() {
-        ConcealableComponent concealableErrorLabel = new ConcealableComponent(errorLabel);
-        concealableErrorLabel.setVisible(false);
-        return new ModalField<>(propertyName, label, errorLabel, concealableErrorLabel, inputField, inputFieldWriter,
+        errorLabel.setVisible(false);
+        return new ModalField<>(propertyName, label, errorLabel, inputField, inputFieldWriter,
                 inputFieldReader);
     }
 

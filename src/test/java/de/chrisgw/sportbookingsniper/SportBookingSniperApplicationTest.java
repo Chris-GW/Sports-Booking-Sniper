@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SportBookingSniperApplicationTest {
 
-    private final static String SPORT_ART = "Badmintoncourt Buchung";
-    private final static String KURSNUMMER = "K08415044";
+    private final static String SPORT_ART = "Fechten Level 2 - 3";
+    private final static String KURSNUMMER = "33432242";
 
     private final ConfigurableApplicationContext applicationContext;
 
@@ -36,7 +36,8 @@ public class SportBookingSniperApplicationTest {
                 SportBookingSniperApplication.class)) {
             SportBookingSniperApplicationTest testApplication = new SportBookingSniperApplicationTest(
                     applicationContext);
-            System.setProperty("webdriver.chrome.driver", "C:\\01_Programmieren\\chromedriver.exe");
+            System.setProperty("webdriver.chrome.driver",
+                    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
 
             SportAngebot sportAngebot = testApplication.findSportAngebot(SPORT_ART, KURSNUMMER);
             SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
@@ -80,6 +81,7 @@ public class SportBookingSniperApplicationTest {
         sportBuchungsJob.setSportTermin(sportTermin);
         sportBuchungsJob.setTeilnehmerListe(readTeilnehmerListe());
         sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
+        sportBuchungsJob.setPasswort("test1234");
 
         SportBuchungsSniperService bookingSniperService = applicationContext.getBean(SportBuchungsSniperService.class);
         CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submitSportBuchungsJob(
