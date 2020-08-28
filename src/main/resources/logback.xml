@@ -22,8 +22,8 @@
   <logger name="org.springframework" level="WARN"/>
   <logger name="com.gargoylesoftware.htmlunit.DefaultCssErrorHandler" level="ERROR"/>
 
-  <logger name="de.chrisgw.sportbooking" level="INFO"/>
-  <logger name="de.chrisgw.sportbooking.gui" level="DEBUG"/>
-  <logger name="de.chrisgw.sportbooking.SportBookingApplication" level="INFO"/>
-  <logger name="de.chrisgw.sportbooking.service.SportBuchungsSniperService" level="DEBUG"/>
+  <logger name="de.chrisgw.sportbookingsniper" level="INFO"/>
+  <logger name="de.chrisgw.sportbookingsniper.gui" level="DEBUG"/>
+  <logger name="de.chrisgw.sportbookingsniper.SportBookingSniperApplication" level="INFO"/>
+  <logger name="de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService" level="DEBUG"/>
 </configuration>

@@ -141,7 +141,7 @@
             <configuration>
               <archive>
                 <manifest>
-                  <mainClass>de.chrisgw.sportbooking.SportBookingApplication</mainClass>
+                  <mainClass>de.chrisgw.sportbookingsniper.SportBookingSniperApplication</mainClass>
                 </manifest>
               </archive>
               <descriptorRefs>
