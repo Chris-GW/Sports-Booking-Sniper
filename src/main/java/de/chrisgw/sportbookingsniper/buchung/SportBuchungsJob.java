@@ -4,9 +4,10 @@ package de.chrisgw.sportbookingsniper.buchung;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportbookingsniper.angebot.SportArt;
 import de.chrisgw.sportbookingsniper.angebot.SportTermin;
+import de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -22,7 +23,6 @@ import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsStrategieImpl.d
 
 
 @Data
-@NoArgsConstructor
 public class SportBuchungsJob {
 
     private int jobId;
@@ -35,6 +35,11 @@ public class SportBuchungsJob {
     private LocalDateTime buchungsBeginn;
     private LocalDateTime bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
     private List<SportBuchungsVersuch> buchungsVersuche = new ArrayList<>();
+
+
+    public SportBuchungsJob() {
+        buchungsVersuche.add(SportBuchungsVersuch.newBuchungsVersuch(SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN));
+    }
 
 
     public LocalDateTime getBevorstehenderBuchungsVersuch() {
@@ -75,6 +80,10 @@ public class SportBuchungsJob {
 
     public SportAngebot getSportAngebot() {
         return sportTermin.getSportAngebot();
+    }
+
+    public SportArt getSportArt() {
+        return getSportAngebot().getSportArt();
     }
 
 

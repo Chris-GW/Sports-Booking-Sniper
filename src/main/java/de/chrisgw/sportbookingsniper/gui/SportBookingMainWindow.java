@@ -112,7 +112,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
                     avabileRows -= mainMenuBar.getPreferredSize().getRows() + 2;
                     avabileRows -= finishedComponent.getPreferredSize().getRows() + 2;
                     int tableRows = avabileRows / 2;
-                    pendingComponent.getPendingJobsTabel().setVisibleRows(Math.max(2, tableRows));
+                    pendingComponent.setVisibleRows(Math.max(2, tableRows));
                 }
             }
 

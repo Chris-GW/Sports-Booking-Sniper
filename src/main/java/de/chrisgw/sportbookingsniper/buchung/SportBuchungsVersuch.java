@@ -1,6 +1,7 @@
 package de.chrisgw.sportbookingsniper.buchung;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -25,7 +26,12 @@ public class SportBuchungsVersuch {
 
 
     public enum SportBuchungsVersuchStatus {
-        BUCHUNG_GESCHLOSSEN, BUCHUNG_WARTELISTE, BUCHUNG_ABGELAUFEN, BUCHUNG_ERFOLGREICH, BUCHUNG_FEHLGESCHLAGEN;
+        BUCHUNG_GESCHLOSSEN, //
+        BUCHUNG_WARTELISTE, //
+        BUCHUNG_ABGELAUFEN, //
+        BUCHUNG_ERFOLGREICH, //
+        BUCHUNG_FEHLER;
+
 
         public boolean canContineNextBuchungsVersuch() {
             switch (this) {
@@ -34,11 +40,18 @@ public class SportBuchungsVersuch {
                 return true;
             case BUCHUNG_ABGELAUFEN:
             case BUCHUNG_ERFOLGREICH:
-            case BUCHUNG_FEHLGESCHLAGEN:
+            case BUCHUNG_FEHLER:
                 return false;
             default:
                 throw new IllegalArgumentException("unknown SportBuchungsVersuchStatus" + this);
             }
+        }
+
+
+        @Override
+        public String toString() {
+            String name = name().substring("BUCHUNG_".length());
+            return StringUtils.capitalize(StringUtils.lowerCase(name));
         }
 
     }

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLGESCHLAGEN;
+import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 
 
 @Slf4j
@@ -49,7 +49,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
             return new GetSportAngebotWebpageSchritt(driver).executeBuchungsSchritt(buchungsJob);
         } catch (Exception e) {
             log.error("Could not book", e);
-            return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLGESCHLAGEN);
+            return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
         } finally {
             driver.quit();
         }
@@ -71,7 +71,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
                 .map(nextBuchungsSchritt -> nextBuchungsSchritt.executeBuchungsSchritt(buchungsJob))
                 .orElseGet(() -> {
                     log.warn("Could not find next BuchungsSchritt on page:\n{}", driver.getPageSource());
-                    return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLGESCHLAGEN);
+                    return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
                 });
     }
 

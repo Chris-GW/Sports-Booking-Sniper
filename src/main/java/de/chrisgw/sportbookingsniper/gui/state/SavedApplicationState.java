@@ -1,5 +1,6 @@
 package de.chrisgw.sportbookingsniper.gui.state;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
@@ -21,7 +22,11 @@ public class SavedApplicationState {
 
     private List<Teilnehmer> teilnehmerListe = new ArrayList<>();
     private List<SportAngebot> watchedSportAngebote = new ArrayList<>();
+
+    @JsonIgnore
     private List<SportBuchungsJob> pendingBuchungsJobs = new ArrayList<>();
+
+    @JsonIgnore
     private List<SportBuchungsJob> finishedBuchungsJobs = new ArrayList<>();
 
 }

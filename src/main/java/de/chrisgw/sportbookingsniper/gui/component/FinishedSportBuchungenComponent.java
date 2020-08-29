@@ -2,6 +2,7 @@ package de.chrisgw.sportbookingsniper.gui.component;
 
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.Container;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FinishedSportBuchungenComponent extends SportBookingComponent implements SportBuchungJobListener {
+public class FinishedSportBuchungenComponent extends MainWindowBasicComponent implements SportBuchungJobListener {
 
     @Getter
     private final Table<String> finishedJobsTabel;
@@ -33,6 +34,7 @@ public class FinishedSportBuchungenComponent extends SportBookingComponent imple
         this.finishedJobsTabel = createFinishedJobsTable();
         this.applicationStateDao.getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
+        addComponent(new Button("Test Btn"), Location.TOP);
         addComponent(finishedJobsTabel, Location.CENTER);
     }
 

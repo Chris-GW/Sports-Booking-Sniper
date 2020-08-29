@@ -13,11 +13,9 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.TextStyle;
-import java.util.Locale;
+import java.time.format.DateTimeFormatter;
 
-import static de.chrisgw.sportbookingsniper.angebot.HszRwthAachenSportKatalogRepository.DATE_TIME_FORMATTER;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
+import static de.chrisgw.sportbookingsniper.angebot.HszRwthAachenSportKatalogRepository.TIME_FORMATTER;
 
 
 @Data
@@ -28,7 +26,6 @@ public class SportTermin implements Comparable<SportTermin> {
 
     private LocalDateTime startZeit;
     private LocalDateTime endZeit;
-    private boolean passwortGesichert = false;
 
 
     public boolean overlapseWith(SportTermin otherSportTermin) {
@@ -49,10 +46,15 @@ public class SportTermin implements Comparable<SportTermin> {
     public String getName() {
         String sportName = getSportAngebot().getSportArt().getName();
         String kursnummer = getSportAngebot().getKursnummer();
-        String dayOfWeekStr = getStartZeit().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.getDefault());
-        String start = DATE_TIME_FORMATTER.format(getStartZeit());
-        String end = ISO_LOCAL_TIME.format(getEndZeit());
-        return String.format("%s (%s) von %s %s bis %s", sportName, kursnummer, dayOfWeekStr, start, end);
+        return String.format("%s (%s) von %s ", sportName, kursnummer, formatTerminZeitraum());
+    }
+
+    @JsonIgnore
+    public String formatTerminZeitraum() {
+        DateTimeFormatter terminStartFormatter = DateTimeFormatter.ofPattern("ccc dd.MM. HH:mm");
+        String terminStartStr = terminStartFormatter.format(startZeit);
+        String endZeitStr = TIME_FORMATTER.format(endZeit);
+        return terminStartStr + "-" + endZeitStr;
     }
 
 

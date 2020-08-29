@@ -1,9 +1,6 @@
 package de.chrisgw.sportbookingsniper.gui.component;
 
-import com.googlecode.lanterna.SGR;
-import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
@@ -22,14 +19,12 @@ import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
-public class MainMenuBar extends SportBookingComponent {
+public class MainMenuBar extends MainWindowBasicComponent {
 
     private final SportKatalogRepository sportKatalogRepository;
 
@@ -65,7 +60,7 @@ public class MainMenuBar extends SportBookingComponent {
                 .add(languageMenu());
 
         addComponent(menuBar, Location.CENTER);
-        addComponent(clockDisplyMenuBar(), Location.RIGHT);
+//        addComponent(new AnimatedClock(), Location.RIGHT);
     }
 
     private MenuItem createSwitchThemeMenuItem() {
@@ -96,25 +91,25 @@ public class MainMenuBar extends SportBookingComponent {
     }
 
 
-    public void addViewMenuItemsFor(SportBookingComponent sportBookingComponent) {
-        KeyType shortKey = sportBookingComponent.getShortKeyType();
-        String label = sportBookingComponent.getTitle();
+    public void addViewMenuItemsFor(MainWindowBasicComponent mainWindowBasicComponent) {
+        KeyType shortKey = mainWindowBasicComponent.getShortKeyType();
+        String label = mainWindowBasicComponent.getTitle();
         if (shortKey != null) {
             label += " <S-" + shortKey + ">";
         }
-        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, sportBookingComponent::setVisible);
-        checkBoxMenuItem.setChecked(sportBookingComponent.isVisible());
+        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, mainWindowBasicComponent::setVisible);
+        checkBoxMenuItem.setChecked(mainWindowBasicComponent.isVisible());
         viewMenu.add(checkBoxMenuItem);
     }
 
-    public void addNavigationMenuItemsFor(SportBookingComponent sportBookingComponent) {
-        KeyType shortKey = sportBookingComponent.getShortKeyType();
-        String label = sportBookingComponent.getTitle();
+    public void addNavigationMenuItemsFor(MainWindowBasicComponent mainWindowBasicComponent) {
+        KeyType shortKey = mainWindowBasicComponent.getShortKeyType();
+        String label = mainWindowBasicComponent.getTitle();
         if (shortKey != null) {
             label += " <" + shortKey + ">";
         }
         MenuItem navigationMenuItem = new MenuItem(label, () -> {
-            window.setFocusedInteractable(sportBookingComponent.nextFocus(null));
+            window.setFocusedInteractable(mainWindowBasicComponent.nextFocus(null));
         });
         navigationMenu.add(navigationMenuItem);
     }
@@ -186,42 +181,6 @@ public class MainMenuBar extends SportBookingComponent {
 
     private void addFinishDummySportBookingJob() {
 
-    }
-
-
-    private MenuBar clockDisplyMenuBar() {
-        Menu clockDisplyMenu = new Menu("clock") {
-
-            private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
-
-            @Override
-            public String getLabel() {
-                LocalDateTime time = LocalDateTime.now().withNano(0);
-                return dateTimeFormatter.format(time);
-            }
-
-            @Override
-            public boolean isInvalid() {
-                return true;
-            }
-
-        };
-        clockDisplyMenu.setTheme(new SimpleTheme(ANSI.BLACK, ANSI.WHITE, SGR.BOLD));
-        clockDisplyMenu.setEnabled(false);
-
-        MenuBar menuBar = new MenuBar() {
-
-            private LocalDateTime lastShownTime = LocalDateTime.now().minusSeconds(1);
-
-            @Override
-            public boolean isInvalid() {
-                LocalDateTime currentTime = LocalDateTime.now().withNano(0);
-                boolean isInvalid = lastShownTime.isBefore(currentTime);
-                lastShownTime = currentTime;
-                return isInvalid;
-            }
-        };
-        return menuBar.add(clockDisplyMenu);
     }
 
 }

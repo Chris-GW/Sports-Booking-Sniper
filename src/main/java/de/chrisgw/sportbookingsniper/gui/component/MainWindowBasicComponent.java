@@ -11,7 +11,7 @@ import lombok.Getter;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class SportBookingComponent extends Panel implements WindowListener {
+public class MainWindowBasicComponent extends Panel implements WindowListener {
 
     protected final ApplicationStateDao applicationStateDao;
     protected final Window window;
@@ -22,19 +22,16 @@ public class SportBookingComponent extends Panel implements WindowListener {
     @Getter
     private final KeyType shortKeyType;
 
-    @Getter
-    private boolean visible = true;
 
-
-    public SportBookingComponent(ApplicationStateDao applicationStateDao, Window window) {
+    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window) {
         this(applicationStateDao, window, null, null);
     }
 
-    public SportBookingComponent(ApplicationStateDao applicationStateDao, Window window, String title) {
+    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window, String title) {
         this(applicationStateDao, window, title, null);
     }
 
-    public SportBookingComponent(ApplicationStateDao applicationStateDao, Window window, String title,
+    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window, String title,
             KeyType shortKeyType) {
         super();
         this.applicationStateDao = applicationStateDao;
@@ -91,31 +88,6 @@ public class SportBookingComponent extends Panel implements WindowListener {
 
 
     @Override
-    protected ComponentRenderer<Panel> createDefaultRenderer() {
-        return new DefaultPanelRenderer() {
-
-            @Override
-            public TerminalSize getPreferredSize(Panel component) {
-                if (!visible) {
-                    return new TerminalSize(title.length(), 2);
-                }
-                return super.getPreferredSize(component);
-            }
-
-            @Override
-            public void drawComponent(TextGUIGraphics graphics, Panel panel) {
-                if (visible) {
-                    super.drawComponent(graphics, panel);
-                } else {
-                    graphics.applyThemeStyle(getThemeDefinition().getNormal());
-                    graphics.putString(TerminalPosition.TOP_LEFT_CORNER, title);
-                }
-            }
-
-        };
-    }
-
-    @Override
     protected void onAfterDrawing(TextGUIGraphics graphics) {
         super.onAfterDrawing(graphics);
         // draw sizeInfo bottomRight
@@ -126,7 +98,7 @@ public class SportBookingComponent extends Panel implements WindowListener {
 
 
     @Override
-    public synchronized SportBookingComponent addTo(Panel panel) {
+    public synchronized MainWindowBasicComponent addTo(Panel panel) {
         super.addTo(panel);
         return self();
     }
@@ -137,7 +109,7 @@ public class SportBookingComponent extends Panel implements WindowListener {
     }
 
     @Override
-    protected SportBookingComponent self() {
+    protected MainWindowBasicComponent self() {
         return this;
     }
 

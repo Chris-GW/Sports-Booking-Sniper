@@ -1,9 +1,13 @@
 package de.chrisgw.sportbookingsniper.gui.state;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
+import de.chrisgw.sportbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportbookingsniper.angebot.SportKatalog;
+import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static de.chrisgw.sportbookingsniper.SportBookingModelTestUtil.newSportBuchungsJob;
+
 
 @Slf4j
 @Repository
@@ -28,9 +34,11 @@ public class ApplicationStateDao implements InitializingBean {
 
     private final Resource savedApplicationDataResource;
     private final ObjectMapper objectMapper;
+    private final SportKatalogRepository sportKatalogRepository;
 
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
+    private SportKatalog sportKatalog;
 
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
     private final List<SportBuchungJobListener> sportBuchungJobListeners = new ArrayList<>();
@@ -49,6 +57,14 @@ public class ApplicationStateDao implements InitializingBean {
         applicationState.setLanguage(language);
         Locale.setDefault(language);
         saveApplicationData();
+    }
+
+
+    public synchronized SportKatalog currentSportKatalog() {
+        if (sportKatalog == null) {
+            sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+        }
+        return sportKatalog;
     }
 
 
@@ -204,6 +220,12 @@ public class ApplicationStateDao implements InitializingBean {
         applicationState = loadApplicationData();
         Locale.setDefault(applicationState.getLanguage());
         log.trace("on initialize load application data: {}", applicationState);
+
+        // TODO remove dummy sportKatalog
+        sportKatalog = SportBookingModelTestUtil.newSportKatalog();
+        for (int i = 0; i < 9; i++) {
+            addSportBuchungsJob(newSportBuchungsJob());
+        }
     }
 
 

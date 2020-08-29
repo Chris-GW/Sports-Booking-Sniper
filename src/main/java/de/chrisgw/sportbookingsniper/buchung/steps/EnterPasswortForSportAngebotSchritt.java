@@ -10,7 +10,7 @@ import org.openqa.selenium.WebElement;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLGESCHLAGEN;
+import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
@@ -46,7 +46,7 @@ public class EnterPasswortForSportAngebotSchritt extends SeleniumSportBuchungsSc
         weiterBtn.click();
         if (isNextBuchungsSchritt(buchungsJob)) {
             log.error("{}: entered password={} was wrong", buchungsJob, passwort);
-            return newBuchungsVersuch(BUCHUNG_FEHLGESCHLAGEN);
+            return newBuchungsVersuch(BUCHUNG_FEHLER);
         }
         return super.executeBuchungsSchritt(buchungsJob);
     }

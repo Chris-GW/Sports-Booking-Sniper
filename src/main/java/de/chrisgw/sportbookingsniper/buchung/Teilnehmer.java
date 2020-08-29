@@ -9,12 +9,11 @@ public class Teilnehmer {
 
     private String vorname;
     private String nachname;
+    private String street;
+    private String ort;
     private String email;
     private String telefon;
     private Gender gender = Gender.KEINE_ANGABE;
-
-    private String street;
-    private String ort;
 
     private TeilnehmerKategorie teilnehmerKategorie;
     private String matrikelnummer; // needed for PersonenKategorie Student

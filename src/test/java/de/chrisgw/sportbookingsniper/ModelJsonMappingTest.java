@@ -27,8 +27,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static de.chrisgw.sportbookingsniper.SportBookingModelTestUtil.createFreitagsSportAngebot;
-import static de.chrisgw.sportbookingsniper.SportBookingModelTestUtil.createMontagsSportAngebot;
+import static de.chrisgw.sportbookingsniper.SportBookingModelTestUtil.newSportKatalog;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -50,23 +49,16 @@ public class ModelJsonMappingTest {
     public void setUp() {
         setUpJackson();
 
-        teilnehmer = SportBookingModelTestUtil.createTeilnehmer();
-        sportKatalog = new SportKatalog();
-
-        badminton = new SportArt("Badminton", "http://www.badminton.de");
-        badminton.addSportAngebot(createMontagsSportAngebot(badminton));
-        badminton.addSportAngebot(createFreitagsSportAngebot(badminton));
-        sportKatalog.addSportArt(badminton);
-
-        volleyball = new SportArt("Volleyball", "http://www.volleyball.de");
-        volleyball.addSportAngebot(createFreitagsSportAngebot(volleyball));
-        sportKatalog.addSportArt(volleyball);
+        teilnehmer = SportBookingModelTestUtil.newTeilnehmer();
+        sportKatalog = newSportKatalog();
+        badminton = sportKatalog.findSportArtByName("Badminton Karte Text").orElseThrow(RuntimeException::new);
+        volleyball = sportKatalog.findSportArtByName("Volleyball Level 1 Text").orElseThrow(RuntimeException::new);
     }
 
 
     @Test
     public void shouldSeralizeTeilnehmer() throws Exception {
-        Teilnehmer teilnehmer = SportBookingModelTestUtil.createTeilnehmer();
+        Teilnehmer teilnehmer = SportBookingModelTestUtil.newTeilnehmer();
 
         String json = objectMapper.writeValueAsString(teilnehmer);
         logger.debug(json);

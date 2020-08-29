@@ -12,14 +12,14 @@ import com.googlecode.lanterna.gui2.AbstractTextGUI;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import de.chrisgw.sportbookingsniper.gui.SportBookingMainWindow;
-import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
-import de.chrisgw.sportbookingsniper.gui.dialog.WelcomeDialog;
-import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService;
+import de.chrisgw.sportbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportbookingsniper.gui.SportBookingMainWindow;
+import de.chrisgw.sportbookingsniper.gui.dialog.TeilnehmerModalDialog;
+import de.chrisgw.sportbookingsniper.gui.dialog.WelcomeDialog;
+import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -56,7 +56,7 @@ public class SportBookingSniperApplication {
 
     @Bean
     public ApplicationStateDao applicationStateDao() {
-        return new ApplicationStateDao(savedApplicationDataResource(), objectMapper());
+        return new ApplicationStateDao(savedApplicationDataResource(), objectMapper(), sportKatalogRepository());
     }
 
     @Bean

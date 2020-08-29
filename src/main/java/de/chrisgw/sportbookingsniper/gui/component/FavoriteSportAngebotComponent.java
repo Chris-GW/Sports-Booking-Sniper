@@ -7,7 +7,7 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 
 
-public class FavoriteSportAngebotComponent extends SportBookingComponent {
+public class FavoriteSportAngebotComponent extends MainWindowBasicComponent {
 
 
     public FavoriteSportAngebotComponent(ApplicationStateDao applicationStateDao, Window window) {

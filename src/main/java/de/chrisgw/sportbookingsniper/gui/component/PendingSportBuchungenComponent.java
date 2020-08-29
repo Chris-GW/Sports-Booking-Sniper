@@ -1,41 +1,64 @@
 package de.chrisgw.sportbookingsniper.gui.component;
 
-import com.googlecode.lanterna.gui2.BorderLayout;
-import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.Container;
+import com.googlecode.lanterna.gui2.Direction;
+import com.googlecode.lanterna.gui2.LinearLayout;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
-import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportbookingsniper.gui.state.SportBuchungJobListener;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
-
-public class PendingSportBuchungenComponent extends SportBookingComponent implements SportBuchungJobListener {
+public class PendingSportBuchungenComponent extends MainWindowBasicComponent implements SportBuchungJobListener {
 
     @Getter
-    private final Table<String> pendingJobsTabel;
+    private final SportBuchungsJobListBox buchungsJobListBox;
 
 
     public PendingSportBuchungenComponent(ApplicationStateDao applicationStateDao, Window window) {
         super(applicationStateDao, window, "Ausstehende SportBuchungen", KeyType.F2);
-        setLayoutManager(new BorderLayout());
+        setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
-        this.pendingJobsTabel = createPendingJobsTabel();
-        this.applicationStateDao.getPendingBuchungsJobs().forEach(this::addPendingJob);
+        buchungsJobListBox = new SportBuchungsJobListBox(this::showSportBuchungsJobContextMenu);
+        addComponent(buchungsJobListBox);
 
-        addComponent(pendingJobsTabel, Location.CENTER);
+        applicationStateDao.getPendingBuchungsJobs().forEach(buchungsJobListBox::onNewPendingSportBuchungsJob);
     }
 
+
+
+    private void showSportBuchungsJobContextMenu(SportBuchungsJobListBox sportBuchungsJobListBox,
+            SportBuchungsJob selectedBuchungsJob) {
+        SportAngebot sportAngebot = selectedBuchungsJob.getSportAngebot();
+        String sportArtName = sportAngebot.getSportArt().getName();
+        String kursnummer = sportAngebot.getKursnummer();
+        String formatTerminZeitraum = selectedBuchungsJob.getSportTermin().formatTerminZeitraum();
+        new ActionListDialogBuilder().setTitle("Ausgewählte Sportbuchung...")
+                .setDescription(sportArtName + "\n(" + kursnummer + ") " + formatTerminZeitraum)
+                .setCanCancel(true)
+                .setCloseAutomaticallyOnAction(true)
+                .addAction("Bearbeiten", () -> {
+                    System.out.println("Bearbeiten: " + selectedBuchungsJob);
+                })
+                .addAction("Pausieren <Pause>", () -> {
+                    System.out.println("Pausieren: " + selectedBuchungsJob);
+                })
+                .addAction("Löschen <Entf>", () -> {
+                    System.out.println("Löschen: " + selectedBuchungsJob);
+                })
+                .build()
+                .showDialog(getTextGUI());
+    }
+
+    public void setVisibleRows(int visibleRows) {
+        TerminalSize explicitPreferredSize = buchungsJobListBox.getPreferredSize().withRows(visibleRows);
+        buchungsJobListBox.setPreferredSize(explicitPreferredSize);
+    }
 
     @Override
     public synchronized void onAdded(Container container) {
@@ -50,61 +73,9 @@ public class PendingSportBuchungenComponent extends SportBookingComponent implem
     }
 
 
-    private Table<String> createPendingJobsTabel() {
-        Table<String> pendingJobsTabel = new Table<>("#", "Sportangebot", "Details");
-        pendingJobsTabel.setVisibleRows(6);
-        pendingJobsTabel.setVisibleColumns(3);
-        pendingJobsTabel.setSelectAction(this::onSelectPendingJob);
-        return pendingJobsTabel;
-    }
-
-    private void onSelectPendingJob() {
-        int selectedRow = pendingJobsTabel.getSelectedRow();
-        if (selectedRow < 0 || selectedRow >= applicationStateDao.getPendingBuchungsJobs().size()) {
-            return;
-        }
-        SportBuchungsJob sportBuchungsJob = applicationStateDao.getPendingBuchungsJobs().get(selectedRow);
-
-        new ActionListDialogBuilder().setTitle("Beendete Sportbuchung")
-                .setDescription("Aktion bitte auswählen")
-                .setCanCancel(true)
-                .addAction("Details", () -> {
-                    System.out.println("Details: " + sportBuchungsJob);
-                })
-                .addAction("Löschen", () -> {
-                    System.out.println("Löschen: " + sportBuchungsJob);
-                })
-                .build()
-                .showDialog(getTextGUI());
-    }
-
-
-    private void addPendingJob(SportBuchungsJob sportBuchungsJob) {
-        List<String> rowValues = new ArrayList<>();
-        SportTermin sportTermin = sportBuchungsJob.getSportTermin();
-        SportAngebot sportAngebot = sportTermin.getSportAngebot();
-        String kursnummer = sportAngebot.getKursnummer();
-        String sportArtName = sportAngebot.getSportArt().getName();
-        LocalDateTime timestamp = sportBuchungsJob.lastSportBuchungsVersuch().getTimestamp();
-        String formatBuchungsTimestamp = DateTimeFormatter.ofPattern("dd.MM. HH:mm").format(timestamp);
-
-        rowValues.add(String.valueOf(sportBuchungsJob.getJobId()));
-        rowValues.add(String.format("%s - %s%n%s ", kursnummer, sportArtName, formatSportTermin(sportTermin)));
-        rowValues.add(sportAngebot.getDetails() + "\nGebucht am " + formatBuchungsTimestamp + " ");
-        pendingJobsTabel.getTableModel().addRow(rowValues);
-    }
-
-
-    private static String formatSportTermin(SportTermin sportTermin) {
-        String startZeit = DateTimeFormatter.ofPattern("ccc dd.MM. HH:mm").format(sportTermin.getStartZeit());
-        String endZeit = DateTimeFormatter.ofPattern("HH:mm").format(sportTermin.getEndZeit());
-        return startZeit + "-" + endZeit;
-    }
-
-
     @Override
     public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        addPendingJob(sportBuchungsJob);
+        buchungsJobListBox.onNewPendingSportBuchungsJob(sportBuchungsJob);
     }
 
     @Override
