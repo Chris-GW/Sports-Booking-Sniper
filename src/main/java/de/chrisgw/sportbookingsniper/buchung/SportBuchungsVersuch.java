@@ -1,9 +1,11 @@
 package de.chrisgw.sportbookingsniper.buchung;
 
+import com.googlecode.lanterna.TerminalTextUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static de.chrisgw.sportbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
 
@@ -47,6 +49,13 @@ public class SportBuchungsVersuch {
             }
         }
 
+        public static int versuchStatusMaxLength() {
+            return Arrays.stream(SportBuchungsVersuchStatus.values())
+                    .map(SportBuchungsVersuchStatus::toString)
+                    .mapToInt(TerminalTextUtils::getColumnWidth)
+                    .max()
+                    .orElse(1);
+        }
 
         @Override
         public String toString() {

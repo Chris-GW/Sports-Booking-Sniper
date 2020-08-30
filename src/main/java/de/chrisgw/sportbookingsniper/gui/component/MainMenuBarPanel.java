@@ -24,7 +24,7 @@ import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
-public class MainMenuBar extends MainWindowBasicComponent {
+public class MainMenuBarPanel extends BasicPanelComponent {
 
     private final SportKatalogRepository sportKatalogRepository;
 
@@ -38,7 +38,7 @@ public class MainMenuBar extends MainWindowBasicComponent {
     private Menu navigationMenu;
 
 
-    public MainMenuBar(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
+    public MainMenuBarPanel(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
             Window window) {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
         this.sportKatalogRepository = sportKatalogRepository;
@@ -91,25 +91,25 @@ public class MainMenuBar extends MainWindowBasicComponent {
     }
 
 
-    public void addViewMenuItemsFor(MainWindowBasicComponent mainWindowBasicComponent) {
-        KeyType shortKey = mainWindowBasicComponent.getShortKeyType();
-        String label = mainWindowBasicComponent.getTitle();
+    public void addViewMenuItemsFor(BasicPanelComponent basicPanelComponent) {
+        KeyType shortKey = basicPanelComponent.getShortKeyType();
+        String label = basicPanelComponent.getTitle();
         if (shortKey != null) {
             label += " <S-" + shortKey + ">";
         }
-        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, mainWindowBasicComponent::setVisible);
-        checkBoxMenuItem.setChecked(mainWindowBasicComponent.isVisible());
+        CheckBoxMenuItem checkBoxMenuItem = new CheckBoxMenuItem(label, basicPanelComponent::setVisible);
+        checkBoxMenuItem.setChecked(basicPanelComponent.isVisible());
         viewMenu.add(checkBoxMenuItem);
     }
 
-    public void addNavigationMenuItemsFor(MainWindowBasicComponent mainWindowBasicComponent) {
-        KeyType shortKey = mainWindowBasicComponent.getShortKeyType();
-        String label = mainWindowBasicComponent.getTitle();
+    public void addNavigationMenuItemsFor(BasicPanelComponent basicPanelComponent) {
+        KeyType shortKey = basicPanelComponent.getShortKeyType();
+        String label = basicPanelComponent.getTitle();
         if (shortKey != null) {
             label += " <" + shortKey + ">";
         }
         MenuItem navigationMenuItem = new MenuItem(label, () -> {
-            window.setFocusedInteractable(mainWindowBasicComponent.nextFocus(null));
+            window.setFocusedInteractable(basicPanelComponent.nextFocus(null));
         });
         navigationMenu.add(navigationMenuItem);
     }

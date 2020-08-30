@@ -9,10 +9,10 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportbookingsniper.buchung.SportBuchungsSniperService;
-import de.chrisgw.sportbookingsniper.gui.component.FavoriteSportAngebotComponent;
-import de.chrisgw.sportbookingsniper.gui.component.FinishedSportBuchungenComponent;
-import de.chrisgw.sportbookingsniper.gui.component.MainMenuBar;
-import de.chrisgw.sportbookingsniper.gui.component.PendingSportBuchungenComponent;
+import de.chrisgw.sportbookingsniper.gui.component.FavoriteSportAngebotPanelComponent;
+import de.chrisgw.sportbookingsniper.gui.component.FinishedSportBuchungenPanelComponent;
+import de.chrisgw.sportbookingsniper.gui.component.MainMenuBarPanel;
+import de.chrisgw.sportbookingsniper.gui.component.AusstehendeSportBuchungsJobPanel;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 
 import java.util.Arrays;
@@ -30,10 +30,10 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
     private final SportBuchungsSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
-    private MainMenuBar mainMenuBar;
-    private PendingSportBuchungenComponent pendingComponent;
-    private FinishedSportBuchungenComponent finishedComponent;
-    private FavoriteSportAngebotComponent favoriteComponent;
+    private MainMenuBarPanel mainMenuBar;
+    private AusstehendeSportBuchungsJobPanel pendingComponent;
+    private FinishedSportBuchungenPanelComponent finishedComponent;
+    private FavoriteSportAngebotPanelComponent favoriteComponent;
 
 
     public SportBookingMainWindow(SportKatalogRepository sportKatalogRepository,
@@ -44,7 +44,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
         this.applicationStateDao = Objects.requireNonNull(applicationStateDao);
         setHints(Arrays.asList(Hint.EXPANDED));
 
-        mainMenuBar = new MainMenuBar(sportKatalogRepository, applicationStateDao, this);
+        mainMenuBar = new MainMenuBarPanel(sportKatalogRepository, applicationStateDao, this);
         setFocusedInteractable(mainMenuBar.getMenuBar().getMenu(0));
 
         Panel contentPanel = new Panel(new BorderLayout());
@@ -61,12 +61,12 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
 
 
     private Panel createLeftPanel() {
-        pendingComponent = new PendingSportBuchungenComponent(applicationStateDao, this);
+        pendingComponent = new AusstehendeSportBuchungsJobPanel(applicationStateDao, this);
         pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(pendingComponent);
         mainMenuBar.addNavigationMenuItemsFor(pendingComponent);
 
-        finishedComponent = new FinishedSportBuchungenComponent(applicationStateDao, this);
+        finishedComponent = new FinishedSportBuchungenPanelComponent(applicationStateDao, this);
         finishedComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(finishedComponent);
         mainMenuBar.addNavigationMenuItemsFor(finishedComponent);
@@ -80,7 +80,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
 
 
     private Panel createCenterPanel() {
-        favoriteComponent = new FavoriteSportAngebotComponent(applicationStateDao, this);
+        favoriteComponent = new FavoriteSportAngebotPanelComponent(applicationStateDao, this);
         mainMenuBar.addViewMenuItemsFor(favoriteComponent);
         mainMenuBar.addNavigationMenuItemsFor(favoriteComponent);
 

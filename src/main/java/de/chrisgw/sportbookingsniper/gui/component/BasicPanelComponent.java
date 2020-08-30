@@ -11,7 +11,7 @@ import lombok.Getter;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class MainWindowBasicComponent extends Panel implements WindowListener {
+public class BasicPanelComponent extends Panel implements WindowListener {
 
     protected final ApplicationStateDao applicationStateDao;
     protected final Window window;
@@ -23,15 +23,15 @@ public class MainWindowBasicComponent extends Panel implements WindowListener {
     private final KeyType shortKeyType;
 
 
-    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window) {
+    public BasicPanelComponent(ApplicationStateDao applicationStateDao, Window window) {
         this(applicationStateDao, window, null, null);
     }
 
-    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window, String title) {
+    public BasicPanelComponent(ApplicationStateDao applicationStateDao, Window window, String title) {
         this(applicationStateDao, window, title, null);
     }
 
-    public MainWindowBasicComponent(ApplicationStateDao applicationStateDao, Window window, String title,
+    public BasicPanelComponent(ApplicationStateDao applicationStateDao, Window window, String title,
             KeyType shortKeyType) {
         super();
         this.applicationStateDao = applicationStateDao;
@@ -98,7 +98,7 @@ public class MainWindowBasicComponent extends Panel implements WindowListener {
 
 
     @Override
-    public synchronized MainWindowBasicComponent addTo(Panel panel) {
+    public synchronized BasicPanelComponent addTo(Panel panel) {
         super.addTo(panel);
         return self();
     }
@@ -109,7 +109,7 @@ public class MainWindowBasicComponent extends Panel implements WindowListener {
     }
 
     @Override
-    protected MainWindowBasicComponent self() {
+    protected BasicPanelComponent self() {
         return this;
     }
 

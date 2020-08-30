@@ -54,6 +54,11 @@ public class SportBuchungsJob {
         return buchungsVersuche.get(buchungsVersuche.size() - 1);
     }
 
+
+    public SportBuchungsVersuchStatus getLastBuchungsVersuchStatus() {
+        return lastSportBuchungsVersuch().getStatus();
+    }
+
     public Duration durationTillNextCheck() {
         return Duration.between(getBevorstehenderBuchungsVersuch(), LocalDateTime.now());
     }
