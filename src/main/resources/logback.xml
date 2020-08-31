@@ -19,9 +19,9 @@
   <root level="WARN">
     <appender-ref ref="FILE"/>
   </root>
-  <logger name="de.chrisgw.sportbookingsniper" level="INFO"/>
-  <logger name="de.chrisgw.sportbookingsniper.gui" level="DEBUG"/>
-  <logger name="de.chrisgw.sportbookingsniper.buchung" level="TRACE"/>
+  <logger name="de.chrisgw.sportsbookingsniper" level="INFO"/>
+  <logger name="de.chrisgw.sportsbookingsniper.gui" level="DEBUG"/>
+  <logger name="de.chrisgw.sportsbookingsniper.buchung" level="TRACE"/>
 
   <logger name="org.springframework" level="WARN"/>
   <logger name="com.gargoylesoftware.htmlunit.DefaultCssErrorHandler" level="ERROR"/>

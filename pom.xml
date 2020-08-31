@@ -2,17 +2,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>de.chrisgw.sportbooking</groupId>
-    <artifactId>sportbooking</artifactId>
+    <groupId>de.chrisgw.sportsbookingsniper</groupId>
+    <artifactId>sports-booking-sniper</artifactId>
     <version>2.0.0-SNAPSHOT</version>
-    <name>HSZ RWTH-Aachen SportBookingSniper</name>
-    <description>Helpfule console GUI, which automatic books Sportangebote</description>
     <packaging>jar</packaging>
+    <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
+    <description>Helpful console GUI, which can automatic book sports by HSZ RWTH-Aachen</description>
+    <url>https://hochschulsport.rwth-aachen.de/cms/~icgi/HSZ/</url>
+    <scm>
+        <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
+        <url>https://github.com/Chris-GW/Sports-Booking-Sniper</url>
+        <tag>master</tag>
+    </scm>
+    <developers>
+        <developer>
+            <name>Chris-GW</name>
+            <email>Chris-GW@users.noreply.github.com</email>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.de.html</url>
+        </license>
+    </licenses>
 
     <properties>
-        <java.version>11</java.version>
-        <maven.compiler.source>1.11</maven.compiler.source>
-        <maven.compiler.target>1.11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -125,6 +140,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -139,7 +158,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.chrisgw.sportbookingsniper.SportBookingSniperApplication</mainClass>
+                                    <mainClass>de.chrisgw.sportsbookingsniper.SportBookingSniperApplication</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
