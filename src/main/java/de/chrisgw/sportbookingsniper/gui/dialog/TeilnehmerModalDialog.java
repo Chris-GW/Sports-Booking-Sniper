@@ -52,7 +52,7 @@ public class TeilnehmerModalDialog extends DialogWindow implements WindowListene
         this.forceValidTeilnehmerForm = forceValidTeilnehmerForm;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setComponent(createContentPane());
-        setTeilnehmer(applicationStateDao.getTeilnehmerListe().get(0));
+        setTeilnehmer(applicationStateDao.getDefaultTeilnehmer());
         setCloseWindowWithEscape(!forceValidTeilnehmerForm);
     }
 
@@ -108,16 +108,19 @@ public class TeilnehmerModalDialog extends DialogWindow implements WindowListene
 
         ModalField<TextBox, String> matrikelnummerField = newTextBoxField("matrikelnummer") //
                 .withLabel("Matrikel-Nr.:*") //
-                .addTo(modalForm);
+                .addTo(modalForm) //
+                .addToGrid(formularGridPanel);
         ModalField<TextBox, String> mitarbeiterNummerField = newTextBoxField("mitarbeiterNummer") //
                 .withLabel("Mitarbeiternr.:*") //
-                .addTo(modalForm);
+                .addTo(modalForm) //
+                .addToGrid(formularGridPanel);
 
         kategorieComboBox.addListener((selectedIndex, previousSelection) -> {
-            TeilnehmerKategorie selectedItem = kategorieComboBox.getItem(selectedIndex);
-            matrikelnummerField.setVisible(selectedIndex >= 0 && selectedItem.requiresMatrikelnummer());
-            mitarbeiterNummerField.setVisible(selectedIndex >= 0 && selectedItem.requiresMitarbeiterNummer());
+            TeilnehmerKategorie selectedItem = kategorieComboBox.getSelectedItem();
+            matrikelnummerField.setVisible(selectedItem != null && selectedItem.requiresMatrikelnummer());
+            mitarbeiterNummerField.setVisible(selectedItem != null && selectedItem.requiresMitarbeiterNummer());
         });
+
     }
 
 
@@ -158,6 +161,9 @@ public class TeilnehmerModalDialog extends DialogWindow implements WindowListene
 
 
     public void setTeilnehmer(Teilnehmer teilnehmer) {
+        if (teilnehmer == null) {
+            teilnehmer = new Teilnehmer();
+        }
         BeanWrapper beanWrapper = new BeanWrapperImpl(teilnehmer);
         MutablePropertyValues propertyValues = new MutablePropertyValues();
         for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {

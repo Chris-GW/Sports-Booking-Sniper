@@ -24,7 +24,7 @@ import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 
-public class MainMenuBarPanel extends BasicPanelComponent {
+public class MainMenuBarComponent extends BasicPanelComponent {
 
     private final SportKatalogRepository sportKatalogRepository;
 
@@ -38,7 +38,7 @@ public class MainMenuBarPanel extends BasicPanelComponent {
     private Menu navigationMenu;
 
 
-    public MainMenuBarPanel(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
+    public MainMenuBarComponent(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
             Window window) {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
         this.sportKatalogRepository = sportKatalogRepository;
@@ -60,7 +60,7 @@ public class MainMenuBarPanel extends BasicPanelComponent {
                 .add(languageMenu());
 
         addComponent(menuBar, Location.CENTER);
-//        addComponent(new AnimatedClock(), Location.RIGHT);
+        addComponent(new AnimatedClock(), Location.RIGHT);
     }
 
     private MenuItem createSwitchThemeMenuItem() {
@@ -116,12 +116,12 @@ public class MainMenuBarPanel extends BasicPanelComponent {
 
 
     private Menu personenAngabenMenu() {
-        Menu menu = new Menu("Personenangaben") {
+        Menu menu = new Menu("Teilnehmer") {
 
             @Override
             public String getLabel() {
-                Teilnehmer teilnehmer = applicationStateDao.getTeilnehmerListe().get(0);
-                return teilnehmer.getName();
+                Teilnehmer teilnehmer = applicationStateDao.getDefaultTeilnehmer();
+                return teilnehmer != null ? teilnehmer.getName() : "Teilnehmer";
             }
         };
 

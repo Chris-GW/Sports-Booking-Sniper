@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FinishedSportBuchungenPanelComponent extends BasicPanelComponent implements SportBuchungJobListener {
+public class FinishedSportBuchungenComponent extends BasicPanelComponent implements SportBuchungJobListener {
 
     @Getter
     private final Table<String> finishedJobsTabel;
 
 
-    public FinishedSportBuchungenPanelComponent(ApplicationStateDao applicationStateDao, Window window) {
+    public FinishedSportBuchungenComponent(ApplicationStateDao applicationStateDao, Window window) {
         super(applicationStateDao, window, "Beendete SportBuchungen", KeyType.F3);
         setLayoutManager(new BorderLayout());
 
@@ -124,7 +124,7 @@ public class FinishedSportBuchungenPanelComponent extends BasicPanelComponent im
 
 
     @Override
-    protected FinishedSportBuchungenPanelComponent self() {
+    protected FinishedSportBuchungenComponent self() {
         return this;
     }
 

@@ -7,10 +7,10 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 
 
-public class FavoriteSportAngebotPanelComponent extends BasicPanelComponent {
+public class FavoriteSportAngebotComponent extends BasicPanelComponent {
 
 
-    public FavoriteSportAngebotPanelComponent(ApplicationStateDao applicationStateDao, Window window) {
+    public FavoriteSportAngebotComponent(ApplicationStateDao applicationStateDao, Window window) {
         super(applicationStateDao, window, "SportAngebot Favoriten", KeyType.F4);
 
         addComponent(new Label("Meine Favoriten"));

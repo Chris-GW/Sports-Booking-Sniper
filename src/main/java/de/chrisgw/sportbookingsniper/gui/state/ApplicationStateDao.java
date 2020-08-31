@@ -1,6 +1,5 @@
 package de.chrisgw.sportbookingsniper.gui.state;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
@@ -69,6 +68,14 @@ public class ApplicationStateDao implements InitializingBean {
 
 
     // Teilnehmer
+
+    public Teilnehmer getDefaultTeilnehmer() {
+        List<Teilnehmer> teilnehmerListe = getTeilnehmerListe();
+        if (teilnehmerListe.isEmpty()) {
+            return null;
+        }
+        return teilnehmerListe.get(0);
+    }
 
     public void addTeilnehmer(Teilnehmer teilnehmer) {
         List<Teilnehmer> newTeilnehmerListe = new ArrayList<>(getTeilnehmerListe().size() + 1);

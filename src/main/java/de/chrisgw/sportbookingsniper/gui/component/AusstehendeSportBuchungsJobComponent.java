@@ -10,12 +10,12 @@ import de.chrisgw.sportbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportbookingsniper.gui.state.SportBuchungJobListener;
 
 
-public class AusstehendeSportBuchungsJobPanel extends BasicPanelComponent implements SportBuchungJobListener {
+public class AusstehendeSportBuchungsJobComponent extends BasicPanelComponent implements SportBuchungJobListener {
 
     private SportBuchungsJobTable sportBuchungsJobTable = new SportBuchungsJobTable();
 
 
-    public AusstehendeSportBuchungsJobPanel(ApplicationStateDao applicationStateDao, Window window) {
+    public AusstehendeSportBuchungsJobComponent(ApplicationStateDao applicationStateDao, Window window) {
         super(applicationStateDao, window, "Ausstehende SportBuchungen", KeyType.F2);
         setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
@@ -25,7 +25,7 @@ public class AusstehendeSportBuchungsJobPanel extends BasicPanelComponent implem
 
 
     public void setVisibleRows(int visibleRows) {
-//        sportBuchungsJobTable.setVisibleRows(visibleRows);
+        //        sportBuchungsJobTable.setVisibleRows(visibleRows);
     }
 
 
@@ -69,7 +69,7 @@ public class AusstehendeSportBuchungsJobPanel extends BasicPanelComponent implem
 
 
     @Override
-    protected AusstehendeSportBuchungsJobPanel self() {
+    protected AusstehendeSportBuchungsJobComponent self() {
         return this;
     }
 

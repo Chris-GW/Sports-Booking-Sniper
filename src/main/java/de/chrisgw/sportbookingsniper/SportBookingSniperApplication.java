@@ -139,13 +139,11 @@ public class SportBookingSniperApplication {
                 SportBookingSniperApplication.class)) {
             ApplicationStateDao applicationStateDao = ctx.getBean(ApplicationStateDao.class);
             MultiWindowTextGUI windowTextGUI = ctx.getBean(MultiWindowTextGUI.class);
-
-            SportBookingMainWindow sportBookingMainWindow = ctx.getBean(SportBookingMainWindow.class);
-            windowTextGUI.addWindow(sportBookingMainWindow);
             if (applicationStateDao.isFirstVisite()) {
                 showFirstVisiteDialog(applicationStateDao, windowTextGUI);
             }
-            windowTextGUI.waitForWindowToClose(sportBookingMainWindow);
+            SportBookingMainWindow sportBookingMainWindow = ctx.getBean(SportBookingMainWindow.class);
+            windowTextGUI.addWindowAndWait(sportBookingMainWindow);
             log.trace("finish SportBooking gui");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
