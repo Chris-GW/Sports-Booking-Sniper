@@ -7,12 +7,11 @@
     <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
-    <description>Helpful console GUI, which can automatic book sports by HSZ RWTH-Aachen</description>
-    <url>https://hochschulsport.rwth-aachen.de/cms/~icgi/HSZ/</url>
+    <description>Console GUI with selenium web booking agent for HSZ RWTH Aachen sports offer</description>
     <scm>
         <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
         <url>https://github.com/Chris-GW/Sports-Booking-Sniper</url>
-        <tag>master</tag>
+        <tag>main</tag>
     </scm>
     <developers>
         <developer>
