@@ -9,13 +9,13 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
+import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.MainMenuBarComponent;
-import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,7 +24,7 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.BEGINNING;
 import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
 
-public class SportBookingMainWindow extends BasicWindow implements BasePaneListener<Window> {
+public class SportBookingMainWindow extends BasicWindow {
 
     private final SportKatalogRepository sportKatalogRepository;
     private final SportBuchungsSniperService bookingSniperService;
@@ -42,12 +42,13 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
         this.sportKatalogRepository = Objects.requireNonNull(sportKatalogRepository);
         this.bookingSniperService = Objects.requireNonNull(bookingSniperService);
         this.applicationStateDao = Objects.requireNonNull(applicationStateDao);
-        setHints(Arrays.asList(Hint.EXPANDED));
+        setHints(List.of(Hint.EXPANDED));
+        Panel contentPanel = new Panel(new BorderLayout());
+        setComponent(contentPanel);
 
         mainMenuBar = new MainMenuBarComponent(sportKatalogRepository, applicationStateDao, this);
-        setFocusedInteractable(mainMenuBar.getMenuBar().getMenu(0));
+        mainMenuBar.focus();
 
-        Panel contentPanel = new Panel(new BorderLayout());
         contentPanel.addComponent(mainMenuBar, Location.TOP);
         contentPanel.addComponent(createLeftPanel(), Location.LEFT);
         contentPanel.addComponent(createCenterPanel(), Location.CENTER);
@@ -55,8 +56,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
         Label bottomLabel = new Label("");
         addWindowListener(windowResizeListener(bottomLabel));
         contentPanel.addComponent(bottomLabel, Location.BOTTOM);
-        setComponent(contentPanel);
-        addBasePaneListener(this);
+        addBasePaneListener(newCloseWindowInputListener());
     }
 
 
@@ -120,30 +120,31 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
     }
 
 
-    @Override
-    public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
-        // noop
-    }
+    private BasePaneListener<Window> newCloseWindowInputListener() {
+        return new WindowListenerAdapter() {
 
-    @Override
-    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-        if (KeyType.Escape.equals(keyStroke.getKeyType()) //
-                || (keyStroke.isAltDown() && KeyType.F4.equals(keyStroke.getKeyType())) //
-                || (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'c')) {
-            MessageDialogButton selectedButton = new MessageDialogBuilder() //
-                    .setTitle("SportBookingSniper wirklich beenden?")
-                    .setText("Wenn Sie den SportBookingSniper beenden, können keine\n"
-                            + "Buchungsversuche im Hintergrund ausgeführt werden.\n"
-                            + "Wollen Sie den SportBookingSniper wirklich beenden?")
-                    .addButton(MessageDialogButton.Abort)
-                    .addButton(MessageDialogButton.Yes)
-                    .build()
-                    .showDialog(getTextGUI());
-            if (MessageDialogButton.Yes.equals(selectedButton)) {
-                close();
+            @Override
+            public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
+                if (KeyType.Escape.equals(keyStroke.getKeyType()) //
+                        || (keyStroke.isAltDown() && KeyType.F4.equals(keyStroke.getKeyType())) //
+                        || (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'c')) {
+                    MessageDialogButton selectedButton = new MessageDialogBuilder() //
+                            .setTitle("SportBookingSniper wirklich beenden?")
+                            .setText("Wenn Sie den SportBookingSniper beenden, können keine\n"
+                                    + "Buchungsversuche im Hintergrund ausgeführt werden.\n"
+                                    + "Wollen Sie den SportBookingSniper wirklich beenden?")
+                            .addButton(MessageDialogButton.Abort)
+                            .addButton(MessageDialogButton.Yes)
+                            .build()
+                            .showDialog(getTextGUI());
+                    hasBeenHandled.set(true);
+                    if (MessageDialogButton.Yes.equals(selectedButton)) {
+                        close();
+                    }
+                }
             }
-            hasBeenHandled.set(true);
-        }
+
+        };
     }
 
 }

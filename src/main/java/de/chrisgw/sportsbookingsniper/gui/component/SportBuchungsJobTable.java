@@ -17,8 +17,13 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
 import de.chrisgw.sportsbookingsniper.gui.component.SportBuchungsJobTable.SportBuchungsJobCell;
 import lombok.Data;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,8 +33,6 @@ import static de.chrisgw.sportsbookingsniper.gui.component.SportBuchungsJobTable
 
 
 public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
-
-    private NavigableMap<SportArt, NavigableSet<SportBuchungsJob>> sportArtWithJobs = new TreeMap<>();
 
 
     public SportBuchungsJobTable() {
@@ -48,34 +51,20 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
 
     public void addSportBuchungsJob(SportBuchungsJob newBuchungsJob) {
-        SportArt sportArt = newBuchungsJob.getSportArt();
-        getSportBuchungsJobs(sportArt).add(newBuchungsJob);
-        rebuildTableCells();
-    }
-
-    private NavigableSet<SportBuchungsJob> getSportBuchungsJobs(SportArt sportArt) {
-        return sportArtWithJobs.computeIfAbsent(sportArt, sportArt1 -> {
-            return new TreeSet<>(Comparator.comparing(SportBuchungsJob::getSportTermin));
-        });
-    }
-
-    private void rebuildTableCells() {
         TableModel<SportBuchungsJobCell> tableModel = getTableModel();
-        tableModel.clear();
-        for (SportArt sportArt : sportArtWithJobs.keySet()) {
-            NavigableSet<SportBuchungsJob> buchungsJobs = sportArtWithJobs.get(sportArt);
-            tableModel.addRow(newSportArtHeaderRow(buchungsJobs));
-            for (SportBuchungsJob sportBuchungsJob : buchungsJobs) {
-                tableModel.addRow(newSportBuchungsJobRow(sportBuchungsJob));
-            }
+        int row = indexOf(newBuchungsJob);
+        if (row < 0) {
+            row = -row - 1;
         }
-        int neededRows = sportArtWithJobs.size() + sportArtWithJobs.values().stream().mapToInt(Collection::size).sum();
-        setPreferredSize(new TerminalSize(80, neededRows));
-        invalidate();
+        if (sportJobsCountFor(newBuchungsJob.getSportArt()) == 0) {
+            tableModel.insertRow(row++, newSportArtHeaderRow(newBuchungsJob));
+        }
+        tableModel.insertRow(row, newSportBuchungsJobRow(newBuchungsJob));
     }
 
-    private List<SportBuchungsJobCell> newSportArtHeaderRow(NavigableSet<SportBuchungsJob> buchungsJobs) {
-        SportBuchungsJobCell sportArtHeaderCell = new SportBuchungsJobCell(SPORT_ART_HEADER_CELL, buchungsJobs.first());
+
+    private List<SportBuchungsJobCell> newSportArtHeaderRow(SportBuchungsJob buchungsJob) {
+        SportBuchungsJobCell sportArtHeaderCell = new SportBuchungsJobCell(SPORT_ART_HEADER_CELL, buchungsJob);
         return Stream.generate(() -> sportArtHeaderCell)
                 .limit(getTableModel().getColumnCount())
                 .collect(Collectors.toList());
@@ -92,13 +81,31 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
 
     public void removeSportBuchungsJob(SportBuchungsJob buchungsJob) {
-        SportArt sportArt = buchungsJob.getSportArt();
-        NavigableSet<SportBuchungsJob> sportBuchungsJobs = getSportBuchungsJobs(sportArt);
-        sportBuchungsJobs.remove(buchungsJob);
-        if (sportBuchungsJobs.isEmpty()) {
-            sportArtWithJobs.remove(sportArt);
+        int row = indexOf(buchungsJob);
+        if (row >= 0) {
+            getTableModel().removeRow(row);
+            if (sportJobsCountFor(buchungsJob.getSportArt()) == 0) {
+                getTableModel().removeRow(row - 1); // delete header
+            }
         }
-        rebuildTableCells();
+    }
+
+
+    private int indexOf(SportBuchungsJob sportBuchungsJob) {
+        List<SportBuchungsJobCell> rows = getTableModel().getRows()
+                .stream()
+                .map(rowCells -> rowCells.get(0))
+                .collect(Collectors.toList());
+        return Collections.binarySearch(rows, newSportBuchungsJobRow(sportBuchungsJob).get(0));
+    }
+
+    private long sportJobsCountFor(SportArt sportArt) {
+        return getTableModel().getRows()
+                .stream()
+                .map(rowCells -> rowCells.get(0))
+                .filter(Predicate.not(SportBuchungsJobCell::isSportArtRow))
+                .filter(sportBuchungsJobCell -> sportArt.equals(sportBuchungsJobCell.getSportArt()))
+                .count();
     }
 
 
@@ -134,11 +141,12 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
         return result;
     }
 
+
     @Override
     protected void afterEnterFocus(FocusChangeDirection direction, Interactable previouslyInFocus) {
         super.afterEnterFocus(direction, previouslyInFocus);
-        if (getSelectedRow() == 0 && getTableModel().getRowCount() > 0) {
-            setSelectedRow(1); // skip first SportArt header row
+        if (getSelectedBuchungsJobCell().isSportArtRow()) {
+            setSelectedRow(getSelectedRow() + 1); // skip first SportArt header row
         }
     }
 
@@ -281,10 +289,29 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
 
     @Data
-    public class SportBuchungsJobCell {
+    public static class SportBuchungsJobCell implements Comparable<SportBuchungsJobCell> {
 
         private final SportBuchungsJobCellType cellType;
         private final SportBuchungsJob buchungsJob;
+
+
+        public boolean isSportArtRow() {
+            return SPORT_ART_HEADER_CELL.equals(cellType);
+        }
+
+        public SportArt getSportArt() {
+            return buchungsJob.getSportArt();
+        }
+
+
+        @Override
+        public int compareTo(SportBuchungsJobCell other) {
+            return new CompareToBuilder().append(this.getSportArt(), other.getSportArt())
+                    .append(!this.isSportArtRow(), !other.isSportArtRow())
+                    .append(this.getBuchungsJob().getSportTermin(), other.getBuchungsJob().getSportTermin())
+                    .append(this.getBuchungsJob().getJobId(), other.getBuchungsJob().getJobId())
+                    .toComparison();
+        }
 
     }
 

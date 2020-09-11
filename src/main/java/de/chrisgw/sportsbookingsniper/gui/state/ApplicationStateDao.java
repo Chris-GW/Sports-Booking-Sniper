@@ -31,7 +31,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class ApplicationStateDao {
 
-    private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json");
+    private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
     private final SportBuchungsSniperService sportBuchungsSniperService;
@@ -43,11 +43,19 @@ public class ApplicationStateDao {
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
 
+
     public ApplicationStateDao(SportKatalogRepository sportKatalogRepository,
             SportBuchungsSniperService sportBuchungsSniperService, ObjectMapper objectMapper) {
         this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
         this.sportBuchungsSniperService = requireNonNull(sportBuchungsSniperService);
         this.objectMapper = requireNonNull(objectMapper);
+        this.applicationState = loadApplicationData();
+
+        // TODO remove dummy sportKatalog
+        sportKatalog = SportBookingModelTestUtil.newSportKatalog();
+        for (int i = 0; i < 9; i++) {
+            addSportBuchungsJob(newSportBuchungsJob());
+        }
     }
 
 
@@ -182,7 +190,6 @@ public class ApplicationStateDao {
 
     public void setFirstVisite(boolean firstVisite) {
         applicationState.setFirstVisite(firstVisite);
-        saveApplicationData();
     }
 
 

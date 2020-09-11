@@ -2,15 +2,14 @@ package de.chrisgw.sportsbookingsniper.gui.component;
 
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
-import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.Container;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.table.Table;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 import lombok.Getter;
@@ -34,7 +33,6 @@ public class FinishedSportBuchungenComponent extends BasicPanelComponent impleme
         this.finishedJobsTabel = createFinishedJobsTable();
         this.applicationStateDao.getFinishedBuchungsJobs().forEach(this::addFinishedBuchungsJob);
 
-        addComponent(new Button("Test Btn"), Location.TOP);
         addComponent(finishedJobsTabel, Location.CENTER);
     }
 

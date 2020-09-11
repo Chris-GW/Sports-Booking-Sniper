@@ -1,20 +1,27 @@
 package de.chrisgw.sportsbookingsniper.gui.dialog;
 
+import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 import com.googlecode.lanterna.input.KeyStroke;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-@Data
 @Builder
+@RequiredArgsConstructor
 public class KeyStrokeAction extends WindowListenerAdapter implements Runnable {
 
+    @Getter
     private final String name;
+
+    @Getter
     private final KeyStroke keyStroke;
+
+    @Getter
     private final Runnable action;
 
 
@@ -28,19 +35,19 @@ public class KeyStrokeAction extends WindowListenerAdapter implements Runnable {
 
     @Override
     public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
-        onUnhandledInput(basePane, keyStroke, deliverEvent);
-    }
-
-    @Override
-    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
         if (isKeyStrokeAction(keyStroke)) {
+            deliverEvent.set(false);
             run();
-            hasBeenHandled.set(true);
         }
     }
 
-    private boolean isKeyStrokeAction(KeyStroke keyStroke) {
+    public boolean isKeyStrokeAction(KeyStroke keyStroke) {
         return this.keyStroke.equals(keyStroke);
+    }
+
+
+    public Button asActionButton() {
+        return new Button(toString(), action);
     }
 
 

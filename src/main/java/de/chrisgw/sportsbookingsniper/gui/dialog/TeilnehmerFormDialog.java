@@ -1,91 +1,124 @@
 package de.chrisgw.sportsbookingsniper.gui.dialog;
 
-import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import com.googlecode.lanterna.input.KeyStroke;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
-import lombok.Getter;
+import de.chrisgw.sportsbookingsniper.gui.component.ShortKeyRegistry;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.googlecode.lanterna.gui2.GridLayout.createHorizontallyFilledLayoutData;
-import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.End;
+import static com.googlecode.lanterna.gui2.Direction.HORIZONTAL;
+import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
+import static com.googlecode.lanterna.gui2.LinearLayout.GrowPolicy.CanGrow;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 
-public class TeilnehmerFormDialog extends DialogWindow implements WindowListener {
+public class TeilnehmerFormDialog extends DialogWindow {
 
-    @Getter
     private boolean forceValidTeilnehmerForm;
-    private AtomicBoolean saved = new AtomicBoolean(false);
+    private final AtomicBoolean saved = new AtomicBoolean(false);
+    private final ShortKeyRegistry shortKeyRegistry = new ShortKeyRegistry();
+    private final Map<Interactable, Label> fieldToLabelMap = new HashMap<>();
 
-    private Panel formularGridPanel = createFormularGridPanel();
-    private TextBox vornameTextBox = new TextBox();
-    private TextBox nachnameTextBox = new TextBox();
-    private ComboBox<Gender> genderComboBox = createGenderComboBox();
+    private final Panel formularPanel = new Panel();
+    private final TextBox vornameTextBox = new TextBox();
+    private final TextBox nachnameTextBox = new TextBox();
+    private final ComboBox<Gender> genderComboBox = createGenderComboBox();
 
-    private TextBox streetTextBox = new TextBox();
-    private TextBox ortTextBox = new TextBox();
-    private TextBox emailTextBox = new TextBox();
-    private TextBox telefonTextBox = new TextBox();
+    private final TextBox streetTextBox = new TextBox();
+    private final TextBox ortTextBox = new TextBox();
+    private final TextBox emailTextBox = new TextBox();
+    private final TextBox telefonTextBox = new TextBox();
 
-    private ComboBox<TeilnehmerKategorie> kategorieComboBox = createTeilnehmerKategorieComboBox();
-    private TextBox matrikelNummerTextBox = new TextBox();
-    private TextBox mitarbeiterNummerTextBox = new TextBox();
+    private final ComboBox<TeilnehmerKategorie> kategorieComboBox = createTeilnehmerKategorieComboBox();
+    private final TextBox matrikelNummerTextBox = new TextBox();
+    private final TextBox mitarbeiterNummerTextBox = new TextBox();
 
-    private TextBox ibanTextBox = new TextBox();
-    private TextBox kontoInhaberTextBox = new TextBox();
+    private final TextBox ibanTextBox = new TextBox();
+    private final TextBox kontoInhaberTextBox = new TextBox();
+
+    private final Button cancelBtn = new Button(LocalizedString.Cancel.toString(), this::close);
+    private final Button resetBtn = new Button("zurücksetzen", this::resetTeilnehmerForm);
+    private final Button saveBtn = new Button(LocalizedString.Save.toString(), this::saveTeilnehmerForm);
 
 
     public TeilnehmerFormDialog() {
+        this(null);
+    }
+
+    public TeilnehmerFormDialog(Teilnehmer teilnehmer) {
         super("Personenangaben");
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setForceValidTeilnehmerForm(false);
-        addWindowListener(this);
+        addBasePaneListener(shortKeyRegistry);
 
         Panel contentPane = new Panel();
-        contentPane.addComponent(formularGridPanel);
+        contentPane.addComponent(initalizeFormularGridPanel());
         contentPane.addComponent(new EmptySpace());
-        contentPane.addComponent(createLowerButtonPanel(), createLayoutData(End));
+        contentPane.addComponent(createLowerButtonPanel());
         setComponent(contentPane);
+        setTeilnehmer(teilnehmer);
     }
 
 
-    private Panel createFormularGridPanel() {
-        Panel formularGridPanel = new Panel(new GridLayout(2));
-        formularGridPanel.addComponent(new Label("Bitte geben Sie die Daten des Teilnehmers ein:"),
-                createHorizontallyFilledLayoutData(2));
-        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
+    private Panel initalizeFormularGridPanel() {
+        addFormularComponent(new Label("Bitte geben Sie die Angaben zum Teilnehmer ein:"));
+        addFormularComponent(new EmptySpace());
 
-        formularGridPanel.addComponent(new Label("Vorname*")).addComponent(vornameTextBox);
-        formularGridPanel.addComponent(new Label("Nachname*")).addComponent(nachnameTextBox);
-        formularGridPanel.addComponent(new Label("Geschlecht*")).addComponent(genderComboBox);
-        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
+        addFormularField("Vorname*", vornameTextBox);
+        addFormularField("Nachname*", nachnameTextBox);
+        addFormularField("Geschlecht*", genderComboBox);
+        addFormularComponent(new EmptySpace());
 
-        formularGridPanel.addComponent(new Label("Straße*")).addComponent(streetTextBox);
-        formularGridPanel.addComponent(new Label("Ort*")).addComponent(ortTextBox);
-        formularGridPanel.addComponent(new Label("E-Mail*")).addComponent(emailTextBox);
-        formularGridPanel.addComponent(new Label("Telefon*")).addComponent(telefonTextBox);
-        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
+        addFormularField("Straße*", streetTextBox);
+        addFormularField("Ort*", ortTextBox);
+        addFormularField("E-Mail*", emailTextBox);
+        addFormularField("Telefon*", telefonTextBox);
+        addFormularComponent(new EmptySpace());
 
-        formularGridPanel.addComponent(new Label("Kategorie*")).addComponent(kategorieComboBox);
-        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
+        addFormularField("Kategorie*", kategorieComboBox);
+        addFormularField("Matrikelnr.*", matrikelNummerTextBox);
+        addFormularField("dienst. Tel.*", mitarbeiterNummerTextBox);
+        addFormularComponent(new EmptySpace());
 
-        formularGridPanel.addComponent(new Label("Konto, zum Bezahlen des Kursentgeltes per Lastschrift:"),
-                createHorizontallyFilledLayoutData(2));
-        formularGridPanel.addComponent(new Label("IBAN*")).addComponent(ibanTextBox);
-        formularGridPanel.addComponent(new Label("Kontoinhaber*")).addComponent(kontoInhaberTextBox);
-        formularGridPanel.addComponent(new Label("nur ändern, falls nicht mit Teilnehmer/in identisch"),
-                createHorizontallyFilledLayoutData(2));
-        return formularGridPanel;
+        addFormularComponent(new Label("Konto, zum Bezahlen des Kursentgeltes per Lastschrift:"));
+        addFormularField("IBAN*", ibanTextBox);
+        addFormularField("Kontoinhaber*", kontoInhaberTextBox);
+        addFormularComponent(new Label("nur ändern, falls nicht mit Teilnehmer/in identisch"));
+
+        int maxLabelLength = fieldToLabelMap.values()
+                .stream()
+                .map(Label::getText)
+                .mapToInt(String::length)
+                .max()
+                .orElse(0);
+        fieldToLabelMap.values().forEach(label -> label.setPreferredSize(new TerminalSize(maxLabelLength, 1)));
+        return formularPanel;
     }
+
+    private <T extends Interactable> void addFormularField(String labelText, T interactable) {
+        interactable.setLayoutData(createLayoutData(Fill, CanGrow));
+        Label label = new Label(labelText);
+        fieldToLabelMap.put(interactable, label);
+        formularPanel.addComponent(Panels.horizontal(label, interactable), createLayoutData(Fill, CanGrow));
+    }
+
+    private <T extends Component> void addFormularComponent(T component) {
+        formularPanel.addComponent(component, createLayoutData(Fill, CanGrow));
+    }
+
 
     private ComboBox<Gender> createGenderComboBox() {
         ComboBox<Gender> genderComboBox = new ComboBox<>();
@@ -100,48 +133,63 @@ public class TeilnehmerFormDialog extends DialogWindow implements WindowListener
         for (TeilnehmerKategorie kategorie : TeilnehmerKategorie.values()) {
             kategorieComboBox.addItem(kategorie);
         }
+
         kategorieComboBox.addListener((selectedIndex, previousSelection) -> {
             TeilnehmerKategorie selectedItem = kategorieComboBox.getSelectedItem();
             boolean requiresMatrikelnummer = selectedItem != null && selectedItem.requiresMatrikelnummer();
-            matrikelNummerTextBox.setVisible(requiresMatrikelnummer);
-            findLabelFor(matrikelNummerTextBox).ifPresent(label -> label.setVisible(requiresMatrikelnummer));
-
             boolean requiresMitarbeiterNummer = selectedItem != null && selectedItem.requiresMitarbeiterNummer();
-            mitarbeiterNummerTextBox.setVisible(requiresMitarbeiterNummer);
-            findLabelFor(mitarbeiterNummerTextBox).ifPresent(label -> label.setVisible(requiresMitarbeiterNummer));
+            matrikelNummerTextBox.getParent().setVisible(requiresMatrikelnummer);
+            mitarbeiterNummerTextBox.getParent().setVisible(requiresMitarbeiterNummer);
         });
         return kategorieComboBox;
     }
 
 
-    private Optional<Label> findLabelFor(Interactable interactable) {
-        int childIndex = formularGridPanel.getChildrenList().indexOf(interactable);
-        if (childIndex > 0) {
-            Component labelComponent = formularGridPanel.getChildrenList().get(childIndex - 1);
-            if (labelComponent instanceof Label) {
-                return Optional.of((Label) labelComponent);
-            }
-        }
-        return Optional.empty();
-    }
-
-
     private Panel createLowerButtonPanel() {
-        Panel lowerButtonPanel = new Panel();
-        if (!forceValidTeilnehmerForm) {
-            new Button(LocalizedString.Cancel.toString(), this::close).addTo(lowerButtonPanel);
-        }
-        new Button("Reset", this::resetTeilnehmerForm).addTo(lowerButtonPanel);
-        new Button("Save", this::saveTeilnehmerForm).addTo(lowerButtonPanel);
-        lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()).setHorizontalSpacing(1));
-        return lowerButtonPanel;
+        Panel buttonPanel = new Panel();
+        buttonPanel.setLayoutManager(new LinearLayout(HORIZONTAL).setSpacing(1));
+        buttonPanel.addComponent(cancelBtn);
+        buttonPanel.addComponent(new EmptySpace(), createLayoutData(Fill, CanGrow));
+        buttonPanel.addComponent(resetBtn);
+        buttonPanel.addComponent(saveBtn);
+        shortKeyRegistry.registerButtonAction(new KeyStroke('z', true, false), resetBtn);
+        shortKeyRegistry.registerButtonAction(new KeyStroke('s', true, false), saveBtn);
+        return buttonPanel.setLayoutData(createLayoutData(Fill, CanGrow));
     }
 
     private void saveTeilnehmerForm() {
-        if (isValidTeilnehmerForm()) {
+        if (validateTeilnehmerForm()) {
             saved.set(true);
             this.close();
         }
+    }
+
+    protected boolean validateTeilnehmerForm() {
+        boolean hasError;
+        hasError = isEmptyTextBox(vornameTextBox);
+        hasError = isEmptyTextBox(nachnameTextBox) || hasError;
+        hasError = isUnselectedComboBox(genderComboBox) || hasError;
+
+        hasError = isEmptyTextBox(streetTextBox) || hasError;
+        hasError = isEmptyTextBox(ortTextBox) || hasError;
+        hasError = isEmptyTextBox(emailTextBox) || hasError;
+        hasError = isEmptyTextBox(telefonTextBox) || hasError;
+        hasError = validateTeilnehmerKategorieForm() || hasError;
+        return !hasError;
+    }
+
+    private boolean validateTeilnehmerKategorieForm() {
+        setFieldFeedback(matrikelNummerTextBox, false);
+        setFieldFeedback(mitarbeiterNummerTextBox, false);
+
+        boolean hasError = isUnselectedComboBox(kategorieComboBox);
+        TeilnehmerKategorie selectedKategorie = kategorieComboBox.getSelectedItem();
+        if (selectedKategorie != null && selectedKategorie.requiresMatrikelnummer()) {
+            hasError = isEmptyTextBox(matrikelNummerTextBox) || hasError;
+        } else if (selectedKategorie != null && selectedKategorie.requiresMitarbeiterNummer()) {
+            hasError = isEmptyTextBox(mitarbeiterNummerTextBox) || hasError;
+        }
+        return hasError;
     }
 
 
@@ -165,9 +213,25 @@ public class TeilnehmerFormDialog extends DialogWindow implements WindowListener
         return teilnehmer;
     }
 
-    public boolean isValidTeilnehmerForm() {
-        // TODO validateTeilnehmer
-        return true;
+    private boolean isEmptyTextBox(TextBox textBox) {
+        boolean hasError = StringUtils.isEmpty(trimToNull(textBox.getText()));
+        setFieldFeedback(textBox, hasError);
+        return hasError;
+    }
+
+    private <T> boolean isUnselectedComboBox(ComboBox<T> comboBox) {
+        boolean hasError = comboBox.getSelectedItem() == null;
+        setFieldFeedback(comboBox, hasError);
+        return hasError;
+    }
+
+    private void setFieldFeedback(Interactable interactable, boolean hasError) {
+        Label label = fieldToLabelMap.get(interactable);
+        if (label != null && hasError) {
+            label.setForegroundColor(ANSI.RED).setBackgroundColor(ANSI.WHITE);
+        } else if (label != null) {
+            label.setForegroundColor(null).setBackgroundColor(null);
+        }
     }
 
 
@@ -175,21 +239,21 @@ public class TeilnehmerFormDialog extends DialogWindow implements WindowListener
         if (teilnehmer == null) {
             teilnehmer = new Teilnehmer();
         }
-        vornameTextBox.setText(teilnehmer.getVorname());
-        nachnameTextBox.setText(teilnehmer.getNachname());
+        vornameTextBox.setText(defaultString(teilnehmer.getVorname()));
+        nachnameTextBox.setText(defaultString(teilnehmer.getNachname()));
         genderComboBox.setSelectedItem(teilnehmer.getGender());
 
-        streetTextBox.setText(teilnehmer.getStreet());
-        ortTextBox.setText(teilnehmer.getOrt());
-        emailTextBox.setText(teilnehmer.getEmail());
-        telefonTextBox.setText(teilnehmer.getTelefon());
+        streetTextBox.setText(defaultString(teilnehmer.getStreet()));
+        ortTextBox.setText(defaultString(teilnehmer.getOrt()));
+        emailTextBox.setText(defaultString(teilnehmer.getEmail()));
+        telefonTextBox.setText(defaultString(teilnehmer.getTelefon()));
 
         kategorieComboBox.setSelectedItem(teilnehmer.getTeilnehmerKategorie());
-        matrikelNummerTextBox.setText(teilnehmer.getMatrikelnummer());
-        mitarbeiterNummerTextBox.setText(teilnehmer.getMitarbeiterNummer());
+        matrikelNummerTextBox.setText(defaultString(teilnehmer.getMatrikelnummer()));
+        mitarbeiterNummerTextBox.setText(defaultString(teilnehmer.getMitarbeiterNummer()));
 
-        ibanTextBox.setText(teilnehmer.getIban());
-        kontoInhaberTextBox.setText(teilnehmer.getKontoInhaber());
+        ibanTextBox.setText(defaultString(teilnehmer.getIban()));
+        kontoInhaberTextBox.setText(defaultString(teilnehmer.getKontoInhaber()));
     }
 
 
@@ -198,38 +262,14 @@ public class TeilnehmerFormDialog extends DialogWindow implements WindowListener
     }
 
 
+    public boolean isForceValidTeilnehmerForm() {
+        return forceValidTeilnehmerForm;
+    }
+
     public void setForceValidTeilnehmerForm(boolean forceValidTeilnehmerForm) {
         this.forceValidTeilnehmerForm = forceValidTeilnehmerForm;
         setCloseWindowWithEscape(!forceValidTeilnehmerForm);
-    }
-
-
-    @Override
-    public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
-        // noop
-    }
-
-    @Override
-    public void onMoved(Window window, TerminalPosition oldPosition, TerminalPosition newPosition) {
-        // noop
-    }
-
-    @Override
-    public void onInput(Window basePane, KeyStroke keyStroke, AtomicBoolean deliverEvent) {
-        if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 's') {
-            saveTeilnehmerForm();
-            deliverEvent.set(false);
-        } else if (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'r') {
-            resetTeilnehmerForm();
-            deliverEvent.set(false);
-        } else {
-            deliverEvent.set(true);
-        }
-    }
-
-    @Override
-    public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
-        // noop
+        cancelBtn.setEnabled(!forceValidTeilnehmerForm);
     }
 
 

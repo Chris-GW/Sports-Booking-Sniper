@@ -17,7 +17,6 @@ import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
 import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
-import lombok.Getter;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -29,14 +28,9 @@ public class MainMenuBarComponent extends BasicPanelComponent {
 
     private final SportKatalogRepository sportKatalogRepository;
 
-    @Getter
-    private MenuBar menuBar;
-
-    @Getter
-    private Menu viewMenu;
-
-    @Getter
-    private Menu navigationMenu;
+    private final MenuBar menuBar = new MenuBar();
+    private final Menu viewMenu = new Menu("View");
+    private final Menu navigationMenu = new Menu("Navigation");
 
 
     public MainMenuBarComponent(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
@@ -45,15 +39,13 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         this.sportKatalogRepository = sportKatalogRepository;
         setLayoutManager(new BorderLayout());
 
-        viewMenu = new Menu("View");
         viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
         viewMenu.add(createSwitchThemeMenuItem());
         addViewMenuItemsFor(this);
 
-        navigationMenu = new Menu("Navigation");
         addNavigationMenuItemsFor(this);
 
-        menuBar = new MenuBar().add(sportBuchungMenu())
+        menuBar.add(sportBuchungMenu())
                 .add(viewMenu)
                 .add(navigationMenu)
                 .add(debugMenu())
@@ -127,7 +119,8 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         };
 
         menu.add(new MenuItem("edit Teilnehmer", () -> {
-            Optional<Teilnehmer> teilnehmer = new TeilnehmerFormDialog().showDialog(getTextGUI());
+            Teilnehmer defaultTeilnehmer = applicationStateDao.getDefaultTeilnehmer();
+            Optional<Teilnehmer> teilnehmer = new TeilnehmerFormDialog(defaultTeilnehmer).showDialog(getTextGUI());
             teilnehmer.ifPresent(applicationStateDao::addTeilnehmer);
         }));
         return menu;

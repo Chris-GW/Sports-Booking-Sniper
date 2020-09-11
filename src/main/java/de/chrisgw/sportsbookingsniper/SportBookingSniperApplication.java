@@ -57,19 +57,25 @@ public class SportBookingSniperApplication {
 
 
     public void showGui() throws IOException {
-        MultiWindowTextGUI multiWindowTextGUI = createMultiWindowTextGUI();
-        if (applicationStateDao.isFirstVisite()) {
-            showFirstVisiteDialog(multiWindowTextGUI);
+        try (TerminalScreen terminalScreen = createTerminalScreen()) {
+            terminalScreen.startScreen();
+            MultiWindowTextGUI multiWindowTextGUI = createMultiWindowTextGUI(terminalScreen);
+            if (applicationStateDao.isFirstVisite()) {
+                showFirstVisiteDialog(multiWindowTextGUI);
+            }
+            SportBookingMainWindow sportBookingMainWindow = createSportBookingMainWindow();
+            multiWindowTextGUI.addWindowAndWait(sportBookingMainWindow);
         }
-        SportBookingMainWindow sportBookingMainWindow = createSportBookingMainWindow();
-        multiWindowTextGUI.addWindowAndWait(sportBookingMainWindow);
     }
 
-    private MultiWindowTextGUI createMultiWindowTextGUI() throws IOException {
+    private TerminalScreen createTerminalScreen() throws IOException {
         DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
                 .setInitialTerminalSize(new TerminalSize(100, 50))
                 .setTerminalEmulatorTitle("Sportbuchungsbot - RWTH Hochschulsport");
-        TerminalScreen guiScreen = defaultTerminalFactory.createScreen();
+        return defaultTerminalFactory.createScreen();
+    }
+
+    private MultiWindowTextGUI createMultiWindowTextGUI(TerminalScreen guiScreen) {
         MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
         registerLanternaThemes();
         windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
