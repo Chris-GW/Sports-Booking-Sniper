@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.gui.state;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 
 
-public interface SportBuchungJobListener {
+public interface SportBuchungsJobListener {
 
     void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob);
 

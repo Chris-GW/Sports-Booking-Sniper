@@ -8,42 +8,50 @@ import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil.newSportBuchungsJob;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Objects.requireNonNull;
 
 
 @Slf4j
-@Repository
-@RequiredArgsConstructor
-public class ApplicationStateDao implements InitializingBean {
+public class ApplicationStateDao {
 
-    private final Resource savedApplicationDataResource;
+    private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json");
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
+    private final SportBuchungsSniperService sportBuchungsSniperService;
 
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
     private SportKatalog sportKatalog;
 
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
-    private final List<SportBuchungJobListener> sportBuchungJobListeners = new ArrayList<>();
+    private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
+
+    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository,
+            SportBuchungsSniperService sportBuchungsSniperService, ObjectMapper objectMapper) {
+        this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
+        this.sportBuchungsSniperService = requireNonNull(sportBuchungsSniperService);
+        this.objectMapper = requireNonNull(objectMapper);
+    }
 
 
-    public LocalDateTime getSaveTime() {
+    public Instant getSaveTime() {
         return applicationState.getSaveTime();
     }
 
@@ -77,28 +85,30 @@ public class ApplicationStateDao implements InitializingBean {
         return teilnehmerListe.get(0);
     }
 
-    public void addTeilnehmer(Teilnehmer teilnehmer) {
-        List<Teilnehmer> newTeilnehmerListe = new ArrayList<>(getTeilnehmerListe().size() + 1);
-        newTeilnehmerListe.add(teilnehmer);
-        newTeilnehmerListe.addAll(getTeilnehmerListe());
-        applicationState.setTeilnehmerListe(newTeilnehmerListe);
-        for (TeilnehmerListeListener teilnehmerListeListener : teilnehmerListeListeners) {
-            teilnehmerListeListener.onChangedTeilnehmerListe(newTeilnehmerListe);
-        }
-        saveApplicationData();
+    public void setDefaultTeilnehmer(Teilnehmer teilnehmer) {
+        List<Teilnehmer> teilnehmerListe = applicationState.getTeilnehmerListe();
+        teilnehmerListe.remove(teilnehmer);
+        teilnehmerListe.add(0, teilnehmer);
+        notifyTeilnehmerListeListeners();
+    }
+
+
+    public boolean addTeilnehmer(Teilnehmer teilnehmer) {
+        boolean add = applicationState.getTeilnehmerListe().add(teilnehmer);
+        notifyTeilnehmerListeListeners();
+        return add;
+    }
+
+    public boolean removeTeilnehmer(Teilnehmer teilnehmer) {
+        boolean remove = applicationState.getTeilnehmerListe().remove(teilnehmer);
+        notifyTeilnehmerListeListeners();
+        return remove;
     }
 
     public List<Teilnehmer> getTeilnehmerListe() {
-        return applicationState.getTeilnehmerListe();
+        return unmodifiableList(applicationState.getTeilnehmerListe());
     }
 
-    public void updateTeilnehmerListe(List<Teilnehmer> neueTeilnehmerListe) {
-        applicationState.setTeilnehmerListe(neueTeilnehmerListe);
-        saveApplicationData();
-        for (TeilnehmerListeListener teilnehmerListeListener : teilnehmerListeListeners) {
-            teilnehmerListeListener.onChangedTeilnehmerListe(neueTeilnehmerListe);
-        }
-    }
 
     public void addTeilnehmerListeListener(TeilnehmerListeListener teilnehmerListeListener) {
         teilnehmerListeListeners.add(teilnehmerListeListener);
@@ -108,25 +118,32 @@ public class ApplicationStateDao implements InitializingBean {
         teilnehmerListeListeners.remove(teilnehmerListeListener);
     }
 
+    private void notifyTeilnehmerListeListeners() {
+        for (TeilnehmerListeListener teilnehmerListeListener : teilnehmerListeListeners) {
+            teilnehmerListeListener.onChangedTeilnehmerListe(getTeilnehmerListe());
+        }
+        saveApplicationData();
+    }
+
 
     // watched SportAngebote
 
     public List<SportAngebot> getWatchedSportAngebote() {
-        return applicationState.getWatchedSportAngebote();
+        return unmodifiableList(applicationState.getWatchedSportAngebote());
     }
 
 
     // pending SportBuchungsJob
 
     public List<SportBuchungsJob> getPendingBuchungsJobs() {
-        return applicationState.getPendingBuchungsJobs();
+        return unmodifiableList(applicationState.getPendingBuchungsJobs());
     }
 
     public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
         saveApplicationData();
-        for (SportBuchungJobListener sportBuchungJobListener : sportBuchungJobListeners) {
-            sportBuchungJobListener.onNewPendingSportBuchungsJob(sportBuchungsJob);
+        for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+            sportBuchungsJobListener.onNewPendingSportBuchungsJob(sportBuchungsJob);
         }
     }
 
@@ -135,18 +152,19 @@ public class ApplicationStateDao implements InitializingBean {
         if (index >= 0) {
             applicationState.getPendingBuchungsJobs().set(index, sportBuchungsJob);
             saveApplicationData();
-            for (SportBuchungJobListener sportBuchungJobListener : sportBuchungJobListeners) {
-                sportBuchungJobListener.onUpdatedSportBuchungsJob(sportBuchungsJob);
+            for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+                sportBuchungsJobListener.onUpdatedSportBuchungsJob(sportBuchungsJob);
             }
         }
     }
 
-    public void addSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
-        sportBuchungJobListeners.add(sportBuchungJobListener);
+
+    public void addSportBuchungsJobListener(SportBuchungsJobListener sportBuchungsJobListener) {
+        sportBuchungsJobListeners.add(sportBuchungsJobListener);
     }
 
-    public void removeSportBuchungJobListener(SportBuchungJobListener sportBuchungJobListener) {
-        sportBuchungJobListeners.remove(sportBuchungJobListener);
+    public void removeSportBuchungsJobListener(SportBuchungsJobListener sportBuchungsJobListener) {
+        sportBuchungsJobListeners.remove(sportBuchungsJobListener);
     }
 
 
@@ -193,15 +211,15 @@ public class ApplicationStateDao implements InitializingBean {
     public SavedApplicationState loadApplicationData() {
         try {
             fileLock.lock();
-            if (!savedApplicationDataResource.exists()) {
+            if (!Files.isReadable(savedApplicationDataPath)) {
                 return new SavedApplicationState();
             }
-            File saveFile = savedApplicationDataResource.getFile();
+            File saveFile = savedApplicationDataPath.toFile();
             SavedApplicationState savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
             log.trace("read savedApplicationData {} from {}", savedApplicationState, saveFile);
             return savedApplicationState;
         } catch (IOException e) {
-            throw new RuntimeException("Could not read savedApplicationData from " + savedApplicationDataResource, e);
+            throw new RuntimeException("Could not read savedApplicationData from " + savedApplicationDataPath, e);
         } finally {
             fileLock.unlock();
         }
@@ -210,19 +228,18 @@ public class ApplicationStateDao implements InitializingBean {
     public void saveApplicationData() {
         try {
             fileLock.lock();
-            applicationState.setSaveTime(LocalDateTime.now());
-            File saveFile = savedApplicationDataResource.getFile();
+            applicationState.setSaveTime(Instant.now());
+            File saveFile = savedApplicationDataPath.toFile();
             log.trace("write applicationState {} to {}", applicationState, saveFile);
             objectMapper.writeValue(saveFile, applicationState);
         } catch (Exception e) {
-            throw new RuntimeException("Could not write applicationState to file " + savedApplicationDataResource, e);
+            throw new RuntimeException("Could not write applicationState to file " + savedApplicationDataPath, e);
         } finally {
             fileLock.lock();
         }
     }
 
 
-    @Override
     public void afterPropertiesSet() {
         applicationState = loadApplicationData();
         Locale.setDefault(applicationState.getLanguage());

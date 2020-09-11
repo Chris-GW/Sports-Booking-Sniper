@@ -6,7 +6,6 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.gui2.Interactable;
 import com.googlecode.lanterna.gui2.TextGUIGraphics;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
 import com.googlecode.lanterna.gui2.table.DefaultTableCellRenderer;
 import com.googlecode.lanterna.gui2.table.DefaultTableRenderer;
 import com.googlecode.lanterna.gui2.table.Table;
@@ -17,7 +16,6 @@ import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
 import de.chrisgw.sportsbookingsniper.gui.component.SportBuchungsJobTable.SportBuchungsJobCell;
-import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungsJobActionDialog;
 import lombok.Data;
 
 import java.util.*;
@@ -38,16 +36,6 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
         super(null, null, null, null);
         setRenderer(newTableRenderer());
         setTableCellRenderer(new SportBuchungsJobTableCellRenderer());
-        setSelectAction(showSportBuchungsJobContextMenu());
-    }
-
-
-    private Runnable showSportBuchungsJobContextMenu() {
-        return () -> {
-            SportBuchungsJob buchungsJob = getSelectedSportBuchungsJob();
-            WindowBasedTextGUI windowBasedTextGUI = (WindowBasedTextGUI) getTextGUI();
-            new SportBuchungsJobActionDialog(buchungsJob).showDialog(windowBasedTextGUI);
-        };
     }
 
 

@@ -6,22 +6,14 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerValidator;
-import de.chrisgw.sportsbookingsniper.gui.bind.ModalForm;
-import de.chrisgw.sportsbookingsniper.gui.component.SearchableComboBox;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.DataBinder;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.gui.component.SearchableComboBox;
 
-import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.googlecode.lanterna.gui2.GridLayout.createHorizontallyFilledLayoutData;
 import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.End;
 import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
@@ -31,7 +23,6 @@ public class SportBuchungDialog extends DialogWindow {
     private final SportKatalogRepository sportKatalogRepository;
 
     private SportBuchungsJob sportBuchungsJob;
-    private ModalForm modalForm = new ModalForm();
 
     private ComboBox<SportArt> sportArtComboBox;
     private ComboBox<SportAngebot> sportAngebotComboBox;
@@ -42,8 +33,8 @@ public class SportBuchungDialog extends DialogWindow {
         super("Sportbuchung");
         this.sportKatalogRepository = sportKatalogRepository;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
-        setComponent(createContentPane());
         setCloseWindowWithEscape(true);
+        setComponent(createContentPane());
     }
 
 
@@ -58,8 +49,8 @@ public class SportBuchungDialog extends DialogWindow {
     private Panel createFormularPanel() {
         Panel formularGridPanel = new Panel(new GridLayout(2));
         formularGridPanel.addComponent(new Label("Bitte wählen Sie das zu buchende SportAngebot aus:"),
-                GridLayout.createHorizontallyFilledLayoutData(2));
-        formularGridPanel.addComponent(new EmptySpace(), GridLayout.createHorizontallyFilledLayoutData(2));
+                createHorizontallyFilledLayoutData(2));
+        formularGridPanel.addComponent(new EmptySpace(), createHorizontallyFilledLayoutData(2));
 
         addSportArtComboBox(formularGridPanel);
         addSportAngebotComboBox(formularGridPanel);
@@ -73,7 +64,7 @@ public class SportBuchungDialog extends DialogWindow {
         SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
         sportArtComboBox = new SearchableComboBox<>(sportKatalog.getSportArten());
         sportArtComboBox.addListener(onSelectSportArt());
-        sportArtComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
+        sportArtComboBox.setLayoutData(createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
     }
 
     private Listener onSelectSportArt() {
@@ -93,7 +84,7 @@ public class SportBuchungDialog extends DialogWindow {
         sportAngebotComboBox.setEnabled(false);
         sportAngebotComboBox.setDropDownNumberOfRows(19);
         sportAngebotComboBox.addListener(onSelectSportAngebot());
-        sportAngebotComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData());
+        sportAngebotComboBox.setLayoutData(createHorizontallyFilledLayoutData());
         sportAngebotComboBox.addTo(formularGridPanel);
     }
 
@@ -114,7 +105,7 @@ public class SportBuchungDialog extends DialogWindow {
         terminComboBox = new ComboBox<>();
         terminComboBox.setEnabled(false);
         terminComboBox.setDropDownNumberOfRows(18);
-        terminComboBox.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
+        terminComboBox.setLayoutData(createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
     }
 
 
@@ -128,38 +119,21 @@ public class SportBuchungDialog extends DialogWindow {
     }
 
 
-    private void resetSportBuchungsJob() {
-        setSportBuchungsJob(new SportBuchungsJob());
-    }
 
-
-    private void saveSportBuchungsJob() {
-        BindingResult bindingResult = bindTeilnehmerModalData();
-
-        if (!bindingResult.hasErrors()) {
-            this.sportBuchungsJob = (SportBuchungsJob) bindingResult.getTarget();
-            this.close();
-        }
-    }
-
-
-    private BindingResult bindTeilnehmerModalData() {
-        DataBinder dataBinder = new DataBinder(new Teilnehmer());
-        dataBinder.setAllowedFields("TODO");
-        dataBinder.addValidators(new TeilnehmerValidator());
-        return modalForm.bindData(dataBinder);
+    public void saveSportBuchungsJob() {
+        // TODO saveSportBuchungsJob
     }
 
 
     public void setSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        BeanWrapper beanWrapper = new BeanWrapperImpl(sportBuchungsJob);
-        MutablePropertyValues propertyValues = new MutablePropertyValues();
-        for (PropertyDescriptor propertyDescriptor : beanWrapper.getPropertyDescriptors()) {
-            String propertyName = propertyDescriptor.getName();
-            Object propertyValue = beanWrapper.getPropertyValue(propertyName);
-            propertyValues.addPropertyValue(propertyName, propertyValue);
+        if (sportBuchungsJob == null) {
+            throw new IllegalArgumentException("Expect non null SportBuchungsJob");
         }
-        modalForm.writePropertyValues(propertyValues);
+        // TODO setSportBuchungsJob
+    }
+
+    public void resetSportBuchungsJob() {
+        setSportBuchungsJob(new SportBuchungsJob());
     }
 
 

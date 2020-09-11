@@ -6,7 +6,7 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +16,7 @@ import java.util.Locale;
 public class SavedApplicationState {
 
     private boolean firstVisite = true;
-    private LocalDateTime saveTime = LocalDateTime.now();
+    private Instant saveTime = Instant.now();
     private Locale language = Locale.getDefault();
     private String selectedTheme = "default";
 

@@ -7,108 +7,46 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.PropertyTheme;
-import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.AbstractTextGUI;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.SportBookingMainWindow;
-import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerModalDialog;
+import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.dialog.WelcomeDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.*;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.stream.Collectors;
-
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 
 @Slf4j
-@Configuration
-@RequiredArgsConstructor
+@Data
 public class SportBookingSniperApplication {
 
-
-    @Bean(destroyMethod = "shutdownNow")
-    public SportBuchungsSniperService sportBookingSniperService() {
-        return new SportBuchungsSniperService();
-    }
-
-    @Bean
-    public SportKatalogRepository sportKatalogRepository() {
-        return new HszRwthAachenSportKatalogRepository();
-    }
+    private SportKatalogRepository sportKatalogRepository;
+    private SportBuchungsSniperService sniperService;
+    private ApplicationStateDao applicationStateDao;
+    private ObjectMapper objectMapper;
 
 
-    @Bean
-    public ApplicationStateDao applicationStateDao() {
-        return new ApplicationStateDao(savedApplicationDataResource(), objectMapper(), sportKatalogRepository());
-    }
-
-    @Bean
-    public Resource savedApplicationDataResource() {
-        return new FileSystemResource("savedSportBookingApplicationData.json");
+    public SportBookingSniperApplication() {
+        this.sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
+        this.sniperService = new SportBuchungsSniperService();
+        this.objectMapper = createObjectMapper();
+        this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, sniperService, objectMapper);
     }
 
 
-    // lanterna
-
-    @Lazy
-    @Bean(initMethod = "startScreen", destroyMethod = "stopScreen")
-    public Screen guiScreen() throws IOException {
-        DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
-                .setInitialTerminalSize(new TerminalSize(100, 50))
-                .setTerminalEmulatorTitle("Sportbuchungsbot - RWTH Hochschulsport");
-        return defaultTerminalFactory.createScreen();
-    }
-
-    @Lazy
-    @Bean
-    public MultiWindowTextGUI multiWindowTextGUI(Screen guiScreen, ApplicationStateDao applicationStateDao) {
-        MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
-        windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
-        return windowTextGUI;
-    }
-
-    @Bean
-    @Scope(SCOPE_PROTOTYPE)
-    public SportBookingMainWindow sportBookingMainWindow() {
-        return new SportBookingMainWindow(sportKatalogRepository(), sportBookingSniperService(), applicationStateDao());
-    }
-
-    @Bean
-    public List<Theme> guiThemes() {
-        registerLanternaTheme("default", "/default-theme.properties");
-        registerLanternaTheme("bigsnake", "/bigsnake-theme.properties");
-        registerLanternaTheme("businessmachine", "/businessmachine-theme.properties");
-        registerLanternaTheme("conqueror", "/conqueror-theme.properties");
-        registerLanternaTheme("defrost", "/defrost-theme.properties");
-        registerLanternaTheme("blaster", "/blaster-theme.properties");
-        return LanternaThemes.getRegisteredThemes()
-                .stream()
-                .map(LanternaThemes::getRegisteredTheme)
-                .collect(Collectors.toList());
-    }
-
-
-    // other
-
-    @Bean
-    public ObjectMapper objectMapper() {
+    private ObjectMapper createObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -117,7 +55,54 @@ public class SportBookingSniperApplication {
         return objectMapper;
     }
 
-    private void registerLanternaTheme(String themeName, String resourceName) {
+
+    public void showGui() throws IOException {
+        MultiWindowTextGUI multiWindowTextGUI = createMultiWindowTextGUI();
+        if (applicationStateDao.isFirstVisite()) {
+            showFirstVisiteDialog(multiWindowTextGUI);
+        }
+        SportBookingMainWindow sportBookingMainWindow = createSportBookingMainWindow();
+        multiWindowTextGUI.addWindowAndWait(sportBookingMainWindow);
+    }
+
+    private MultiWindowTextGUI createMultiWindowTextGUI() throws IOException {
+        DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory() //
+                .setInitialTerminalSize(new TerminalSize(100, 50))
+                .setTerminalEmulatorTitle("Sportbuchungsbot - RWTH Hochschulsport");
+        TerminalScreen guiScreen = defaultTerminalFactory.createScreen();
+        MultiWindowTextGUI windowTextGUI = new MultiWindowTextGUI(guiScreen);
+        registerLanternaThemes();
+        windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
+        return windowTextGUI;
+    }
+
+
+    private void showFirstVisiteDialog(MultiWindowTextGUI multiWindowTextGUI) {
+        log.trace("showFirstVisiteDialog");
+        new WelcomeDialog().showDialog(multiWindowTextGUI);
+
+        TeilnehmerFormDialog teilnehmerFormDialog = new TeilnehmerFormDialog();
+        teilnehmerFormDialog.setForceValidTeilnehmerForm(true);
+        Optional<Teilnehmer> teilnehmer = teilnehmerFormDialog.showDialog(multiWindowTextGUI);
+        applicationStateDao.setDefaultTeilnehmer(teilnehmer.orElseThrow());
+        applicationStateDao.setFirstVisite(false);
+    }
+
+    private SportBookingMainWindow createSportBookingMainWindow() {
+        return new SportBookingMainWindow(sportKatalogRepository, sniperService, applicationStateDao);
+    }
+
+
+    private void registerLanternaThemes() {
+        registerLanternaPropertyTheme("default", "/default-theme.properties");
+        registerLanternaPropertyTheme("bigsnake", "/bigsnake-theme.properties");
+        registerLanternaPropertyTheme("businessmachine", "/businessmachine-theme.properties");
+        registerLanternaPropertyTheme("conqueror", "/conqueror-theme.properties");
+        registerLanternaPropertyTheme("defrost", "/defrost-theme.properties");
+        registerLanternaPropertyTheme("blaster", "/blaster-theme.properties");
+    }
+
+    private void registerLanternaPropertyTheme(String themeName, String resourceName) {
         if (LanternaThemes.getRegisteredTheme(themeName) != null) {
             return;
         }
@@ -132,35 +117,15 @@ public class SportBookingSniperApplication {
     }
 
 
-    // MAIN
-
     public static void main(String[] args) {
-        try (ConfigurableApplicationContext ctx = new AnnotationConfigApplicationContext(
-                SportBookingSniperApplication.class)) {
-            ApplicationStateDao applicationStateDao = ctx.getBean(ApplicationStateDao.class);
-            MultiWindowTextGUI windowTextGUI = ctx.getBean(MultiWindowTextGUI.class);
-            if (applicationStateDao.isFirstVisite()) {
-                showFirstVisiteDialog(applicationStateDao, windowTextGUI);
-            }
-            SportBookingMainWindow sportBookingMainWindow = ctx.getBean(SportBookingMainWindow.class);
-            windowTextGUI.addWindowAndWait(sportBookingMainWindow);
-            log.trace("finish SportBooking gui");
+        try {
+            log.trace("start SportBookingSniperApplication gui");
+            new SportBookingSniperApplication().showGui();
+            log.trace("finish SportBookingSniperApplication gui");
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
             e.printStackTrace();
         }
-    }
-
-
-    private static void showFirstVisiteDialog(ApplicationStateDao applicationStateDao,
-            MultiWindowTextGUI windowTextGUI) {
-        log.trace("showFirstVisiteDialog");
-        new WelcomeDialog().showDialog(windowTextGUI);
-
-        TeilnehmerModalDialog teilnehmerModalDialog = new TeilnehmerModalDialog(applicationStateDao, true);
-        Optional<Teilnehmer> teilnehmerAngaben = teilnehmerModalDialog.showDialog(windowTextGUI);
-        applicationStateDao.addTeilnehmer(teilnehmerAngaben.orElseThrow(RuntimeException::new));
-        applicationStateDao.setFirstVisite(false);
     }
 
 }

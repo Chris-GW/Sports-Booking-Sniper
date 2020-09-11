@@ -5,8 +5,6 @@ import de.chrisgw.sportsbookingsniper.buchung.*;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,19 +21,18 @@ public class SportBookingSniperApplicationTest {
     private final static String SPORT_ART = "Fechten Level 2 - 3";
     private final static String KURSNUMMER = "33432242";
 
-    private final ConfigurableApplicationContext applicationContext;
+    private final SportBookingSniperApplication sportBookingSniperApplication;
 
 
-    public SportBookingSniperApplicationTest(ConfigurableApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public SportBookingSniperApplicationTest(SportBookingSniperApplication sportBookingSniperApplication) {
+        this.sportBookingSniperApplication = sportBookingSniperApplication;
     }
 
 
     public static void main(String[] args) {
-        try (ConfigurableApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-                SportBookingSniperApplication.class)) {
+        try {
             SportBookingSniperApplicationTest testApplication = new SportBookingSniperApplicationTest(
-                    applicationContext);
+                    new SportBookingSniperApplication());
             System.setProperty("webdriver.chrome.driver",
                     "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
 
@@ -51,7 +48,7 @@ public class SportBookingSniperApplicationTest {
 
 
     private SportAngebot findSportAngebot(String sportArtName, String kursnummer) {
-        SportKatalogRepository sportKatalogRepository = applicationContext.getBean(SportKatalogRepository.class);
+        SportKatalogRepository sportKatalogRepository = sportBookingSniperApplication.getSportKatalogRepository();
         SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
         Optional<SportArt> sportArt = sportKatalog.findSportArtByName(sportArtName);
         if (sportArt.isPresent()) {
@@ -83,7 +80,7 @@ public class SportBookingSniperApplicationTest {
         sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
         sportBuchungsJob.setPasswort("test1234");
 
-        SportBuchungsSniperService bookingSniperService = applicationContext.getBean(SportBuchungsSniperService.class);
+        SportBuchungsSniperService bookingSniperService = sportBookingSniperApplication.getSniperService();
         CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submitSportBuchungsJob(
                 sportBuchungsJob);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = buchungsBestaetigungFuture.get();
@@ -92,7 +89,7 @@ public class SportBookingSniperApplicationTest {
 
 
     private List<Teilnehmer> readTeilnehmerListe() {
-        ApplicationStateDao applicationStateDao = applicationContext.getBean(ApplicationStateDao.class);
+        ApplicationStateDao applicationStateDao = sportBookingSniperApplication.getApplicationStateDao();
         return applicationStateDao.getTeilnehmerListe();
     }
 

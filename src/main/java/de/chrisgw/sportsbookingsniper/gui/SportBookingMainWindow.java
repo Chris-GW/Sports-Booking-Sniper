@@ -61,7 +61,7 @@ public class SportBookingMainWindow extends BasicWindow implements BasePaneListe
 
 
     private Panel createLeftPanel() {
-        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, this);
+        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, bookingSniperService, this);
         pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(pendingComponent);
         mainMenuBar.addNavigationMenuItemsFor(pendingComponent);

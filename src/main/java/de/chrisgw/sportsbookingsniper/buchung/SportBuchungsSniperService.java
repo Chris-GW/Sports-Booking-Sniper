@@ -1,7 +1,6 @@
 package de.chrisgw.sportsbookingsniper.buchung;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,7 +15,6 @@ import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungs
 
 
 @Slf4j
-@Service
 public class SportBuchungsSniperService {
 
     private final AtomicInteger jobIdCounter = new AtomicInteger();

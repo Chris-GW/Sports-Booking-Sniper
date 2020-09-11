@@ -11,7 +11,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Repository;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,7 +26,6 @@ import static java.lang.Integer.parseInt;
 
 
 @Slf4j
-@Repository
 public class HszRwthAachenSportKatalogRepository implements SportKatalogRepository {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");

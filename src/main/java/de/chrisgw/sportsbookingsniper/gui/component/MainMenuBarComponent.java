@@ -15,11 +15,12 @@ import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
-import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerModalDialog;
+import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import lombok.Getter;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
@@ -126,7 +127,8 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         };
 
         menu.add(new MenuItem("edit Teilnehmer", () -> {
-            new TeilnehmerModalDialog(applicationStateDao).showDialog(getTextGUI());
+            Optional<Teilnehmer> teilnehmer = new TeilnehmerFormDialog().showDialog(getTextGUI());
+            teilnehmer.ifPresent(applicationStateDao::addTeilnehmer);
         }));
         return menu;
     }

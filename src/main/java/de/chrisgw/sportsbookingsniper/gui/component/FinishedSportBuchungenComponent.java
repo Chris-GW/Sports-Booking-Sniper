@@ -12,7 +12,7 @@ import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungJobListener;
+import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FinishedSportBuchungenComponent extends BasicPanelComponent implements SportBuchungJobListener {
+public class FinishedSportBuchungenComponent extends BasicPanelComponent implements SportBuchungsJobListener {
 
     @Getter
     private final Table<String> finishedJobsTabel;
@@ -42,13 +42,13 @@ public class FinishedSportBuchungenComponent extends BasicPanelComponent impleme
     @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
-        applicationStateDao.addSportBuchungJobListener(this);
+        applicationStateDao.addSportBuchungsJobListener(this);
     }
 
     @Override
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
-        applicationStateDao.removeSportBuchungJobListener(this);
+        applicationStateDao.removeSportBuchungsJobListener(this);
     }
 
 
