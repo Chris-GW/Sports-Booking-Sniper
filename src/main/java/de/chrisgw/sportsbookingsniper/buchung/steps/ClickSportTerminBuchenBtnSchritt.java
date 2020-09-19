@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -18,7 +18,7 @@ import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRe
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN;
 
 
-@Slf4j
+@Log4j2
 public class ClickSportTerminBuchenBtnSchritt extends SeleniumSportBuchungsSchritt {
 
     public ClickSportTerminBuchenBtnSchritt(WebDriver driver) {

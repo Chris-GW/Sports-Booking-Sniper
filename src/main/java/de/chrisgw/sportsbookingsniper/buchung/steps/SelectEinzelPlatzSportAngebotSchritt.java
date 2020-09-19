@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
@@ -16,13 +16,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository.TIME_FORMATTER;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_WARTELISTE;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
-import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository.TIME_FORMATTER;
 
 
-@Slf4j
+@Log4j2
 public class SelectEinzelPlatzSportAngebotSchritt extends SeleniumSportBuchungsSchritt {
 
     public SelectEinzelPlatzSportAngebotSchritt(WebDriver driver) {

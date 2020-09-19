@@ -2,7 +2,7 @@ package de.chrisgw.sportsbookingsniper.angebot;
 
 
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.LazyLoader;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +25,7 @@ import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBu
 import static java.lang.Integer.parseInt;
 
 
-@Slf4j
+@Log4j2
 public class HszRwthAachenSportKatalogRepository implements SportKatalogRepository {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");

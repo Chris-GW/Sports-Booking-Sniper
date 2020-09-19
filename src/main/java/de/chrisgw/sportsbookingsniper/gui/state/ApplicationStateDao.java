@@ -10,7 +10,7 @@ import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,13 +28,13 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
 
-@Slf4j
+@Log4j2
 public class ApplicationStateDao {
 
     private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
-    private final SportBuchungsSniperService sportBuchungsSniperService;
+    private final SportBuchungsSniperService sniperService;
 
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
@@ -44,10 +44,10 @@ public class ApplicationStateDao {
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
 
 
-    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository,
-            SportBuchungsSniperService sportBuchungsSniperService, ObjectMapper objectMapper) {
+    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, SportBuchungsSniperService sniperService,
+            ObjectMapper objectMapper) {
         this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
-        this.sportBuchungsSniperService = requireNonNull(sportBuchungsSniperService);
+        this.sniperService = requireNonNull(sniperService);
         this.objectMapper = requireNonNull(objectMapper);
         this.applicationState = loadApplicationData();
 
@@ -259,5 +259,10 @@ public class ApplicationStateDao {
         }
     }
 
+
+    public void retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
+        sniperService.cancelSportBuchungsJob(buchungsJob);
+        sniperService.submitSportBuchungsJob(buchungsJob);
+    }
 
 }

@@ -5,7 +5,7 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 
-@Slf4j
+@Log4j2
 public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
 
     public SubmitTeilnehmerFormSchritt(WebDriver driver) {

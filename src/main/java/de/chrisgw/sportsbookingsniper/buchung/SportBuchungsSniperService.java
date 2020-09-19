@@ -1,6 +1,6 @@
 package de.chrisgw.sportsbookingsniper.buchung;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportB
 import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
 
 
-@Slf4j
+@Log4j2
 public class SportBuchungsSniperService {
 
     private final AtomicInteger jobIdCounter = new AtomicInteger();

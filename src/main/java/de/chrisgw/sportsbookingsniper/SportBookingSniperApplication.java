@@ -20,7 +20,7 @@ import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.dialog.WelcomeDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 
-@Slf4j
+@Log4j2
 @Data
 public class SportBookingSniperApplication {
 
@@ -84,7 +84,7 @@ public class SportBookingSniperApplication {
 
 
     private void showFirstVisiteDialog(MultiWindowTextGUI multiWindowTextGUI) {
-        log.trace("showFirstVisiteDialog");
+        log.traceEntry("showFirstVisiteDialog");
         new WelcomeDialog().showDialog(multiWindowTextGUI);
 
         TeilnehmerFormDialog teilnehmerFormDialog = new TeilnehmerFormDialog();
@@ -95,7 +95,7 @@ public class SportBookingSniperApplication {
     }
 
     private SportBookingMainWindow createSportBookingMainWindow() {
-        return new SportBookingMainWindow(sportKatalogRepository, sniperService, applicationStateDao);
+        return new SportBookingMainWindow( applicationStateDao);
     }
 
 

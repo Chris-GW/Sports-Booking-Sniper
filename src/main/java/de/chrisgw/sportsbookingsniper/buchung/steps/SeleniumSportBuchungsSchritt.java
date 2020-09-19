@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 
 
-@Slf4j
+@Log4j2
 @RequiredArgsConstructor
 public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchritt {
 

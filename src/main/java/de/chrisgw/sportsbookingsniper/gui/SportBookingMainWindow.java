@@ -7,8 +7,6 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
@@ -26,8 +24,6 @@ import static com.googlecode.lanterna.gui2.GridLayout.Alignment.FILL;
 
 public class SportBookingMainWindow extends BasicWindow {
 
-    private final SportKatalogRepository sportKatalogRepository;
-    private final SportBuchungsSniperService bookingSniperService;
     private final ApplicationStateDao applicationStateDao;
 
     private MainMenuBarComponent mainMenuBar;
@@ -36,17 +32,14 @@ public class SportBookingMainWindow extends BasicWindow {
     private FavoriteSportAngebotComponent favoriteComponent;
 
 
-    public SportBookingMainWindow(SportKatalogRepository sportKatalogRepository,
-            SportBuchungsSniperService bookingSniperService, ApplicationStateDao applicationStateDao) {
+    public SportBookingMainWindow(ApplicationStateDao applicationStateDao) {
         super("Sportbuchungsbot - RWTH Hochschulsport");
-        this.sportKatalogRepository = Objects.requireNonNull(sportKatalogRepository);
-        this.bookingSniperService = Objects.requireNonNull(bookingSniperService);
         this.applicationStateDao = Objects.requireNonNull(applicationStateDao);
         setHints(List.of(Hint.EXPANDED));
         Panel contentPanel = new Panel(new BorderLayout());
         setComponent(contentPanel);
 
-        mainMenuBar = new MainMenuBarComponent(sportKatalogRepository, applicationStateDao, this);
+        mainMenuBar = new MainMenuBarComponent(applicationStateDao, this);
         mainMenuBar.focus();
 
         contentPanel.addComponent(mainMenuBar, Location.TOP);
@@ -61,7 +54,7 @@ public class SportBookingMainWindow extends BasicWindow {
 
 
     private Panel createLeftPanel() {
-        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, bookingSniperService, this);
+        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao,  this);
         pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(pendingComponent);
         mainMenuBar.addNavigationMenuItemsFor(pendingComponent);

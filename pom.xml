@@ -1,159 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>de.chrisgw.sportsbookingsniper</groupId>
-    <artifactId>sports-booking-sniper</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
-    <description>Console GUI with selenium web booking agent for HSZ RWTH Aachen sports offer</description>
-    <scm>
-        <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
-        <url>https://github.com/Chris-GW/Sports-Booking-Sniper</url>
-        <tag>main</tag>
-    </scm>
-    <developers>
-        <developer>
-            <name>Chris-GW</name>
-            <email>Chris-GW@users.noreply.github.com</email>
-        </developer>
-    </developers>
-    <licenses>
-        <license>
-            <name>GNU Affero General Public License v3.0</name>
-            <url>https://www.gnu.org/licenses/agpl-3.0.de.html</url>
-        </license>
-    </licenses>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.chrisgw.sportsbookingsniper</groupId>
+  <artifactId>sports-booking-sniper</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
+  <description>Console GUI with selenium web booking agent for HSZ RWTH Aachen sports offer</description>
+  <scm>
+    <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
+    <url>https://github.com/Chris-GW/Sports-Booking-Sniper</url>
+    <tag>main</tag>
+  </scm>
+  <developers>
+    <developer>
+      <name>Chris-GW</name>
+      <email>Chris-GW@users.noreply.github.com</email>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>GNU Affero General Public License v3.0</name>
+      <url>https://www.gnu.org/licenses/agpl-3.0.de.html</url>
+    </license>
+  </licenses>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <log4j.version>2.13.3</log4j.version>
+    <jackson.version>2.11.1</jackson.version>
+  </properties>
 
-    <dependencies>
-        <!-- gui -->
-        <dependency>
-            <groupId>com.googlecode.lanterna</groupId>
-            <artifactId>lanterna</artifactId>
-            <version>3.2.0-alpha1</version>
-        </dependency>
+  <dependencies>
+    <!-- gui -->
+    <dependency>
+      <groupId>com.googlecode.lanterna</groupId>
+      <artifactId>lanterna</artifactId>
+      <version>3.2.0-alpha1</version>
+    </dependency>
 
-        <!-- jsoup -->
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.13.1</version>
-        </dependency>
+    <!-- jsoup -->
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.13.1</version>
+    </dependency>
 
-        <!-- selenium -->
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>3.141.59</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>htmlunit-driver</artifactId>
-            <version>2.43.1</version>
-        </dependency>
+    <!-- selenium -->
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>3.141.59</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>htmlunit-driver</artifactId>
+      <version>2.43.1</version>
+    </dependency>
 
-        <!-- jackson json -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.11.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.11.1</version>
-        </dependency>
+    <!-- jackson json -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
 
-        <!-- util and logging -->
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>3.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.11</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
-        </dependency>
+    <!-- util and logging -->
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib</artifactId>
+      <version>3.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.11</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-            <version>1.18.12</version>
-        </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+      <version>1.18.12</version>
+    </dependency>
 
-        <!-- testing -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>3.5.7</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>2.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path-assert</artifactId>
-            <version>2.4.0</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <!-- testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.5.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path-assert</artifactId>
+      <version>2.4.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>de.chrisgw.sportsbookingsniper.SportBookingSniperApplication</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>de.chrisgw.sportsbookingsniper.SportBookingSniperApplication</mainClass>
+                </manifest>
+              </archive>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

@@ -4,14 +4,14 @@ import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.jsoup.Jsoup;
 import org.openqa.selenium.WebDriver;
 
 import java.util.stream.Stream;
 
 
-@Slf4j
+@Log4j2
 public class GetSportAngebotWebpageSchritt extends SeleniumSportBuchungsSchritt {
 
     public GetSportAngebotWebpageSchritt(WebDriver driver) {

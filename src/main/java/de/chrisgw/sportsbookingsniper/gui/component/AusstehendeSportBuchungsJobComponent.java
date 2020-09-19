@@ -10,25 +10,20 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 
-import static java.util.Objects.requireNonNull;
-
 
 public class AusstehendeSportBuchungsJobComponent extends BasicPanelComponent implements SportBuchungsJobListener {
 
-    private SportBuchungsSniperService sniperService;
     private SportBuchungsJobTable sportBuchungsJobTable = new SportBuchungsJobTable();
     private ShortKeyRegistry shortKeyRegistry = new ShortKeyRegistry();
 
 
     public AusstehendeSportBuchungsJobComponent(ApplicationStateDao applicationStateDao,
-            SportBuchungsSniperService sniperService, Window window) {
+             Window window) {
         super(applicationStateDao, window, "Ausstehende SportBuchungen", KeyType.F2);
-        this.sniperService = requireNonNull(sniperService);
         setLayoutManager(new LinearLayout(Direction.VERTICAL));
         addComponent(sportBuchungsJobTable);
         window.addWindowListener(shortKeyRegistry);
@@ -71,7 +66,7 @@ public class AusstehendeSportBuchungsJobComponent extends BasicPanelComponent im
     private void editSportBuchungsJob() {
         SportBuchungsJob buchungsJob = sportBuchungsJobTable.getSelectedSportBuchungsJob();
         if (buchungsJob != null && sportBuchungsJobTable.isFocused()) {
-            new SportBuchungDialog(null).showDialog(getTextGUI());
+            new SportBuchungDialog(applicationStateDao).showDialog(getTextGUI());
         }
     }
 
@@ -87,8 +82,7 @@ public class AusstehendeSportBuchungsJobComponent extends BasicPanelComponent im
     private void retrySportBuchungsJob() {
         SportBuchungsJob buchungsJob = sportBuchungsJobTable.getSelectedSportBuchungsJob();
         if (buchungsJob != null && sportBuchungsJobTable.isFocused()) {
-            sniperService.cancelSportBuchungsJob(buchungsJob);
-            sniperService.submitSportBuchungsJob(buchungsJob);
+            applicationStateDao.retrySportBuchungsJob(buchungsJob);
         }
     }
 
@@ -104,10 +98,8 @@ public class AusstehendeSportBuchungsJobComponent extends BasicPanelComponent im
         SportBuchungsJob buchungsJob = sportBuchungsJobTable.getSelectedSportBuchungsJob();
         if (buchungsJob != null && sportBuchungsJobTable.isFocused()) {
             buchungsJob.setPausiert(!buchungsJob.isPausiert());
-            sniperService.cancelSportBuchungsJob(buchungsJob);
         }
     }
-
 
 
     public void setVisibleRows(int visibleRows) {

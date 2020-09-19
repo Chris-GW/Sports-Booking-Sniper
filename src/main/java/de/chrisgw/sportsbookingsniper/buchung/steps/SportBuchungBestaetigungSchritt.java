@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsBestaetigung;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.WebDriver;
 
 import java.util.regex.Matcher;
@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newErfolgreicherBuchungsVersuch;
 
 
-@Slf4j
+@Log4j2
 public class SportBuchungBestaetigungSchritt extends SeleniumSportBuchungsSchritt {
 
     private static final Pattern BESTAETIGUNG_URL_PATTERN = Pattern.compile("Bestaetigung_(\\w+)");

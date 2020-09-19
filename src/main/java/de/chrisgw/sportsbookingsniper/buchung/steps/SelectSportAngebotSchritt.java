@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -17,7 +17,7 @@ import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportB
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
-@Slf4j
+@Log4j2
 public class SelectSportAngebotSchritt extends SeleniumSportBuchungsSchritt {
 
     public SelectSportAngebotSchritt(WebDriver driver) {

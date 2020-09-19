@@ -26,17 +26,13 @@ import static org.apache.commons.lang3.StringUtils.upperCase;
 
 public class MainMenuBarComponent extends BasicPanelComponent {
 
-    private final SportKatalogRepository sportKatalogRepository;
-
     private final MenuBar menuBar = new MenuBar();
     private final Menu viewMenu = new Menu("View");
     private final Menu navigationMenu = new Menu("Navigation");
 
 
-    public MainMenuBarComponent(SportKatalogRepository sportKatalogRepository, ApplicationStateDao applicationStateDao,
-            Window window) {
+    public MainMenuBarComponent(ApplicationStateDao applicationStateDao, Window window) {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
-        this.sportKatalogRepository = sportKatalogRepository;
         setLayoutManager(new BorderLayout());
 
         viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
@@ -78,7 +74,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
     private Menu sportBuchungMenu() {
         Menu menu = new Menu("New");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            new SportBuchungDialog(sportKatalogRepository).showDialog(getTextGUI());
+            new SportBuchungDialog(applicationStateDao).showDialog(getTextGUI());
         }));
         return menu;
     }
@@ -158,7 +154,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
     }
 
     private void addPendingDummySportBookingJob() {
-        SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+        SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
         String sportArtName = "Fechten Level 2 - 3";
         String kursnummer = "33432242";
         SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);

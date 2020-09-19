@@ -6,9 +6,9 @@ import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
-import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.gui.component.SearchableComboBox;
+import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -20,7 +20,7 @@ import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
 public class SportBuchungDialog extends DialogWindow {
 
-    private final SportKatalogRepository sportKatalogRepository;
+    private final ApplicationStateDao applicationStateDao;
 
     private SportBuchungsJob sportBuchungsJob;
 
@@ -29,9 +29,9 @@ public class SportBuchungDialog extends DialogWindow {
     private ComboBox<Object> terminComboBox;
 
 
-    public SportBuchungDialog(SportKatalogRepository sportKatalogRepository) {
+    public SportBuchungDialog(ApplicationStateDao applicationStateDao) {
         super("Sportbuchung");
-        this.sportKatalogRepository = sportKatalogRepository;
+        this.applicationStateDao = applicationStateDao;
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setCloseWindowWithEscape(true);
         setComponent(createContentPane());
@@ -61,7 +61,7 @@ public class SportBuchungDialog extends DialogWindow {
 
     private void addSportArtComboBox(Panel formularGridPanel) {
         new Label("SportArt:*").addTo(formularGridPanel);
-        SportKatalog sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+        SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
         sportArtComboBox = new SearchableComboBox<>(sportKatalog.getSportArten());
         sportArtComboBox.addListener(onSelectSportArt());
         sportArtComboBox.setLayoutData(createHorizontallyFilledLayoutData()).addTo(formularGridPanel);
@@ -117,7 +117,6 @@ public class SportBuchungDialog extends DialogWindow {
         lowerButtonPanel.setLayoutManager(new GridLayout(lowerButtonPanel.getChildCount()).setHorizontalSpacing(1));
         return lowerButtonPanel;
     }
-
 
 
     public void saveSportBuchungsJob() {
