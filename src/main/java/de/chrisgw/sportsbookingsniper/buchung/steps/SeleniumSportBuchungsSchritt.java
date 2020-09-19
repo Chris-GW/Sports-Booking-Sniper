@@ -34,10 +34,17 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
 
 
     public static SportBuchungsVersuch newVerbindlicherBuchungsVersuch(SportBuchungsJob buchungsJob) {
-        WebDriver driver = newWebDriver();
-        driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(350, TimeUnit.MILLISECONDS);
-        return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
+        WebDriver driver = null;
+        try {
+            driver = newWebDriver();
+            driver.manage().window().maximize();
+            driver.manage().timeouts().implicitlyWait(350, TimeUnit.MILLISECONDS);
+            return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
+        } finally {
+            if (driver != null) {
+                driver.quit();
+            }
+        }
     }
 
     public static SportBuchungsVersuch newVerbindlicherBuchungsVersuch(WebDriver driver, SportBuchungsJob buchungsJob) {
@@ -50,8 +57,6 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         } catch (Exception e) {
             log.error("Could not book", e);
             return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
-        } finally {
-            driver.quit();
         }
     }
 

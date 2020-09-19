@@ -2,7 +2,6 @@ package de.chrisgw.sportsbookingsniper;
 
 import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.*;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsStrategieImpl.FixedPeriodBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
@@ -11,9 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 
 
 public class SportBookingSniperApplicationTest {
@@ -77,12 +75,11 @@ public class SportBookingSniperApplicationTest {
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob();
         sportBuchungsJob.setSportTermin(sportTermin);
         sportBuchungsJob.setTeilnehmerListe(readTeilnehmerListe());
-        sportBuchungsJob.setBuchungsStrategie(getSportBuchungsStrategie());
+        sportBuchungsJob.setBuchungsWiederholungsStrategie(getSportBuchungsStrategie());
         sportBuchungsJob.setPasswort("test1234");
 
         SportBuchungsSniperService bookingSniperService = sportBookingSniperApplication.getSniperService();
-        CompletableFuture<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submitSportBuchungsJob(
-                sportBuchungsJob);
+        Future<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submit(sportBuchungsJob);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = buchungsBestaetigungFuture.get();
         System.out.println(sportBuchungsBestaetigung);
     }
@@ -94,8 +91,9 @@ public class SportBookingSniperApplicationTest {
     }
 
 
-    private SportBuchungsStrategie getSportBuchungsStrategie() {
-        return new FixedPeriodBuchungsStrategie(1, TimeUnit.MINUTES);
+    private SportBuchungsWiederholungStrategie getSportBuchungsStrategie() {
+        KonfigurierbareSportBuchungsWiederholungStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsWiederholungStrategie();
+        return sportBuchungsStrategie;
     }
 
 

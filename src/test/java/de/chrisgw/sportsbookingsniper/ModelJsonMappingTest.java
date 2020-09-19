@@ -14,6 +14,8 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsWiederholungStrategie;
+import de.chrisgw.sportsbookingsniper.buchung.KonfigurierbareSportBuchungsWiederholungStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -160,6 +162,18 @@ public class ModelJsonMappingTest {
             logger.debug("{}", readedSportAngebot);
             assertThat(readedSportAngebot, equalTo(sportAngebot));
         }
+    }
+
+
+    @Test
+    public void shouldSeralizeSportBuchungsStrategie() throws Exception {
+        SportBuchungsWiederholungStrategie buchungsStrategie = KonfigurierbareSportBuchungsWiederholungStrategie.defaultKonfiguration();
+        String json = objectMapper.writeValueAsString(buchungsStrategie);
+        logger.debug(json);
+        SportBuchungsWiederholungStrategie readedBuchungsStrategie = objectMapper.readValue(json,
+                SportBuchungsWiederholungStrategie.class);
+        logger.debug("{}", readedBuchungsStrategie);
+        assertThat(readedBuchungsStrategie, equalTo(buchungsStrategie));
     }
 
 

@@ -32,14 +32,13 @@ public class GetSportAngebotWebpageSchritt extends SeleniumSportBuchungsSchritt 
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
+        log.traceEntry("GetSportAngebotWebpageSchritt executeBuchungsSchritt( {} )", buchungsJob);
         SportAngebot sportAngebot = buchungsJob.getSportAngebot();
         SportArt sportArt = sportAngebot.getSportArt();
         String sportArtUrl = sportArt.getUrl();
         log.debug("{}: WebDriver GET SportArt={} Angebot webpage URL={}", buchungsJob, sportAngebot, sportArtUrl);
         driver.get(sportArtUrl);
-        if (log.isTraceEnabled()) {
-            log.trace(Jsoup.parse(driver.getPageSource()).toString());
-        }
+        log.trace(() -> Jsoup.parse(driver.getPageSource()).toString());
         return super.executeBuchungsSchritt(buchungsJob);
     }
 

@@ -17,9 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsStrategieImpl.defaultSportBuchungStrategie;
+import static de.chrisgw.sportsbookingsniper.buchung.KonfigurierbareSportBuchungsWiederholungStrategie.defaultKonfiguration;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
 @Data
@@ -29,22 +31,28 @@ public class SportBuchungsJob {
     private SportTermin sportTermin;
     private String passwort;
     private List<Teilnehmer> teilnehmerListe = new ArrayList<>();
-    private SportBuchungsStrategie buchungsStrategie = defaultSportBuchungStrategie();
+    private SportBuchungsWiederholungStrategie buchungsWiederholungsStrategie = defaultKonfiguration();
 
     private boolean pausiert = false;
     private LocalDateTime buchungsBeginn;
-    private LocalDateTime bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
-    private List<SportBuchungsVersuch> buchungsVersuche = new ArrayList<>();
+    private LocalDateTime bevorstehenderBuchungsVersuch;
+    private List<SportBuchungsVersuch> buchungsVersuche = new CopyOnWriteArrayList<>();
 
 
     public SportBuchungsJob() {
-        buchungsVersuche.add(SportBuchungsVersuch.newBuchungsVersuch(SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN));
+        buchungsVersuche.add(newBuchungsVersuch(SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN));
+    }
+
+
+    public boolean canContinue() {
+        return !pausiert && getBuchungsVersuche() != null && lastSportBuchungsVersuch().getStatus()
+                .canContineNextBuchungsVersuch();
     }
 
 
     public LocalDateTime getBevorstehenderBuchungsVersuch() {
         if (bevorstehenderBuchungsVersuch.isAfter(LocalDateTime.now())) {
-            bevorstehenderBuchungsVersuch = buchungsStrategie.getNextTimeForCheck(this);
+            bevorstehenderBuchungsVersuch = buchungsWiederholungsStrategie.getNextTimeForCheck(this);
         }
         return bevorstehenderBuchungsVersuch;
     }
@@ -94,27 +102,25 @@ public class SportBuchungsJob {
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
-        return String.format("(%d) %s", jobId, sportTermin.getName());
+        return sportTermin.getName();
     }
 
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) {
+    public boolean equals(Object o) {
+        if (this == o)
             return true;
-        }
-        if (other == null || getClass() != other.getClass()) {
+        if (!(o instanceof SportBuchungsJob))
             return false;
-        }
-        SportBuchungsJob that = (SportBuchungsJob) other;
-        return new EqualsBuilder().append(jobId, that.jobId).isEquals();
+
+        SportBuchungsJob that = (SportBuchungsJob) o;
+        return new EqualsBuilder().append(getJobId(), that.getJobId()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(jobId).toHashCode();
+        return new HashCodeBuilder(17, 37).append(getJobId()).toHashCode();
     }
-
 
     @Override
     public String toString() {

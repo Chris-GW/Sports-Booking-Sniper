@@ -261,8 +261,7 @@ public class ApplicationStateDao {
 
 
     public void retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
-        sniperService.cancelSportBuchungsJob(buchungsJob);
-        sniperService.submitSportBuchungsJob(buchungsJob);
+        sniperService.submit(buchungsJob);
     }
 
 }

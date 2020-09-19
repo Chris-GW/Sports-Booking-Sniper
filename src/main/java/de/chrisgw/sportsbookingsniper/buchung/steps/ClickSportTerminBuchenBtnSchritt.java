@@ -42,7 +42,7 @@ public class ClickSportTerminBuchenBtnSchritt extends SeleniumSportBuchungsSchri
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
         Optional<WebElement> terminInput = findTerminBuchenBtn(buchungsJob);
-        if (!terminInput.isPresent()) {
+        if (terminInput.isEmpty()) {
             log.info("{}: couldn't find select option for SportTermin {}", buchungsJob, buchungsJob.getSportTermin());
             return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_GESCHLOSSEN);
         }

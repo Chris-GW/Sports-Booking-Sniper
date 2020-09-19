@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 
 @JsonTypeInfo(use = Id.MINIMAL_CLASS, include = As.WRAPPER_OBJECT)
-public interface SportBuchungsStrategie {
+public interface SportBuchungsWiederholungStrategie {
 
     /**
      * @param sportBuchungsJob für welchen SportBuchungsJob der nächte Versuchszeitpunkt gesucht wird.
