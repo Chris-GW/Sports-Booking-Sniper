@@ -134,7 +134,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
             kategorieComboBox.addItem(kategorie);
         }
 
-        kategorieComboBox.addListener((selectedIndex, previousSelection) -> {
+        kategorieComboBox.addListener((selectedIndex, previousSelection, changedByUserInteraction) -> {
             TeilnehmerKategorie selectedItem = kategorieComboBox.getSelectedItem();
             boolean requiresMatrikelnummer = selectedItem != null && selectedItem.requiresMatrikelnummer();
             boolean requiresMitarbeiterNummer = selectedItem != null && selectedItem.requiresMitarbeiterNummer();

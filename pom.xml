@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.chrisgw.sportsbookingsniper</groupId>
   <artifactId>sports-booking-sniper</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
   <description>Console GUI with selenium web booking agent for HSZ RWTH Aachen sports offer</description>
@@ -28,8 +28,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <log4j.version>2.13.3</log4j.version>
-    <jackson.version>2.11.1</jackson.version>
+    <log4j.version>2.14.0</log4j.version>
+    <jackson.version>2.12.2</jackson.version>
   </properties>
 
   <dependencies>
@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.googlecode.lanterna</groupId>
       <artifactId>lanterna</artifactId>
-      <version>3.2.0-alpha1</version>
+      <version>3.1.1</version>
     </dependency>
 
     <!-- jsoup -->
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>htmlunit-driver</artifactId>
-      <version>2.43.1</version>
+      <version>2.47.1</version>
     </dependency>
 
     <!-- jackson json -->
@@ -80,7 +80,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.11</version>
+      <version>3.12.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -97,20 +97,20 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>
-      <version>1.18.12</version>
+      <version>1.18.18</version>
     </dependency>
 
     <!-- testing -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.5.7</version>
+      <version>3.8.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -122,7 +122,7 @@
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path-assert</artifactId>
-      <version>2.4.0</version>
+      <version>2.5.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

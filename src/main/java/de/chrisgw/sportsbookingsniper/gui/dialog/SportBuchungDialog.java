@@ -68,7 +68,7 @@ public class SportBuchungDialog extends DialogWindow {
     }
 
     private Listener onSelectSportArt() {
-        return (selectedIndex, previousSelection) -> {
+        return (selectedIndex, previousSelection, changedByUserInteraction) -> {
             sportAngebotComboBox.setEnabled(true);
             sportAngebotComboBox.clearItems();
             SportArt sportArt = sportArtComboBox.getSelectedItem();
@@ -89,7 +89,7 @@ public class SportBuchungDialog extends DialogWindow {
     }
 
     private Listener onSelectSportAngebot() {
-        return (selectedIndex, previousSelection) -> {
+        return (selectedIndex, previousSelection, changedByUserInteraction) -> {
             terminComboBox.setEnabled(true);
             terminComboBox.clearItems();
             SportAngebot sportAngebot = sportAngebotComboBox.getSelectedItem();

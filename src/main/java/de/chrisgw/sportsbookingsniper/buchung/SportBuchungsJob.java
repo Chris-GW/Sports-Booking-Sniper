@@ -51,7 +51,7 @@ public class SportBuchungsJob {
 
 
     public LocalDateTime getBevorstehenderBuchungsVersuch() {
-        if (bevorstehenderBuchungsVersuch.isAfter(LocalDateTime.now())) {
+        if (bevorstehenderBuchungsVersuch == null || bevorstehenderBuchungsVersuch.isAfter(LocalDateTime.now())) {
             bevorstehenderBuchungsVersuch = buchungsWiederholungsStrategie.getNextTimeForCheck(this);
         }
         return bevorstehenderBuchungsVersuch;
