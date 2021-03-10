@@ -73,9 +73,12 @@ public class ModelJsonMappingTest {
         assertThat(json, hasJsonPath("$.street", is(teilnehmer.getStreet())));
         assertThat(json, hasJsonPath("$.ort", is(teilnehmer.getOrt())));
 
-        assertThat(json, hasJsonPath("$.personKategorie", jsonValue(teilnehmer.getTeilnehmerKategorie())));
+        assertThat(json, hasJsonPath("$.teilnehmerKategorie", jsonValue(teilnehmer.getTeilnehmerKategorie())));
         assertThat(json, hasJsonPath("$.matrikelnummer", is(teilnehmer.getMatrikelnummer())));
         assertThat(json, hasJsonPath("$.mitarbeiterNummer", is(teilnehmer.getMitarbeiterNummer())));
+
+        assertThat(json, hasJsonPath("$.iban", is(teilnehmer.getIban())));
+        assertThat(json, hasJsonPath("$.kontoInhaber", is(teilnehmer.getKontoInhaber())));
     }
 
     @Test
@@ -89,19 +92,6 @@ public class ModelJsonMappingTest {
         assertThat(readedTeilnehmer, equalTo(teilnehmer));
     }
 
-
-    @Test
-    public void shouldSeralizeSportKatalog() throws Exception {
-        SportKatalog sportKatalog = this.sportKatalog;
-        String json = objectMapper.writeValueAsString(sportKatalog);
-        logger.debug(json);
-
-        assertThat(json, hasJsonPath("$.abrufzeitpunkt", jsonValue(sportKatalog.getAbrufzeitpunkt())));
-        for (SportArt sportArt : sportKatalog.getSportArten()) {
-            assertThat(json, hasJsonPath("$.sportArten[*].name", hasItem(sportArt.getName())));
-            assertThat(json, hasJsonPath("$.sportArten[*].url", hasItem(sportArt.getUrl())));
-        }
-    }
 
     @Test
     public void shouldReadSportKatalog() throws Exception {
