@@ -372,19 +372,31 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
     }
 
     private SportTermin readSportTermin(Element terminTr) {
+        log.traceEntry(() -> terminTr);
         String datumStr = terminTr.child(1).text().trim();
+        log.trace("datum cell[1] '{}'", datumStr);
         LocalDate terminDatum = LocalDate.parse(datumStr, DATE_FORMATTER);
-
-        String[] uhrzeitStr = terminTr.child(2).text().split("-");
-        String startZeitStr = uhrzeitStr[0].replace(".", ":").trim();
-        String endZeitStr = uhrzeitStr[1].replace(".", ":").trim();
-        LocalTime startZeit = LocalTime.parse(startZeitStr, TIME_FORMATTER);
-        LocalTime endZeit = LocalTime.parse(endZeitStr, TIME_FORMATTER);
+        log.trace("datum cell[1] '{}' parsed terminDatum: {}", datumStr, terminDatum);
 
         SportTermin sportTermin = new SportTermin();
-        sportTermin.setStartZeit(terminDatum.atTime(startZeit));
-        sportTermin.setEndZeit(terminDatum.atTime(endZeit));
-        log.trace("readSportTermin {} from terminTr {}", sportTermin, terminTr);
+        String uhrzeitStr = terminTr.child(2).text();
+        log.trace("uhrzeit cell[2] '{}'", uhrzeitStr);
+        if (uhrzeitStr.matches("\\d{1,2}:\\d{1,2}\\s*-\\s*\\d{1,2}:\\d{1,2}")) {
+            String[] splitUhrzeitStr = uhrzeitStr.split("-");
+            String startZeitStr = splitUhrzeitStr[0].replace(".", ":").trim();
+            String endZeitStr = splitUhrzeitStr[1].replace(".", ":").trim();
+            LocalDateTime startZeit = LocalTime.parse(startZeitStr, TIME_FORMATTER).atDate(terminDatum);
+            LocalDateTime endZeit = LocalTime.parse(endZeitStr, TIME_FORMATTER).atDate(terminDatum);
+            log.trace("uhrzeit cell[2] '{}' parsed startTime {} and endTime {}", //
+                    uhrzeitStr, startZeit, endZeit);
+            sportTermin.setStartZeit(startZeit);
+            sportTermin.setEndZeit(endZeit);
+        } else {
+            log.warn("uhrzeit cell[2] '{}' from terminTr: {}", uhrzeitStr, terminTr);
+            sportTermin.setStartZeit(terminDatum.atTime(0, 0));
+            sportTermin.setEndZeit(terminDatum.atTime(0, 0));
+        }
+        log.traceExit(sportTermin);
         return sportTermin;
     }
 

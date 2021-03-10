@@ -44,9 +44,13 @@ public class SportTermin implements Comparable<SportTermin> {
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
-        String sportName = getSportAngebot().getSportArt().getName();
-        String kursnummer = getSportAngebot().getKursnummer();
-        return String.format("%s (%s) von %s ", sportName, kursnummer, formatTerminZeitraum());
+        if (getSportAngebot() != null) {
+            String sportName = getSportAngebot().getSportArt().getName();
+            String kursnummer = getSportAngebot().getKursnummer();
+            return String.format("%s (%s) von %s ", sportName, kursnummer, formatTerminZeitraum());
+        } else {
+            return formatTerminZeitraum();
+        }
     }
 
     @JsonIgnore
