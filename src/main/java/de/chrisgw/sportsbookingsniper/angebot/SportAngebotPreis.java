@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.function.BinaryOperator;
 
 
@@ -33,12 +34,12 @@ public class SportAngebotPreis {
 
 
     public boolean isPaymentRequierd() {
-        return preisStudierende.compareTo(BigInteger.ZERO) > 0 || preisMitarbeiter.compareTo(BigInteger.ZERO) > 0
-                || preisExterne.compareTo(BigInteger.ZERO) > 0 || preisAlumni.compareTo(BigInteger.ZERO) > 0;
+        return Arrays.stream(TeilnehmerKategorie.values()).anyMatch(this::isPaymentRequierd);
     }
 
     public boolean isPaymentRequierd(TeilnehmerKategorie teilnehmerKategorie) {
-        return preisFor(teilnehmerKategorie).compareTo(BigInteger.ZERO) > 0;
+        BigInteger preis = preisFor(teilnehmerKategorie);
+        return !BigInteger.ZERO.equals(preis);
     }
 
 

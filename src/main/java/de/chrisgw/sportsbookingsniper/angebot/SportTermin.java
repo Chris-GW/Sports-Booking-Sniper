@@ -3,8 +3,6 @@ package de.chrisgw.sportsbookingsniper.angebot;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -16,16 +14,24 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository.TIME_FORMATTER;
+import static java.util.Objects.requireNonNull;
 
 
 @Data
 @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportTermin implements Comparable<SportTermin> {
 
-    private SportAngebot sportAngebot;
+    private final LocalDateTime startZeit;
+    private final LocalDateTime endZeit;
 
-    private LocalDateTime startZeit;
-    private LocalDateTime endZeit;
+
+    public SportTermin(LocalDateTime startZeit, LocalDateTime endZeit) {
+        this.startZeit = requireNonNull(startZeit);
+        this.endZeit = requireNonNull(endZeit);
+        if (endZeit.isBefore(startZeit)) {
+            throw new IllegalArgumentException("startZeit needs to be before endZeit");
+        }
+    }
 
 
     public boolean overlapseWith(SportTermin otherSportTermin) {
@@ -42,16 +48,6 @@ public class SportTermin implements Comparable<SportTermin> {
         return startZeit != null && LocalDateTime.now().isBefore(startZeit);
     }
 
-    @JsonProperty(access = Access.READ_ONLY)
-    public String getName() {
-        if (getSportAngebot() != null) {
-            String sportName = getSportAngebot().getSportArt().getName();
-            String kursnummer = getSportAngebot().getKursnummer();
-            return String.format("%s (%s) von %s ", sportName, kursnummer, formatTerminZeitraum());
-        } else {
-            return formatTerminZeitraum();
-        }
-    }
 
     @JsonIgnore
     public String formatTerminZeitraum() {
@@ -80,15 +76,14 @@ public class SportTermin implements Comparable<SportTermin> {
 
     @Override
     public int compareTo(SportTermin otherTermin) {
-        return new CompareToBuilder().append(this.getSportAngebot(), otherTermin.getSportAngebot())
-                .append(this.getStartZeit(), otherTermin.getStartZeit())
+        return new CompareToBuilder().append(this.getStartZeit(), otherTermin.getStartZeit())
                 .append(this.getEndZeit(), otherTermin.getEndZeit())
                 .toComparison();
     }
 
     @Override
     public String toString() {
-        return getName();
+        return formatTerminZeitraum();
     }
 
 }

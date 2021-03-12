@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -15,13 +14,12 @@ import static java.util.Objects.requireNonNull;
 
 
 @Data
-@NoArgsConstructor
 @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportArt implements Comparable<SportArt> {
 
     private SportKatalog sportKatalog;
-    private String name;
-    private String url;
+    private final String name;
+    private final String url;
 
     @EqualsAndHashCode.Exclude
     private Set<SportAngebot> sportAngebote = new LinkedHashSet<>();

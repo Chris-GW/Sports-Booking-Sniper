@@ -85,7 +85,7 @@ public class FinishedSportBuchungenComponent extends BasicPanelComponent impleme
     private void addFinishedBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         List<String> rowValues = new ArrayList<>();
         SportTermin sportTermin = sportBuchungsJob.getSportTermin();
-        SportAngebot sportAngebot = sportTermin.getSportAngebot();
+        SportAngebot sportAngebot = sportBuchungsJob.getSportAngebot();
         String kursnummer = sportAngebot.getKursnummer();
         String sportArtName = sportAngebot.getSportArt().getName();
         LocalDateTime timestamp = sportBuchungsJob.lastSportBuchungsVersuch().getTimestamp();

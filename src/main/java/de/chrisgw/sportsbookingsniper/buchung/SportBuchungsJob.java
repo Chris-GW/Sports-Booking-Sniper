@@ -7,6 +7,7 @@ import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
+import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
 import lombok.Data;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -20,7 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportsbookingsniper.buchung.KonfigurierbareSportBuchungsWiederholungStrategie.defaultKonfiguration;
+import static de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie.defaultKonfiguration;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
@@ -28,10 +29,11 @@ import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuc
 public class SportBuchungsJob {
 
     private int jobId;
+    private SportAngebot sportAngebot;
     private SportTermin sportTermin;
     private String passwort;
     private List<Teilnehmer> teilnehmerListe = new ArrayList<>();
-    private SportBuchungsWiederholungStrategie buchungsWiederholungsStrategie = defaultKonfiguration();
+    private SportBuchungsStrategie buchungsWiederholungsStrategie = defaultKonfiguration();
 
     private boolean pausiert = false;
     private LocalDateTime buchungsBeginn;
@@ -91,10 +93,6 @@ public class SportBuchungsJob {
     }
 
 
-    public SportAngebot getSportAngebot() {
-        return sportTermin.getSportAngebot();
-    }
-
     public SportArt getSportArt() {
         return getSportAngebot().getSportArt();
     }
@@ -102,7 +100,10 @@ public class SportBuchungsJob {
 
     @JsonProperty(access = Access.READ_ONLY)
     public String getName() {
-        return sportTermin.getName();
+        String sportName = getSportAngebot().getSportArt().getName();
+        String kursnummer = getSportAngebot().getKursnummer();
+        String terminZeitraum = sportTermin.formatTerminZeitraum();
+        return String.format("%s (%s) von %s ", sportName, kursnummer, terminZeitraum);
     }
 
 

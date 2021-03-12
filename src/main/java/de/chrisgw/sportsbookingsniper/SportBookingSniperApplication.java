@@ -32,10 +32,10 @@ import java.util.Properties;
 @Data
 public class SportBookingSniperApplication {
 
-    private SportKatalogRepository sportKatalogRepository;
-    private SportBuchungsSniperService sniperService;
-    private ApplicationStateDao applicationStateDao;
-    private ObjectMapper objectMapper;
+    private final SportKatalogRepository sportKatalogRepository;
+    private final SportBuchungsSniperService sniperService;
+    private final ApplicationStateDao applicationStateDao;
+    private final ObjectMapper objectMapper;
 
 
     public SportBookingSniperApplication() {

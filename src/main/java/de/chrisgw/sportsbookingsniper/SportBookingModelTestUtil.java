@@ -34,11 +34,10 @@ public class SportBookingModelTestUtil {
     public static SportKatalog sportKatalog = newSportKatalog();
 
     public static SportKatalog newSportKatalog() {
-        SportKatalog sportKatalog = new SportKatalog();
-        sportKatalog.setAbrufzeitpunkt(LocalDateTime.now());
-        sportKatalog.setKatalog("Text Katalog");
-        sportKatalog.setZeitraumStart(pastDateTimeSupplier.get().toLocalDate());
-        sportKatalog.setZeitraumEnde(futureDateTimeSupplier.get().toLocalDate());
+        String katalog = "Text Katalog";
+        LocalDate zeitraumStart = pastDateTimeSupplier.get().toLocalDate();
+        LocalDate zeitraumEnd = futureDateTimeSupplier.get().toLocalDate();
+        SportKatalog sportKatalog = new SportKatalog(katalog, zeitraumStart, zeitraumEnd);
 
         sportKatalog.addSportArt(newBadmintonKarteSportArt());
         sportKatalog.addSportArt(newBadmintonEinzelplatzSportArt());
@@ -76,9 +75,8 @@ public class SportBookingModelTestUtil {
 
 
     public static SportArt newSportArt(String name) {
-        SportArt sportArt = new SportArt();
-        sportArt.setName(name);
-        sportArt.setUrl("https://example.com/sportArten/" + name);
+        String url = "https://example.com/sportArten/" + name;
+        SportArt sportArt = new SportArt(name, url);
         sportArt.addSportAngebot(newWeeklySportAngebot(sportArt, pastDateTimeSupplier.get()));
         sportArt.addSportAngebot(newWeeklySportAngebot(sportArt, pastDateTimeSupplier.get()));
         sportArt.addSportAngebot(newWeeklySportAngebot(sportArt, futureDateTimeSupplier.get()));
@@ -101,7 +99,7 @@ public class SportBookingModelTestUtil {
         sportAngebot.setBuchungsArt(ANGEBOT_TICKET_BUCHUNG);
         sportAngebot.setPasswortGesichert(false);
 
-        SortedSet<SportTermin> sportTermine = newSportTermine(sportAngebot, firstTerminDate);
+        SortedSet<SportTermin> sportTermine = newSportTermine(firstTerminDate);
         sportAngebot.setSportTermine(sportTermine);
         sportAngebot.setZeitraumStart(sportTermine.first().getTerminDate());
         sportAngebot.setZeitraumEnde(sportTermine.last().getTerminDate());
@@ -115,13 +113,12 @@ public class SportBookingModelTestUtil {
     }
 
 
-    public static SortedSet<SportTermin> newSportTermine(SportAngebot sportAngebot, LocalDateTime firstTerminDate) {
+    public static SortedSet<SportTermin> newSportTermine(LocalDateTime firstTerminDate) {
         SortedSet<SportTermin> sportTermine = new TreeSet<>();
         for (int i = 0; i < 4; i++) {
-            SportTermin sportTermin = new SportTermin();
-            sportTermin.setSportAngebot(sportAngebot);
-            sportTermin.setStartZeit(firstTerminDate.plusWeeks(i));
-            sportTermin.setEndZeit(firstTerminDate.plusWeeks(i));
+            LocalDateTime startZeit = firstTerminDate.plusWeeks(i);
+            LocalDateTime endZeit = firstTerminDate.plusWeeks(i);
+            SportTermin sportTermin = new SportTermin(startZeit, endZeit);
             sportTermine.add(sportTermin);
         }
         return sportTermine;
@@ -169,6 +166,7 @@ public class SportBookingModelTestUtil {
         SportBuchungsJob buchungsJob = new SportBuchungsJob();
         buchungsJob.setJobId(jobId);
         buchungsJob.setTeilnehmerListe(singletonList(newTeilnehmer()));
+        buchungsJob.setSportAngebot(sportAngebot);
         buchungsJob.setSportTermin(sportTermin);
         return buchungsJob;
     }

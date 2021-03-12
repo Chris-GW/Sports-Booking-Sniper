@@ -1,5 +1,6 @@
-package de.chrisgw.sportsbookingsniper.buchung;
+package de.chrisgw.sportsbookingsniper.buchung.strategie;
 
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import lombok.Data;
 
 import java.time.Duration;
@@ -11,7 +12,7 @@ import java.util.List;
 
 
 @Data
-public class KonfigurierbareSportBuchungsWiederholungStrategie implements SportBuchungsWiederholungStrategie {
+public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrategie {
 
     private boolean firstTry = false;
     private LocalDateTime lastTry = null;
@@ -19,8 +20,8 @@ public class KonfigurierbareSportBuchungsWiederholungStrategie implements SportB
     private List<DefinedDelayIntervall> definedDelayIntervalls = new ArrayList<>();
 
 
-    public static SportBuchungsWiederholungStrategie defaultKonfiguration() {
-        KonfigurierbareSportBuchungsWiederholungStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsWiederholungStrategie();
+    public static SportBuchungsStrategie defaultKonfiguration() {
+        KonfigurierbareSportBuchungsStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
         sportBuchungsStrategie.add(LocalTime.MIN, LocalTime.of(7, 15), Duration.ofMinutes(60));
         sportBuchungsStrategie.add(LocalTime.of(23, 0), LocalTime.MAX, Duration.ofMinutes(60));
         return sportBuchungsStrategie;

@@ -82,7 +82,6 @@ public class SportAngebot implements Comparable<SportAngebot> {
 
 
     public void addSportTermin(SportTermin sportTermin) {
-        sportTermin.setSportAngebot(this);
         this.sportTermine.add(sportTermin);
     }
 

@@ -68,13 +68,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             String katalogName = sportKatalogMatcher.group(1);
             LocalDate zeitraumStart = LocalDate.parse(sportKatalogMatcher.group(2), DATE_FORMATTER);
             LocalDate zeitraumEnde = LocalDate.parse(sportKatalogMatcher.group(3), DATE_FORMATTER);
-
-            SportKatalog sportKatalog = new SportKatalog();
-            sportKatalog.setKatalog(katalogName);
-            sportKatalog.setZeitraumStart(zeitraumStart);
-            sportKatalog.setZeitraumEnde(zeitraumEnde);
-            sportKatalog.setAbrufzeitpunkt(LocalDateTime.now());
-            return sportKatalog;
+            return new SportKatalog(katalogName, zeitraumStart, zeitraumEnde);
         } else {
             String message = String.format("Expect top SportKatalog String to match Pattern '%s' but was: '%s'",
                     sportKatalogPattern, sportKatalogToprStr);
@@ -340,9 +334,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             terminStart = terminStart.plusWeeks(1);
             terminEnd = terminEnd.plusWeeks(1);
 
-            SportTermin sportTermin = new SportTermin();
-            sportTermin.setStartZeit(terminStart);
-            sportTermin.setEndZeit(terminEnd);
+            SportTermin sportTermin = new SportTermin(terminStart, terminEnd);
             sportAngebot.addSportTermin(sportTermin);
         }
         sportAngebot.setZeitraumStart(firstTerminDate);
@@ -362,7 +354,6 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
 
             for (Element terminTr : doc.select("#main #bs_content table tbody tr")) {
                 SportTermin sportTermin = readSportTermin(terminTr);
-                sportTermin.setSportAngebot(sportAngebot);
                 sportTermine.add(sportTermin);
             }
             return sportTermine;
@@ -378,24 +369,22 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         LocalDate terminDatum = LocalDate.parse(datumStr, DATE_FORMATTER);
         log.trace("datum cell[1] '{}' parsed terminDatum: {}", datumStr, terminDatum);
 
-        SportTermin sportTermin = new SportTermin();
         String uhrzeitStr = terminTr.child(2).text();
+        LocalDateTime startZeit = terminDatum.atTime(0, 0);
+        LocalDateTime endZeit = terminDatum.atTime(0, 0);
         log.trace("uhrzeit cell[2] '{}'", uhrzeitStr);
         if (uhrzeitStr.matches("\\d{1,2}:\\d{1,2}\\s*-\\s*\\d{1,2}:\\d{1,2}")) {
             String[] splitUhrzeitStr = uhrzeitStr.split("-");
             String startZeitStr = splitUhrzeitStr[0].replace(".", ":").trim();
             String endZeitStr = splitUhrzeitStr[1].replace(".", ":").trim();
-            LocalDateTime startZeit = LocalTime.parse(startZeitStr, TIME_FORMATTER).atDate(terminDatum);
-            LocalDateTime endZeit = LocalTime.parse(endZeitStr, TIME_FORMATTER).atDate(terminDatum);
+            startZeit = LocalTime.parse(startZeitStr, TIME_FORMATTER).atDate(terminDatum);
+            endZeit = LocalTime.parse(endZeitStr, TIME_FORMATTER).atDate(terminDatum);
             log.trace("uhrzeit cell[2] '{}' parsed startTime {} and endTime {}", //
                     uhrzeitStr, startZeit, endZeit);
-            sportTermin.setStartZeit(startZeit);
-            sportTermin.setEndZeit(endZeit);
         } else {
             log.warn("uhrzeit cell[2] '{}' from terminTr: {}", uhrzeitStr, terminTr);
-            sportTermin.setStartZeit(terminDatum.atTime(0, 0));
-            sportTermin.setEndZeit(terminDatum.atTime(0, 0));
         }
+        SportTermin sportTermin = new SportTermin(startZeit, endZeit);
         log.traceExit(sportTermin);
         return sportTermin;
     }

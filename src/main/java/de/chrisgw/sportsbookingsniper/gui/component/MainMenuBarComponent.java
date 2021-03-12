@@ -166,6 +166,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         SportBuchungsJob buchungsJob = new SportBuchungsJob();
         buchungsJob.setJobId(5);
         buchungsJob.setTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
+        buchungsJob.setSportAngebot(sportAngebot);
         buchungsJob.setSportTermin(sportTermin);
         applicationStateDao.addSportBuchungsJob(buchungsJob);
     }

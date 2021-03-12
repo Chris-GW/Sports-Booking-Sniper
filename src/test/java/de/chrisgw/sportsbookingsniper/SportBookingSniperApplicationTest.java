@@ -3,9 +3,12 @@ package de.chrisgw.sportsbookingsniper;
 import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.*;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
+import de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie;
+import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
@@ -38,7 +41,7 @@ public class SportBookingSniperApplicationTest {
             SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
                     .findFirst()
                     .orElseThrow(RuntimeException::new);
-            testApplication.bucheSportTermin(sportTermin);
+            testApplication.bucheSportTermin(sportAngebot, sportTermin);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,8 +74,10 @@ public class SportBookingSniperApplicationTest {
     }
 
 
-    private void bucheSportTermin(SportTermin sportTermin) throws ExecutionException, InterruptedException {
+    private void bucheSportTermin(SportAngebot sportAngebot, SportTermin sportTermin)
+            throws ExecutionException, InterruptedException {
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob();
+        sportBuchungsJob.setSportAngebot(sportAngebot);
         sportBuchungsJob.setSportTermin(sportTermin);
         sportBuchungsJob.setTeilnehmerListe(readTeilnehmerListe());
         sportBuchungsJob.setBuchungsWiederholungsStrategie(getSportBuchungsStrategie());
@@ -91,8 +96,8 @@ public class SportBookingSniperApplicationTest {
     }
 
 
-    private SportBuchungsWiederholungStrategie getSportBuchungsStrategie() {
-        KonfigurierbareSportBuchungsWiederholungStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsWiederholungStrategie();
+    private SportBuchungsStrategie getSportBuchungsStrategie() {
+        KonfigurierbareSportBuchungsStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
         return sportBuchungsStrategie;
     }
 
@@ -144,11 +149,9 @@ public class SportBookingSniperApplicationTest {
     public static SortedSet<SportTermin> createSportTermine(SportAngebot sportAngebot, LocalDate firstTerminDate) {
         SortedSet<SportTermin> sportTermine = new TreeSet<>();
         for (int i = 0; i < 3; i++) {
-            SportTermin sportTermin = new SportTermin();
-            sportTermin.setSportAngebot(sportAngebot);
-            sportTermin.setStartZeit(firstTerminDate.plusWeeks(i).atTime(18, 30));
-            sportTermin.setEndZeit(firstTerminDate.plusWeeks(i).atTime(20, 15));
-            sportTermine.add(sportTermin);
+            LocalDateTime startZeit = firstTerminDate.plusWeeks(i).atTime(18, 30);
+            LocalDateTime endZeit = firstTerminDate.plusWeeks(i).atTime(20, 15);
+            sportTermine.add(new SportTermin(startZeit, endZeit));
         }
         return sportTermine;
     }

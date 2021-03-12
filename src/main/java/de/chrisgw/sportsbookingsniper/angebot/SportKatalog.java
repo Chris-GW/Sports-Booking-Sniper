@@ -12,10 +12,10 @@ import java.util.*;
 @Data
 public class SportKatalog implements Iterable<SportArt> {
 
-    private String katalog;
-    private LocalDate zeitraumStart;
-    private LocalDate zeitraumEnde;
-    private LocalDateTime abrufzeitpunkt = LocalDateTime.now();
+    private final String katalog;
+    private final LocalDate zeitraumStart;
+    private final LocalDate zeitraumEnde;
+    private final LocalDateTime abrufzeitpunkt = LocalDateTime.now();
 
     @EqualsAndHashCode.Exclude
     private Set<SportArt> sportArten = new TreeSet<>();
@@ -51,4 +51,5 @@ public class SportKatalog implements Iterable<SportArt> {
         }
         return str.deleteCharAt(str.length() - 1).toString();
     }
+
 }
