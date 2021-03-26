@@ -24,6 +24,9 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -95,7 +98,7 @@ public class SportBookingSniperApplication {
     }
 
     private SportBookingMainWindow createSportBookingMainWindow() {
-        return new SportBookingMainWindow( applicationStateDao);
+        return new SportBookingMainWindow(applicationStateDao);
     }
 
 
@@ -125,6 +128,10 @@ public class SportBookingSniperApplication {
 
     public static void main(String[] args) {
         try {
+            Path chromedriverPath = Paths.get("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
+            if (Files.exists(chromedriverPath)) {
+                System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
+            }
             log.trace("start SportBookingSniperApplication gui");
             new SportBookingSniperApplication().showGui();
             log.trace("finish SportBookingSniperApplication gui");

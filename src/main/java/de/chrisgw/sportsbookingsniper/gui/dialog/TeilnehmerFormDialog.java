@@ -6,7 +6,7 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;
 import com.googlecode.lanterna.input.KeyStroke;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import de.chrisgw.sportsbookingsniper.gui.component.ShortKeyRegistry;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +35,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
     private final Panel formularPanel = new Panel();
     private final TextBox vornameTextBox = new TextBox();
     private final TextBox nachnameTextBox = new TextBox();
-    private final ComboBox<Gender> genderComboBox = createGenderComboBox();
+    private final ComboBox<TeilnehmerGender> genderComboBox = createGenderComboBox();
 
     private final TextBox streetTextBox = new TextBox();
     private final TextBox ortTextBox = new TextBox();
@@ -50,7 +50,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
     private final TextBox kontoInhaberTextBox = new TextBox();
 
     private final Button cancelBtn = new Button(LocalizedString.Cancel.toString(), this::close);
-    private final Button resetBtn = new Button("zurücksetzen", this::resetTeilnehmerForm);
+    private final Button resetBtn = new Button("Zurücksetzen", this::resetTeilnehmerForm);
     private final Button saveBtn = new Button(LocalizedString.Save.toString(), this::saveTeilnehmerForm);
 
 
@@ -120,9 +120,9 @@ public class TeilnehmerFormDialog extends DialogWindow {
     }
 
 
-    private ComboBox<Gender> createGenderComboBox() {
-        ComboBox<Gender> genderComboBox = new ComboBox<>();
-        for (Gender gender : Gender.values()) {
+    private ComboBox<TeilnehmerGender> createGenderComboBox() {
+        ComboBox<TeilnehmerGender> genderComboBox = new ComboBox<>();
+        for (TeilnehmerGender gender : TeilnehmerGender.values()) {
             genderComboBox.addItem(gender);
         }
         return genderComboBox;
@@ -275,6 +275,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
 
     @Override
     public Optional<Teilnehmer> showDialog(WindowBasedTextGUI textGUI) {
+        saved.set(false);
         super.showDialog(textGUI);
         if (saved.get()) {
             return Optional.of(readTeilnehmer());

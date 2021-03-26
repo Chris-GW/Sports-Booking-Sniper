@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrategie {
 
-    private boolean firstTry = false;
+    private boolean firstTry = true;
     private LocalDateTime lastTry = null;
     private Duration defaultDelay = Duration.ofMinutes(15);
     private List<DefinedDelayIntervall> definedDelayIntervalls = new ArrayList<>();

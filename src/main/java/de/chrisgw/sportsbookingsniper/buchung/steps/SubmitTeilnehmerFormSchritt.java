@@ -1,15 +1,14 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
-import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
+import de.chrisgw.sportsbookingsniper.buchung.*;
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +61,11 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             List<Teilnehmer> teilnehmerListe = buchungsJob.getTeilnehmerListe();
             for (teilnehmerIndex = 0; teilnehmerIndex < teilnehmerListe.size(); teilnehmerIndex++) {
                 Teilnehmer teilnehmer = currentTeilnehmer();
-                log.debug("fill form with given Teilnehmer {}", teilnehmer);
+                if (cantEnterMoreTeilnehmer()) {
+                    log.warn("fill form with given Teilnehmer[{}] not possible {}", teilnehmerIndex, teilnehmer);
+                    continue;
+                }
+                log.debug("fill form with given Teilnehmer[{}] {}", teilnehmerIndex, teilnehmer);
 
                 findGenderRadioOption().click();
                 fillInput("vorname", teilnehmer.getVorname());
@@ -78,9 +81,13 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             submitTeilnehmerForm();
         }
 
+        private boolean cantEnterMoreTeilnehmer() {
+            return bsForm.findElements(byNameX(("sex"))).isEmpty();
+        }
+
 
         private WebElement findGenderRadioOption() {
-            Gender gender = currentTeilnehmer().getGender();
+            TeilnehmerGender gender = currentTeilnehmer().getGender();
             List<WebElement> genderInputs = bsForm.findElements(byNameX(("sex")));
             return genderInputs.stream()
                     .filter(isGenderRadioOption(gender))
@@ -88,7 +95,7 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
                     .orElseThrow(() -> new RuntimeException("could not select gender radio option for " + gender));
         }
 
-        private Predicate<WebElement> isGenderRadioOption(Gender gender) {
+        private Predicate<WebElement> isGenderRadioOption(TeilnehmerGender gender) {
             return genderRadioOption -> {
                 String genderShortName = gender.getShortName();
                 String optionValue = genderRadioOption.getAttribute("value");
@@ -153,8 +160,19 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
                     .filter(this::isWeiterZurBuchungBsFormBtn)
                     .findAny()
                     .orElseThrow(() -> new IllegalStateException("No 'weiter zur Buchung' submit Button found"));
-            weiterZurBuchungBtn.submit();
-            validateTeilnehmerForm();
+            for (int i = 0; !trySubmitTillStaleness(weiterZurBuchungBtn); i++) {
+                System.out.println(i + " submit");
+            }
+        }
+
+        private boolean trySubmitTillStaleness(WebElement weiterZurBuchungBtn) {
+            try {
+                weiterZurBuchungBtn.submit();
+                validateTeilnehmerForm();
+                return new WebDriverWait(driver, 1).until(ExpectedConditions.stalenessOf(weiterZurBuchungBtn));
+            } catch (TimeoutException e) {
+                return false;
+            }
         }
 
         private boolean isWeiterZurBuchungBsFormBtn(WebElement bsFormButton) {
@@ -171,7 +189,7 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             }
 
             for (WebElement teilnehmerAngabenWarning : teilnehmerAngabenWarnings) {
-                List<WebElement> feldName = bsForm.findElements(By.className("bs_form_sp1"));
+                List<WebElement> feldName = teilnehmerAngabenWarning.findElements(By.className("bs_form_sp1"));
                 if (feldName.isEmpty()) {
                     message.append("Unknown Warning: ").append(teilnehmerAngabenWarning.getText()).append("; ");
                 } else {

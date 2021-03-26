@@ -40,6 +40,7 @@ public class SportBuchungsSniperService {
     public Future<SportBuchungsBestaetigung> submit(SportBuchungsJob sportBuchungsJob) {
         if (sportBuchungsJob.getJobId() == 0) {
             sportBuchungsJob.setJobId(jobIdCounter.incrementAndGet());
+            sportBuchungsJob.setBuchungsWiederholungsStrategie(sportBuchungsJob1 -> LocalDateTime.now().plusSeconds(1));
             log.info("submit new SportBuchungsJobs {}", sportBuchungsJob);
         }
 

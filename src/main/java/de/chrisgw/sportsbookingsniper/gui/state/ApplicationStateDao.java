@@ -3,7 +3,6 @@ package de.chrisgw.sportsbookingsniper.gui.state;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
-import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil.newSportBuchungsJob;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
@@ -50,12 +48,6 @@ public class ApplicationStateDao {
         this.sniperService = requireNonNull(sniperService);
         this.objectMapper = requireNonNull(objectMapper);
         this.applicationState = loadApplicationData();
-
-        // TODO remove dummy sportKatalog
-        sportKatalog = SportBookingModelTestUtil.newSportKatalog();
-        for (int i = 0; i < 9; i++) {
-            addSportBuchungsJob(newSportBuchungsJob());
-        }
     }
 
 
@@ -251,12 +243,6 @@ public class ApplicationStateDao {
         applicationState = loadApplicationData();
         Locale.setDefault(applicationState.getLanguage());
         log.trace("on initialize load application data: {}", applicationState);
-
-        // TODO remove dummy sportKatalog
-        sportKatalog = SportBookingModelTestUtil.newSportKatalog();
-        for (int i = 0; i < 9; i++) {
-            addSportBuchungsJob(newSportBuchungsJob());
-        }
     }
 
 

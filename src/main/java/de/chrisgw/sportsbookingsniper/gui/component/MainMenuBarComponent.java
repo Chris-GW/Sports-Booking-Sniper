@@ -74,7 +74,9 @@ public class MainMenuBarComponent extends BasicPanelComponent {
     private Menu sportBuchungMenu() {
         Menu menu = new Menu("New");
         menu.add(new MenuItem("new SportBuchung", () -> {
-            new SportBuchungDialog(applicationStateDao).showDialog(getTextGUI());
+            SportBuchungDialog sportBuchungDialog = new SportBuchungDialog(applicationStateDao);
+            Optional<SportBuchungsJob> sportBuchungsJob = sportBuchungDialog.showDialog(getTextGUI());
+            sportBuchungsJob.ifPresent(applicationStateDao::addSportBuchungsJob);
         }));
         return menu;
     }

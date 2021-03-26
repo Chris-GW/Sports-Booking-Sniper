@@ -2,11 +2,13 @@ package de.chrisgw.sportsbookingsniper;
 
 import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.*;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,8 +21,8 @@ import java.util.concurrent.Future;
 
 public class SportBookingSniperApplicationTest {
 
-    private final static String SPORT_ART = "Fechten Level 2 - 3";
-    private final static String KURSNUMMER = "33432242";
+    private final static String SPORT_ART = "Spinning Online Level 2";
+    private final static String KURSNUMMER = "38815124";
 
     private final SportBookingSniperApplication sportBookingSniperApplication;
 
@@ -32,10 +34,12 @@ public class SportBookingSniperApplicationTest {
 
     public static void main(String[] args) {
         try {
+            Path chromedriverPath = Paths.get("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
+            if (Files.exists(chromedriverPath)) {
+                System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
+            }
             SportBookingSniperApplicationTest testApplication = new SportBookingSniperApplicationTest(
                     new SportBookingSniperApplication());
-            System.setProperty("webdriver.chrome.driver",
-                    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
 
             SportAngebot sportAngebot = testApplication.findSportAngebot(SPORT_ART, KURSNUMMER);
             SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
@@ -79,7 +83,8 @@ public class SportBookingSniperApplicationTest {
         SportBuchungsJob sportBuchungsJob = new SportBuchungsJob();
         sportBuchungsJob.setSportAngebot(sportAngebot);
         sportBuchungsJob.setSportTermin(sportTermin);
-        sportBuchungsJob.setTeilnehmerListe(readTeilnehmerListe());
+        List<Teilnehmer> teilnehmerListe = readTeilnehmerListe();
+        sportBuchungsJob.setTeilnehmerListe(teilnehmerListe);
         sportBuchungsJob.setBuchungsWiederholungsStrategie(getSportBuchungsStrategie());
         sportBuchungsJob.setPasswort("test1234");
 
@@ -87,6 +92,7 @@ public class SportBookingSniperApplicationTest {
         Future<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submit(sportBuchungsJob);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = buchungsBestaetigungFuture.get();
         System.out.println(sportBuchungsBestaetigung);
+        bookingSniperService.shutdownNow();
     }
 
 
@@ -107,7 +113,7 @@ public class SportBookingSniperApplicationTest {
         teilnehmer.setVorname("Vorname");
         teilnehmer.setNachname("Nachname");
         teilnehmer.setEmail("Email");
-        teilnehmer.setGender(Gender.FEMALE);
+        teilnehmer.setGender(TeilnehmerGender.FEMALE);
 
         teilnehmer.setStreet("Street");
         teilnehmer.setOrt("Ort");

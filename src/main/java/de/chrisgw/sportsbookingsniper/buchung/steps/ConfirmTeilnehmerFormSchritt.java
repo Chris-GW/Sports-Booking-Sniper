@@ -3,8 +3,11 @@ package de.chrisgw.sportsbookingsniper.buchung.steps;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsBestaetigung;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,9 +36,13 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
-        WebElement weiterZurBuchungBtn = findFormSubmitBtn().orElseThrow(RuntimeException::new);
-        if (buchungsJob.getJobId() == -1) { // TODO always submit
-            weiterZurBuchungBtn.submit();
+        WebElement verbindlichBuchenBtn = findFormSubmitBtn().orElseThrow(() -> new IllegalStateException(
+                "No 'verbindlich buchen' or 'kostenpflichtig buchen' submit Button found"));
+        // TODO remove if and always submit
+        if (buchungsJob.getJobId() == -1) {
+            for (int i = 0; !trySubmitTillStaleness(verbindlichBuchenBtn); i++) {
+                System.out.println(i + " submit");
+            }
             return super.executeBuchungsSchritt(buchungsJob);
         } else {
             // TODO remove dummy SportBuchungsBestaetigung
@@ -49,6 +56,16 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
 
     private Optional<WebElement> findFormSubmitBtn() {
         return findFormSubmitBtn("verbindlich buchen", "kostenpflichtig buchen");
+    }
+
+
+    private boolean trySubmitTillStaleness(WebElement verbindlichBuchenBtn) {
+        try {
+            verbindlichBuchenBtn.submit();
+            return new WebDriverWait(driver, 1).until(ExpectedConditions.stalenessOf(verbindlichBuchenBtn));
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
 }

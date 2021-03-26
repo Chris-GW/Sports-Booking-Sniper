@@ -138,7 +138,7 @@ public class ModelJsonMappingTest {
             logger.debug(json);
 
             assertThat(json, hasJsonPath("$.kursnummer", jsonValue(sportAngebot.getKursnummer())));
-            // TODO
+            // TODO test shouldSeralizeSportAngebot
         }
     }
 

@@ -3,7 +3,7 @@ package de.chrisgw.sportsbookingsniper;
 import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer.Gender;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import org.apache.commons.lang3.StringUtils;
 
@@ -133,7 +133,7 @@ public class SportBookingModelTestUtil {
         teilnehmer.setOrt("Ort Test");
         teilnehmer.setEmail("Email@text.de");
         teilnehmer.setTelefon("telefonnummer");
-        teilnehmer.setGender(Gender.FEMALE);
+        teilnehmer.setGender(TeilnehmerGender.FEMALE);
 
         teilnehmer.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
         teilnehmer.setMitarbeiterNummer("MitarbeiterNummer Text");

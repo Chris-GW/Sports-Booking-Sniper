@@ -70,7 +70,7 @@ public class SportBuchungsJob {
     }
 
     public Duration durationTillNextCheck() {
-        return Duration.between(getBevorstehenderBuchungsVersuch(), LocalDateTime.now());
+        return Duration.between(LocalDateTime.now(), getBevorstehenderBuchungsVersuch());
     }
 
 
