@@ -13,7 +13,6 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.SportBookingMainWindow;
 import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
@@ -35,16 +34,14 @@ import java.util.Properties;
 public class SportBookingSniperApplication {
 
     private final SportKatalogRepository sportKatalogRepository;
-    private final SportBuchungsSniperService sniperService;
     private final ApplicationStateDao applicationStateDao;
     private final ObjectMapper objectMapper;
 
 
     public SportBookingSniperApplication() {
         this.sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
-        this.sniperService = new SportBuchungsSniperService();
         this.objectMapper = createObjectMapper();
-        this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, sniperService, objectMapper);
+        this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, objectMapper);
     }
 
 

@@ -6,8 +6,8 @@ import com.googlecode.lanterna.graphics.Theme;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
+import de.chrisgw.sportsbookingsniper.buchung.ScheduledSportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import lombok.extern.log4j.Log4j2;
 
@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.Collections.unmodifiableList;
@@ -31,7 +33,7 @@ public class ApplicationStateDao {
     private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
-    private final SportBuchungsSniperService sniperService;
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
@@ -41,10 +43,8 @@ public class ApplicationStateDao {
     private SportKatalog sportKatalog;
 
 
-    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, SportBuchungsSniperService sniperService,
-            ObjectMapper objectMapper) {
+    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, ObjectMapper objectMapper) {
         this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
-        this.sniperService = requireNonNull(sniperService);
         this.objectMapper = requireNonNull(objectMapper);
         this.applicationState = loadApplicationData();
     }
@@ -138,12 +138,25 @@ public class ApplicationStateDao {
         return unmodifiableList(applicationState.getPendingBuchungsJobs());
     }
 
-    public void addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+    public ScheduledSportBuchungsJob addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
         saveApplicationData();
+        var scheduledBuchungsJob = new ScheduledSportBuchungsJob(sportBuchungsJob, executorService);
+
         for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+            scheduledBuchungsJob.addListener(sportBuchungsJobListener);
             sportBuchungsJobListener.onNewPendingSportBuchungsJob(sportBuchungsJob);
         }
+        return scheduledBuchungsJob;
+    }
+
+    public ScheduledSportBuchungsJob retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
+        var scheduledBuchungsJob = new ScheduledSportBuchungsJob(buchungsJob, executorService);
+        for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+            scheduledBuchungsJob.addListener(sportBuchungsJobListener);
+            sportBuchungsJobListener.onNewPendingSportBuchungsJob(buchungsJob);
+        }
+        return scheduledBuchungsJob;
     }
 
     public void refreshSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
@@ -172,6 +185,7 @@ public class ApplicationStateDao {
     public List<SportBuchungsJob> getFinishedBuchungsJobs() {
         return applicationState.getFinishedBuchungsJobs();
     }
+
 
     // firstVisite
 
@@ -237,16 +251,5 @@ public class ApplicationStateDao {
         }
     }
 
-
-    public void afterPropertiesSet() {
-        applicationState = loadApplicationData();
-        Locale.setDefault(applicationState.getLanguage());
-        log.trace("on initialize load application data: {}", applicationState);
-    }
-
-
-    public void retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
-        sniperService.submit(buchungsJob);
-    }
 
 }

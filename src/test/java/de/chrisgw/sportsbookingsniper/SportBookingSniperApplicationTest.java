@@ -1,6 +1,7 @@
 package de.chrisgw.sportsbookingsniper;
 
 import de.chrisgw.sportsbookingsniper.angebot.*;
+import de.chrisgw.sportsbookingsniper.buchung.ScheduledSportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.*;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
@@ -16,7 +17,6 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 
 public class SportBookingSniperApplicationTest {
@@ -88,11 +88,10 @@ public class SportBookingSniperApplicationTest {
         sportBuchungsJob.setBuchungsWiederholungsStrategie(getSportBuchungsStrategie());
         sportBuchungsJob.setPasswort("test1234");
 
-        SportBuchungsSniperService bookingSniperService = sportBookingSniperApplication.getSniperService();
-        Future<SportBuchungsBestaetigung> buchungsBestaetigungFuture = bookingSniperService.submit(sportBuchungsJob);
-        SportBuchungsBestaetigung sportBuchungsBestaetigung = buchungsBestaetigungFuture.get();
+        ApplicationStateDao applicationStateDao = sportBookingSniperApplication.getApplicationStateDao();
+        ScheduledSportBuchungsJob scheduledBuchungsJob = applicationStateDao.retrySportBuchungsJob(sportBuchungsJob);
+        SportBuchungsBestaetigung sportBuchungsBestaetigung = scheduledBuchungsJob.get();
         System.out.println(sportBuchungsBestaetigung);
-        bookingSniperService.shutdownNow();
     }
 
 
@@ -103,8 +102,7 @@ public class SportBookingSniperApplicationTest {
 
 
     private SportBuchungsStrategie getSportBuchungsStrategie() {
-        KonfigurierbareSportBuchungsStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
-        return sportBuchungsStrategie;
+        return new KonfigurierbareSportBuchungsStrategie();
     }
 
 
