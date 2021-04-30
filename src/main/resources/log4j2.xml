@@ -7,10 +7,10 @@
     <RollingRandomAccessFile name="LogToFile" fileName="sports-booking-sniper.log"
                              filePattern="logs/sports-booking-sniper-%d{yyyy-MM-dd}.log.gz">
       <PatternLayout>
-        <Pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{30} - %msg%n</Pattern>
+        <Pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Pattern>
       </PatternLayout>
       <Policies>
-        <TimeBasedTriggeringPolicy  interval="7"/>
+        <TimeBasedTriggeringPolicy interval="7"/>
       </Policies>
       <DefaultRolloverStrategy max="7"/>
     </RollingRandomAccessFile>

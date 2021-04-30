@@ -9,14 +9,21 @@
   <name>HSZ RWTH-Aachen Sports Booking Sniper</name>
   <description>Console GUI with selenium web booking agent for HSZ RWTH Aachen sports offer</description>
   <scm>
-    <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
     <url>https://github.com/Chris-GW/Sports-Booking-Sniper</url>
+    <connection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</connection>
+    <developerConnection>scm:git:https://github.com/Chris-GW/Sports-Booking-Sniper.git</developerConnection>
     <tag>main</tag>
   </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/Chris-GW/Sports-Booking-Sniper/issues</url>
+  </issueManagement>
   <developers>
     <developer>
       <name>Chris-GW</name>
       <email>Chris-GW@users.noreply.github.com</email>
+      <url>https://github.com/Chris-GW</url>
+      <timezone>Europe/Berlin</timezone>
     </developer>
   </developers>
   <licenses>
@@ -28,7 +35,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <log4j.version>2.14.0</log4j.version>
+    <log4j.version>2.14.1</log4j.version>
     <jackson.version>2.12.2</jackson.version>
   </properties>
 
@@ -56,7 +63,7 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>htmlunit-driver</artifactId>
-      <version>2.47.1</version>
+      <version>2.49.1</version>
     </dependency>
 
     <!-- jackson json -->
@@ -71,17 +78,7 @@
       <version>${jackson.version}</version>
     </dependency>
 
-    <!-- util and logging -->
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>3.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.12.0</version>
-    </dependency>
+    <!-- logging -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
@@ -93,11 +90,23 @@
       <version>${log4j.version}</version>
     </dependency>
 
+    <!-- utils -->
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib</artifactId>
+      <version>3.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+    </dependency>
+
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+      <version>1.18.20</version>
       <optional>true</optional>
-      <version>1.18.18</version>
     </dependency>
 
     <!-- testing -->
@@ -110,7 +119,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.8.0</version>
+      <version>3.9.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
