@@ -35,7 +35,7 @@ public class SportBuchungsVersuch {
         BUCHUNG_FEHLER;
 
 
-        public boolean canContineNextBuchungsVersuch() {
+        public boolean canContinueNextBuchungsVersuch() {
             switch (this) {
             case BUCHUNG_GESCHLOSSEN:
             case BUCHUNG_WARTELISTE:

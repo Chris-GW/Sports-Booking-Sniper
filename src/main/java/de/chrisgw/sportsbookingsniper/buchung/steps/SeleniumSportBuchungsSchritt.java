@@ -38,7 +38,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         try {
             driver = newWebDriver();
             driver.manage().window().maximize();
-            driver.manage().timeouts().implicitlyWait(350, TimeUnit.MILLISECONDS);
+            driver.manage().timeouts().implicitlyWait(500, TimeUnit.MILLISECONDS);
             return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
         } finally {
             if (driver != null) {

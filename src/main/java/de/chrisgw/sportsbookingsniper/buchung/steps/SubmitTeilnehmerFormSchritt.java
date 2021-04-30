@@ -161,7 +161,7 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
                     .findAny()
                     .orElseThrow(() -> new IllegalStateException("No 'weiter zur Buchung' submit Button found"));
             for (int i = 0; !trySubmitTillStaleness(weiterZurBuchungBtn); i++) {
-                System.out.println(i + " submit");
+                log.trace(i + " submit");
             }
         }
 

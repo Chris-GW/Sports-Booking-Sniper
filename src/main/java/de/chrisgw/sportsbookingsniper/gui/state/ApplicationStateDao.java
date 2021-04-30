@@ -11,7 +11,6 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsSniperService;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,12 +33,12 @@ public class ApplicationStateDao {
     private final SportKatalogRepository sportKatalogRepository;
     private final SportBuchungsSniperService sniperService;
 
+    private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
+    private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
+
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
     private SportKatalog sportKatalog;
-
-    private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
-    private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
 
 
     public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, SportBuchungsSniperService sniperService,
@@ -213,8 +212,8 @@ public class ApplicationStateDao {
             if (!Files.isReadable(savedApplicationDataPath)) {
                 return new SavedApplicationState();
             }
-            File saveFile = savedApplicationDataPath.toFile();
-            SavedApplicationState savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
+            var saveFile = savedApplicationDataPath.toFile();
+            var savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
             log.trace("read savedApplicationData {} from {}", savedApplicationState, saveFile);
             return savedApplicationState;
         } catch (IOException e) {
@@ -228,7 +227,7 @@ public class ApplicationStateDao {
         try {
             fileLock.lock();
             applicationState.setSaveTime(Instant.now());
-            File saveFile = savedApplicationDataPath.toFile();
+            var saveFile = savedApplicationDataPath.toFile();
             log.trace("write applicationState {} to {}", applicationState, saveFile);
             objectMapper.writeValue(saveFile, applicationState);
         } catch (Exception e) {

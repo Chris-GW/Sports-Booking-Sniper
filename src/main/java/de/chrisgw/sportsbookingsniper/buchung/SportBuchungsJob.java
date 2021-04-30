@@ -48,7 +48,7 @@ public class SportBuchungsJob {
 
     public boolean canContinue() {
         return !pausiert && getBuchungsVersuche() != null && lastSportBuchungsVersuch().getStatus()
-                .canContineNextBuchungsVersuch();
+                .canContinueNextBuchungsVersuch();
     }
 
 

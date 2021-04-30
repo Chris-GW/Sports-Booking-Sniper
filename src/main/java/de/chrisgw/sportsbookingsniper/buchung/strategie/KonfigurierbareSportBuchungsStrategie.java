@@ -21,7 +21,7 @@ public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrat
 
 
     public static SportBuchungsStrategie defaultKonfiguration() {
-        KonfigurierbareSportBuchungsStrategie sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
+        var sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
         sportBuchungsStrategie.add(LocalTime.MIN, LocalTime.of(7, 15), Duration.ofMinutes(60));
         sportBuchungsStrategie.add(LocalTime.of(23, 0), LocalTime.MAX, Duration.ofMinutes(60));
         return sportBuchungsStrategie;
@@ -30,7 +30,7 @@ public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrat
 
     @Override
     public LocalDateTime getNextTimeForCheck(SportBuchungsJob sportBuchungsJob) {
-        LocalDateTime now = LocalDateTime.now();
+        var now = LocalDateTime.now();
         if (isAfterLastTry(now)) {
             return null;
         }
