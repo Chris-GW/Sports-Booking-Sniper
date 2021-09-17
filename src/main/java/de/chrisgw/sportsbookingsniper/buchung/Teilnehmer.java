@@ -24,6 +24,24 @@ public class Teilnehmer {
     private String kontoInhaber;
 
 
+    public void set(Teilnehmer teilnehmer) {
+        setVorname(teilnehmer.getVorname());
+        setNachname(teilnehmer.getNachname());
+        setStreet(teilnehmer.getStreet());
+        setOrt(teilnehmer.getOrt());
+        setEmail(teilnehmer.getEmail());
+        setTelefon(teilnehmer.getTelefon());
+        setGender(teilnehmer.getGender());
+
+        setTeilnehmerKategorie(teilnehmer.getTeilnehmerKategorie());
+        setMatrikelnummer(teilnehmer.getMatrikelnummer());
+        setMitarbeiterNummer(teilnehmer.getMitarbeiterNummer());
+
+        setIban(teilnehmer.getIban());
+        setKontoInhaber(teilnehmer.getKontoInhaber());
+    }
+
+
     @JsonIgnore
     public String getName() {
         return getVorname() + " " + getNachname();

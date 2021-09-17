@@ -98,6 +98,11 @@ public class ApplicationStateDao {
         return add;
     }
 
+    public void updateTeilnehmer(int index, Teilnehmer teilnehmer) {
+        applicationState.getTeilnehmerListe().set(index, teilnehmer);
+        notifyTeilnehmerListeListeners();
+    }
+
     public boolean removeTeilnehmer(Teilnehmer teilnehmer) {
         boolean remove = applicationState.getTeilnehmerListe().remove(teilnehmer);
         notifyTeilnehmerListeListeners();
@@ -195,6 +200,7 @@ public class ApplicationStateDao {
 
     public void setFirstVisite(boolean firstVisite) {
         applicationState.setFirstVisite(firstVisite);
+        saveApplicationData();
     }
 
 
@@ -250,6 +256,5 @@ public class ApplicationStateDao {
             fileLock.lock();
         }
     }
-
 
 }

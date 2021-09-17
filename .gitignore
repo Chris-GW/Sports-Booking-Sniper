@@ -28,5 +28,6 @@ gen/
 .settings/
 
 *.log
+*.log.gz
 PersonenAngaben.json
 savedSportBookingApplicationData.json

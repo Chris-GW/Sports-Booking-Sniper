@@ -89,8 +89,8 @@ public class SportBookingSniperApplication {
         var teilnehmerFormDialog = new TeilnehmerFormDialog();
         teilnehmerFormDialog.setForceValidTeilnehmerForm(true);
         Optional<Teilnehmer> teilnehmer = teilnehmerFormDialog.showDialog(multiWindowTextGUI);
-        applicationStateDao.setDefaultTeilnehmer(teilnehmer.orElseThrow());
         applicationStateDao.setFirstVisite(false);
+        applicationStateDao.setDefaultTeilnehmer(teilnehmer.orElseThrow());
     }
 
     private SportBookingMainWindow createSportBookingMainWindow() {

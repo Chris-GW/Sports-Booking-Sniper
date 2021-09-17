@@ -5,16 +5,21 @@ import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder;
 import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportsbookingsniper.angebot.*;
+import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportsbookingsniper.angebot.SportArt;
+import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
+import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
+import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerVerwaltungWindow;
 import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
@@ -116,12 +121,65 @@ public class MainMenuBarComponent extends BasicPanelComponent {
             }
         };
 
-        menu.add(new MenuItem("edit Teilnehmer", () -> {
-            Teilnehmer defaultTeilnehmer = applicationStateDao.getDefaultTeilnehmer();
-            Optional<Teilnehmer> teilnehmer = new TeilnehmerFormDialog(defaultTeilnehmer).showDialog(getTextGUI());
-            teilnehmer.ifPresent(applicationStateDao::addTeilnehmer);
-        }));
+        menu.add(new MenuItem("Teilnehmer Dialog",
+                () -> getTextGUI().addWindow(new TeilnehmerVerwaltungWindow(applicationStateDao))));
+        menu.add(new MenuItem("add einen neuen Teilnehmer", this::showAddNewTeilnehmerDialog));
+        menu.add(new MenuItem("bearbeite einen Teilnehmer", this::showEditTeilnehmerActionDialog));
+        menu.add(new MenuItem("lösche einen Teilnehmer", this::showDeleteTeilnehmerActionDialog));
+        menu.add(new MenuItem("switch default Teilnehmer", this::showSwitchDefaultTeilnehmerActionDialog));
         return menu;
+    }
+
+    private void showAddNewTeilnehmerDialog() {
+        Optional<Teilnehmer> savedTeilnehmer = new TeilnehmerFormDialog().showDialog(getTextGUI());
+        savedTeilnehmer.ifPresent(applicationStateDao::addTeilnehmer);
+    }
+
+    private void showSwitchDefaultTeilnehmerActionDialog() {
+        var actionDialogBuilder = new ActionListDialogBuilder();
+        actionDialogBuilder.setTitle("Switch default Teilnehmer to ...");
+        actionDialogBuilder.setCloseAutomaticallyOnAction(true);
+        actionDialogBuilder.setCanCancel(true);
+        applicationStateDao.getTeilnehmerListe().forEach(teilnehmer -> {
+            String label = teilnehmer.getName();
+            actionDialogBuilder.addAction(label, () -> {
+                applicationStateDao.setDefaultTeilnehmer(teilnehmer);
+            });
+        });
+        actionDialogBuilder.build().showDialog(getTextGUI());
+    }
+
+    private void showEditTeilnehmerActionDialog() {
+        var actionDialogBuilder = new ActionListDialogBuilder();
+        actionDialogBuilder.setTitle("Teilnehmer zum Bearbeiten auswählen");
+        actionDialogBuilder.setCloseAutomaticallyOnAction(true);
+        actionDialogBuilder.setCanCancel(true);
+        applicationStateDao.getTeilnehmerListe().forEach(teilnehmer -> {
+            String label = teilnehmer.getName();
+            actionDialogBuilder.addAction(label, () -> {
+                Optional<Teilnehmer> savedTeilnehmer = new TeilnehmerFormDialog(teilnehmer).showDialog(getTextGUI());
+                if (savedTeilnehmer.isPresent()) {
+                    teilnehmer.set(savedTeilnehmer.get());
+                    int index = applicationStateDao.getTeilnehmerListe().indexOf(teilnehmer);
+                    applicationStateDao.updateTeilnehmer(index, savedTeilnehmer.get());
+                }
+            });
+        });
+        actionDialogBuilder.build().showDialog(getTextGUI());
+    }
+
+    private void showDeleteTeilnehmerActionDialog() {
+        var actionDialogBuilder = new ActionListDialogBuilder();
+        actionDialogBuilder.setTitle("Select Teilnehmer for deletion");
+        actionDialogBuilder.setCloseAutomaticallyOnAction(true);
+        actionDialogBuilder.setCanCancel(true);
+        applicationStateDao.getTeilnehmerListe().forEach(teilnehmer -> {
+            String label = teilnehmer.getName();
+            actionDialogBuilder.addAction(label, () -> {
+                applicationStateDao.removeTeilnehmer(teilnehmer);
+            });
+        });
+        actionDialogBuilder.build().showDialog(getTextGUI());
     }
 
 
