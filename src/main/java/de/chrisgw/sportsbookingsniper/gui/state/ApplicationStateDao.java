@@ -204,9 +204,9 @@ public class ApplicationStateDao {
     }
 
 
-    // selectedheme
+    // selectedTheme
 
-    public Theme getSelectedheme() {
+    public Theme getSelectedTheme() {
         String selectedTheme = applicationState.getSelectedTheme();
         if (LanternaThemes.getRegisteredThemes().contains(selectedTheme)) {
             return LanternaThemes.getRegisteredTheme(selectedTheme);

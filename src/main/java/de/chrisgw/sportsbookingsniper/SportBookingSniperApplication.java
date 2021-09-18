@@ -15,7 +15,7 @@ import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepositor
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.SportBookingMainWindow;
-import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.dialog.WelcomeDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import lombok.Data;
@@ -77,7 +77,7 @@ public class SportBookingSniperApplication {
     private MultiWindowTextGUI createMultiWindowTextGUI(TerminalScreen guiScreen) {
         var windowTextGUI = new MultiWindowTextGUI(guiScreen);
         registerLanternaThemes();
-        windowTextGUI.setTheme(applicationStateDao.getSelectedheme());
+        windowTextGUI.setTheme(applicationStateDao.getSelectedTheme());
         return windowTextGUI;
     }
 

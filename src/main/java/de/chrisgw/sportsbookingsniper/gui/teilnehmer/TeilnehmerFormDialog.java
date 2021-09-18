@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.dialog;
+package de.chrisgw.sportsbookingsniper.gui.teilnehmer;
 
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DialogWindow;

@@ -10,7 +10,7 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
-import de.chrisgw.sportsbookingsniper.gui.component.MainMenuBarComponent;
+import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
 import java.util.List;

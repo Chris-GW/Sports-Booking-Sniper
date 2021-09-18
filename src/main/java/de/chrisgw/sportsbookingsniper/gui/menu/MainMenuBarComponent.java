@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.component;
+package de.chrisgw.sportsbookingsniper.gui.menu;
 
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
@@ -6,6 +6,7 @@ import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
+import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder;
 import com.googlecode.lanterna.gui2.menu.Menu;
@@ -18,9 +19,11 @@ import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportsbookingsniper.gui.component.AnimatedClock;
+import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
-import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerVerwaltungWindow;
-import de.chrisgw.sportsbookingsniper.gui.dialog.TeilnehmerFormDialog;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
 import java.util.Locale;
@@ -54,7 +57,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
                 .add(languageMenu());
 
         addComponent(menuBar, Location.CENTER);
-        addComponent(new AnimatedClock(), Location.RIGHT);
+        //addComponent(new AnimatedClock(), Location.RIGHT);
     }
 
     private MenuItem createSwitchThemeMenuItem() {
@@ -210,6 +213,9 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         Menu debugMenu = new Menu("Debug");
         debugMenu.add(new MenuItem("new dummy pending SportBuchungsJob", this::addPendingDummySportBookingJob));
         debugMenu.add(new MenuItem("new dummy finished SportBuchungsJob", this::addFinishDummySportBookingJob));
+        debugMenu.add(new MenuItem("show FileDialog", () -> {
+            new FileDialogBuilder().setTitle("title").setActionLabel("action label").setDescription("description").build().showDialog(getTextGUI());
+        }));
         return debugMenu;
     }
 

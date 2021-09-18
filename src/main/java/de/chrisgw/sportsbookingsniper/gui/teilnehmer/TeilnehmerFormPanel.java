@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.dialog;
+package de.chrisgw.sportsbookingsniper.gui.teilnehmer;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor.ANSI;

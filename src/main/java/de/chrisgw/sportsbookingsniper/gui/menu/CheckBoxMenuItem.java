@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.component;
+package de.chrisgw.sportsbookingsniper.gui.menu;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;

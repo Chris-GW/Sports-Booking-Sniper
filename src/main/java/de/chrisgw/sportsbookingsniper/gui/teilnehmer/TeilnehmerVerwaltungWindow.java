@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.dialog;
+package de.chrisgw.sportsbookingsniper.gui.teilnehmer;
 
 import com.googlecode.lanterna.gui2.AbstractListBox.ListItemRenderer;
 import com.googlecode.lanterna.gui2.*;
@@ -41,7 +41,7 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow implements Teilnehme
         this.applicationStateDao = applicationStateDao;
         this.applicationStateDao.addTeilnehmerListeListener(this);
 
-        teilnehmerListBox.setListItemRenderer(alwaysFocusedListItemRenderer());
+        teilnehmerListBox.setListItemRenderer(alwaysMarkedListItemRenderer());
         onChangedTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
 
         Panel mainPanel = new Panel(new BorderLayout());
@@ -61,14 +61,21 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow implements Teilnehme
     }
 
 
-    private ListItemRenderer<Runnable, ActionListBox> alwaysFocusedListItemRenderer() {
+    private static ListItemRenderer<Runnable, ActionListBox> alwaysMarkedListItemRenderer() {
         return new ListItemRenderer<>() {
 
             @Override
-            public void drawItem(TextGUIGraphics graphics, ActionListBox listBox, int index, Runnable item,
-                    boolean selected, boolean focused) {
-                super.drawItem(graphics, listBox, index, item, selected, true);
+            public String getLabel(ActionListBox listBox, int index, Runnable item) {
+                if (item == null) {
+                    return "<null>";
+                }
+                if (listBox != null && listBox.getSelectedIndex() == index) {
+                    return "[" + item + "]";
+                } else {
+                    return " " + item + " ";
+                }
             }
+
         };
     }
 
