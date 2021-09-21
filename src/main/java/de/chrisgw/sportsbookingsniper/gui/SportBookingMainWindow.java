@@ -47,14 +47,13 @@ public class SportBookingMainWindow extends BasicWindow {
         contentPanel.addComponent(createCenterPanel(), Location.CENTER);
 
         Label bottomLabel = new Label("");
-        addWindowListener(windowResizeListener(bottomLabel));
         contentPanel.addComponent(bottomLabel, Location.BOTTOM);
         addBasePaneListener(newCloseWindowInputListener());
     }
 
 
     private Panel createLeftPanel() {
-        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao,  this);
+        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, this);
         pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(pendingComponent);
         mainMenuBar.addNavigationMenuItemsFor(pendingComponent);
@@ -80,18 +79,6 @@ public class SportBookingMainWindow extends BasicWindow {
         Panel centerPanel = new Panel();
         centerPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
         return centerPanel;
-    }
-
-
-    private WindowListener windowResizeListener(Label windowSizeDebugLabel) {
-        return new WindowListenerAdapter() {
-
-            @Override
-            public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
-                windowSizeDebugLabel.setText("old = " + oldSize + "; new = " + newSize);
-            }
-
-        };
     }
 
 

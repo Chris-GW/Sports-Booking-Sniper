@@ -2,10 +2,11 @@ package de.chrisgw.sportsbookingsniper.buchung;
 
 public enum TeilnehmerGender {
 
+    KEINE_ANGABE("X", "keine Angabe"), //
     MALE("M", "männlich"), //
     FEMALE("W", "weiblich"), //
     DIVERS("D", "divers"), //
-    KEINE_ANGABE("X", "keine Angabe");
+    ;
 
     private String shortName;
     private String name;

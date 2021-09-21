@@ -19,12 +19,11 @@ import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.gui.component.AnimatedClock;
 import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
-import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;
-import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -57,7 +56,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
                 .add(languageMenu());
 
         addComponent(menuBar, Location.CENTER);
-        //addComponent(new AnimatedClock(), Location.RIGHT);
+        // addComponent(new AnimatedClock(), Location.RIGHT);
     }
 
     private MenuItem createSwitchThemeMenuItem() {
@@ -214,7 +213,11 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         debugMenu.add(new MenuItem("new dummy pending SportBuchungsJob", this::addPendingDummySportBookingJob));
         debugMenu.add(new MenuItem("new dummy finished SportBuchungsJob", this::addFinishDummySportBookingJob));
         debugMenu.add(new MenuItem("show FileDialog", () -> {
-            new FileDialogBuilder().setTitle("title").setActionLabel("action label").setDescription("description").build().showDialog(getTextGUI());
+            new FileDialogBuilder().setTitle("title")
+                    .setActionLabel("action label")
+                    .setDescription("description")
+                    .build()
+                    .showDialog(getTextGUI());
         }));
         return debugMenu;
     }

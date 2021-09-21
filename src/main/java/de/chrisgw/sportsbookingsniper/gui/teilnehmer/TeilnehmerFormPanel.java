@@ -48,10 +48,6 @@ public class TeilnehmerFormPanel extends Panel {
 
     public TeilnehmerFormPanel(Teilnehmer teilnehmer) {
         super();
-
-        addFormularComponent(new Label("Bitte geben Sie die Angaben zum Teilnehmer ein:"));
-        addFormularComponent(new EmptySpace());
-
         addFormularField("Vorname*", vornameTextBox);
         addFormularField("Nachname*", nachnameTextBox);
         addFormularField("Geschlecht*", genderComboBox);
