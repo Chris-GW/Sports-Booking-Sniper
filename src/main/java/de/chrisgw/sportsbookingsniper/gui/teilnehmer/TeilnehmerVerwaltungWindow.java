@@ -45,9 +45,9 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow {
 
     private void setTeilnehmerForm(int index, Teilnehmer teilnehmer) {
         if (teilnehmer != null && index > 0) {
-            centerHeaderLabel.setText("Angaben zum Teilnehmer/in '" + teilnehmer.getName() + "' bearbeiten");
+            centerHeaderLabel.setText("Angaben für '" + teilnehmer.getName() + "' bearbeiten");
         } else {
-            centerHeaderLabel.setText("Angaben zum neuen Teilnehmer/in eingeben");
+            centerHeaderLabel.setText("Angaben für neuen Teilnehmer/in eingeben");
         }
         teilnehmerFormPanel.setTeilnehmer(teilnehmer);
     }

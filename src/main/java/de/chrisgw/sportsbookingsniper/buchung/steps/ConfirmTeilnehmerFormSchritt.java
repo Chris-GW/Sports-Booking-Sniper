@@ -41,7 +41,7 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
         WebElement verbindlichBuchenBtn = findFormSubmitBtn().orElseThrow(() -> new IllegalStateException(
                 "No 'verbindlich buchen' or 'kostenpflichtig buchen' submit Button found"));
         // TODO remove if and always submit
-        if (buchungsJob.getJobId() == -1) {
+        if (buchungsJob.getJobId() == Integer.MAX_VALUE) {
             for (int i = 0; !trySubmitTillStaleness(verbindlichBuchenBtn); i++) {
                 log.trace(i + " submit");
             }

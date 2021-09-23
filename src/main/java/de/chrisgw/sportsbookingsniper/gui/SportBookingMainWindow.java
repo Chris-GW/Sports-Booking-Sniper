@@ -7,11 +7,14 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.gui.buchung.PendingSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
+import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,16 +46,13 @@ public class SportBookingMainWindow extends BasicWindow {
         mainMenuBar.focus();
 
         contentPanel.addComponent(mainMenuBar, Location.TOP);
-        contentPanel.addComponent(createLeftPanel(), Location.LEFT);
         contentPanel.addComponent(createCenterPanel(), Location.CENTER);
-
-        Label bottomLabel = new Label("");
-        contentPanel.addComponent(bottomLabel, Location.BOTTOM);
+        contentPanel.addComponent(createRightPanel(), Location.RIGHT);
         addBasePaneListener(newCloseWindowInputListener());
     }
 
 
-    private Panel createLeftPanel() {
+    private Panel createCenterPanel() {
         pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, this);
         pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
         mainMenuBar.addViewMenuItemsFor(pendingComponent);
@@ -63,22 +63,44 @@ public class SportBookingMainWindow extends BasicWindow {
         mainMenuBar.addViewMenuItemsFor(finishedComponent);
         mainMenuBar.addNavigationMenuItemsFor(finishedComponent);
 
-        Panel leftPanel = new Panel(new GridLayout(1));
-        leftPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
-        leftPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
+        Panel centerPanel = new Panel(new GridLayout(1));
+
+        applicationStateDao.addSportBuchungsJobListener(new SportBuchungsJobListener() {
+
+            @Override
+            public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+                var pendingSportBuchungsJobComponent = new PendingSportBuchungsJobComponent(applicationStateDao,
+                        sportBuchungsJob);
+                centerPanel.addComponent(pendingSportBuchungsJobComponent);
+            }
+
+            @Override
+            public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+
+            }
+
+            @Override
+            public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
+
+            }
+        });
+
+
+        centerPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
+        centerPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
         addWindowListener(resizeVisibleTableRowListener());
-        return leftPanel;
+        return centerPanel;
     }
 
 
-    private Panel createCenterPanel() {
+    private Panel createRightPanel() {
         favoriteComponent = new FavoriteSportAngebotComponent(applicationStateDao, this);
         mainMenuBar.addViewMenuItemsFor(favoriteComponent);
         mainMenuBar.addNavigationMenuItemsFor(favoriteComponent);
 
-        Panel centerPanel = new Panel();
-        centerPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
-        return centerPanel;
+        Panel rightPanel = new Panel();
+        rightPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
+        return rightPanel;
     }
 
 

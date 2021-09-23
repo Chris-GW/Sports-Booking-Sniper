@@ -137,8 +137,9 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
         case ArrowDown:
             setSelectedRow(Math.min(getSelectedRow() + 1, getTableModel().getRowCount()));
             return result;
+        default:
+            return result;
         }
-        return result;
     }
 
 
@@ -171,7 +172,7 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
             case COUNTDOWN_CELL_TYPE:
             case TERMIN_COUNTDOWN_CELL_TYPE:
-                return new TerminalSize(4, 1);
+                return new TerminalSize(7, 1);
 
             default:
                 throw new IllegalArgumentException("unknown cellType: " + cell.cellType);
@@ -236,11 +237,7 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
         private void renderBuchungsCountdownCell(Table<SportBuchungsJobCell> table, SportBuchungsJobCell cell,
                 int columnIndex, int rowIndex, boolean isSelected, TextGUIGraphics graphics) {
-            CountdownProgressBar buchungCountdownBar = new CountdownProgressBar();
-            buchungCountdownBar.setPreferredWidth(4);
-            buchungCountdownBar.startCountdown(cell.buchungsJob.getBevorstehenderBuchungsVersuch());
-            buchungCountdownBar.onAdded(table.getParent());
-            buchungCountdownBar.draw(graphics);
+            cell.buchungCountdownBar.draw(graphics);
         }
 
 
@@ -293,6 +290,16 @@ public class SportBuchungsJobTable extends Table<SportBuchungsJobCell> {
 
         private final SportBuchungsJobCellType cellType;
         private final SportBuchungsJob buchungsJob;
+        private final CountdownProgressBar buchungCountdownBar;
+
+
+        public SportBuchungsJobCell(SportBuchungsJobCellType cellType, SportBuchungsJob buchungsJob) {
+            this.cellType = cellType;
+            this.buchungsJob = buchungsJob;
+            buchungCountdownBar = new CountdownProgressBar();
+            buchungCountdownBar.setPreferredWidth(9);
+            buchungCountdownBar.startCountdown(buchungsJob.getBevorstehenderBuchungsVersuch());
+        }
 
 
         public boolean isSportArtRow() {

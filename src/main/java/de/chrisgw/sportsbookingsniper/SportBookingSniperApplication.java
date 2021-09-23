@@ -15,9 +15,9 @@ import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepositor
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.SportBookingMainWindow;
-import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.dialog.WelcomeDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
+import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 

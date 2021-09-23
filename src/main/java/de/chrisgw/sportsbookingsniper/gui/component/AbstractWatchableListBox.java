@@ -75,12 +75,14 @@ public abstract class AbstractWatchableListBox<V, T extends AbstractWatchableLis
         return self();
     }
 
+
     @Override
     public synchronized T setSelectedIndex(int index) {
         super.setSelectedIndex(index);
         notifySelectedItemListener();
         return self();
     }
+
 
 
     @Override

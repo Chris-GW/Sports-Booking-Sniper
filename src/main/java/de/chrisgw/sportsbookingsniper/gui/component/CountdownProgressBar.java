@@ -16,18 +16,21 @@ public class CountdownProgressBar extends ProgressBar {
 
     public CountdownProgressBar() {
         startCountdown(Duration.ZERO);
+        setPreferredWidth(9);
     }
 
 
-    public void startCountdown(LocalDateTime targetDateTime) {
+    public CountdownProgressBar startCountdown(LocalDateTime targetDateTime) {
         startCountdown(Duration.between(LocalDateTime.now(), targetDateTime));
+        return self();
     }
 
-    public void startCountdown(Duration countdownDuration) {
-        this.countdownDuration = requireNonNull(countdownDuration).abs();
+    public CountdownProgressBar startCountdown(Duration countdownDuration) {
         this.countdownStartTime = LocalDateTime.now();
+        this.countdownDuration = requireNonNull(countdownDuration).abs();
         setMin(0);
         setMax((int) countdownDuration.getSeconds());
+        return self();
     }
 
 
@@ -37,8 +40,6 @@ public class CountdownProgressBar extends ProgressBar {
         long seconds = remainingDuration.getSeconds();
         if (remainingDuration.toHours() > 0) {
             remainingDuration = remainingDuration.withSeconds(seconds - (seconds % 60));
-        } else if (seconds % 5 > 0) {
-            remainingDuration = remainingDuration.withSeconds(seconds - (seconds % 5));
         }
         long effectiveTotalSecs = remainingDuration.getSeconds();
         int days = (int) (remainingDuration.toHours() / 24);
@@ -54,6 +55,7 @@ public class CountdownProgressBar extends ProgressBar {
         }
     }
 
+
     public Duration remainingDuration() {
         Duration remainingDuration = countdownDuration.minus(elapsedDuration());
         if (remainingDuration.isNegative()) {
@@ -68,15 +70,16 @@ public class CountdownProgressBar extends ProgressBar {
 
 
     @Override
-    protected void onBeforeDrawing() {
-        setValue((int) elapsedDuration().getSeconds());
-        super.onBeforeDrawing();
+    public boolean isInvalid() {
+        Duration elapsedDuration = elapsedDuration().withNanos(0);
+        setValue((int) elapsedDuration.getSeconds());
+        return super.isInvalid();
     }
 
 
     @Override
-    public boolean isInvalid() {
-        return !remainingDuration().isZero() || super.isInvalid();
+    protected CountdownProgressBar self() {
+        return (CountdownProgressBar) super.self();
     }
 
 }

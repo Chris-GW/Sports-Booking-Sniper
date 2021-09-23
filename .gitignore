@@ -31,3 +31,4 @@ gen/
 *.log.gz
 PersonenAngaben.json
 savedSportBookingApplicationData.json
+savedSportBookingApplicationDataBackup.json

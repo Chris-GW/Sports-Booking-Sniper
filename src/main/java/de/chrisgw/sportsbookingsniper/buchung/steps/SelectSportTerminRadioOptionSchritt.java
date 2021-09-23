@@ -32,7 +32,6 @@ public class SelectSportTerminRadioOptionSchritt extends SeleniumSportBuchungsSc
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
-
         submitTerminSelection(buchungsJob);
         return null;
     }
