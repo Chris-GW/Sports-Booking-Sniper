@@ -1,15 +1,11 @@
 package de.chrisgw.sportsbookingsniper.gui.buchung;
 
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.TextColor.ANSI;
-import com.googlecode.lanterna.gui2.AbstractInteractableComponent;
-import com.googlecode.lanterna.gui2.InteractableRenderer;
-import com.googlecode.lanterna.gui2.TextGUIGraphics;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.graphics.ThemeDefinition;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.Button.FlatButtonRenderer;
 import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
-import com.googlecode.lanterna.input.KeyStroke;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
@@ -19,21 +15,62 @@ import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.googlecode.lanterna.TerminalPosition.TOP_LEFT_CORNER;
+import static com.googlecode.lanterna.gui2.Direction.HORIZONTAL;
+import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
+import static com.googlecode.lanterna.gui2.LinearLayout.GrowPolicy.CanGrow;
+import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.versuchStatusMaxLength;
 
 
-public class AusstehendeSportBuchungsJobItem extends AbstractInteractableComponent<AusstehendeSportBuchungsJobItem>
-        implements SportBuchungsJobListener {
+public class AusstehendeSportBuchungsJobItem extends Panel implements SportBuchungsJobListener {
 
     @Getter
     private final SportBuchungsJob sportBuchungsJob;
+
+    private final Button buchungsJobBtn;
+    private final Label statusLabel = new Label("");
     private final CountdownProgressBar buchungCountdownProgressBar = new CountdownProgressBar();
 
 
     public AusstehendeSportBuchungsJobItem(SportBuchungsJob sportBuchungsJob) {
         this.sportBuchungsJob = sportBuchungsJob;
+
+        buchungsJobBtn = createBuchungsJobBtn();
+        statusLabel.setLabelWidth(versuchStatusMaxLength());
         buchungCountdownProgressBar.startCountdown(sportBuchungsJob.getBevorstehenderBuchungsVersuch());
+
+        setLayoutManager(new LinearLayout(HORIZONTAL));
+        addComponent(buchungsJobBtn);
+        addComponent(statusLabel);
+        addComponent(buchungCountdownProgressBar, createLayoutData(Fill, CanGrow));
+    }
+
+    private Button createBuchungsJobBtn() {
+        Button buchungsJobBtn = new Button("", this::showBuchungsJobActionListDialog);
+        buchungsJobBtn.setRenderer(flatListItemBtnRenderer());
+        return buchungsJobBtn;
+    }
+
+    private FlatButtonRenderer flatListItemBtnRenderer() {
+        return new FlatButtonRenderer() {
+
+            @Override
+            public void drawComponent(TextGUIGraphics graphics, Button button) {
+                ThemeDefinition themeDefinition = button.getTheme().getDefaultDefinition();
+                if (button.isFocused()) {
+                    graphics.applyThemeStyle(themeDefinition.getActive());
+                } else {
+                    graphics.applyThemeStyle(themeDefinition.getInsensitive());
+                }
+                graphics.fill(' ');
+                if (button.isFocused()) {
+                    graphics.applyThemeStyle(themeDefinition.getSelected());
+                } else {
+                    graphics.applyThemeStyle(themeDefinition.getNormal());
+                }
+                graphics.putString(0, 0, button.getLabel());
+            }
+        };
     }
 
 
@@ -63,16 +100,6 @@ public class AusstehendeSportBuchungsJobItem extends AbstractInteractableCompone
         return this.sportBuchungsJob.getJobId() == sportBuchungsJob.getJobId();
     }
 
-
-    @Override
-    protected Result handleKeyStroke(KeyStroke keyStroke) {
-        if (isKeyboardActivationStroke(keyStroke)) {
-            showBuchungsJobActionListDialog();
-            return Result.HANDLED;
-        } else {
-            return super.handleKeyStroke(keyStroke);
-        }
-    }
 
     private void showBuchungsJobActionListDialog() {
         SportAngebot sportAngebot = sportBuchungsJob.getSportAngebot();
@@ -104,111 +131,59 @@ public class AusstehendeSportBuchungsJobItem extends AbstractInteractableCompone
 
 
     @Override
-    protected InteractableRenderer<AusstehendeSportBuchungsJobItem> createDefaultRenderer() {
-        return new PendingSportBuchungsJobComponentRenderer();
+    protected void onBeforeDrawing() {
+        super.onBeforeDrawing();
+        String kursnummer = sportBuchungsJob.getSportAngebot().getKursnummer();
+        String formatTerminZeitraum = sportBuchungsJob.getSportTermin().formatTerminZeitraum();
+
+        buchungsJobBtn.setLabel(kursnummer + " " + formatTerminZeitraum);
+        onBeforeDrawingStatusLabel();
+        if (buchungCountdownProgressBar.remainingDuration().isZero()) {
+            buchungCountdownProgressBar.startCountdown(sportBuchungsJob.getBevorstehenderBuchungsVersuch());
+        }
     }
 
 
-    public static class PendingSportBuchungsJobComponentRenderer
-            implements InteractableRenderer<AusstehendeSportBuchungsJobItem> {
+    private void onBeforeDrawingStatusLabel() {
+        SportBuchungsVersuchStatus lastBuchungsVersuchStatus = sportBuchungsJob.getLastBuchungsVersuchStatus();
+        String statusText = StringUtils.rightPad(lastBuchungsVersuchStatus.toString(), versuchStatusMaxLength());
+        statusLabel.setText(statusText);
+        statusLabel.setForegroundColor(toForegroundColor(lastBuchungsVersuchStatus));
+        statusLabel.setBackgroundColor(toBackgroundColor(lastBuchungsVersuchStatus));
+    }
 
-        private final TerminalSize sportAngebotSize = new TerminalSize("12345678 Do 24.07. 18:00-19:30".length(), 1);
-        private final TerminalSize statusLabelSize = new TerminalSize(versuchStatusMaxLength(), 1);
-
-
-        @Override
-        public TerminalSize getPreferredSize(AusstehendeSportBuchungsJobItem component) {
-            return sportAngebotSize.withRelative(statusLabelSize).withRows(1).withRelativeColumns(9);
+    private TextColor toForegroundColor(SportBuchungsVersuchStatus status) {
+        switch (status) {
+        case BUCHUNG_GESCHLOSSEN:
+            return ANSI.WHITE_BRIGHT;
+        case BUCHUNG_WARTELISTE:
+            return ANSI.BLACK;
+        case BUCHUNG_ABGELAUFEN:
+            return ANSI.BLACK;
+        case BUCHUNG_ERFOLGREICH:
+            return ANSI.BLACK;
+        case BUCHUNG_FEHLER:
+            return ANSI.BLACK;
+        default:
+            throw new IllegalArgumentException("unknown status " + status);
         }
+    }
 
-        @Override
-        public void drawComponent(TextGUIGraphics graphics, AusstehendeSportBuchungsJobItem component) {
-            if (component.isFocused()) {
-                graphics.newTextGraphics(TOP_LEFT_CORNER, sportAngebotSize.withRelativeColumns(1).withRows(1))
-                        .applyThemeStyle(component.getThemeDefinition().getActive())
-                        .fill(' ');
-            }
-
-            TerminalPosition position = TOP_LEFT_CORNER;
-            drawSportAngebotInfos(graphics.newTextGraphics(position, sportAngebotSize), component);
-            position = position.withRelativeColumn(sportAngebotSize.getColumns() + 1);
-
-            drawBuchungsStatusLabel(graphics.newTextGraphics(position, statusLabelSize), component);
-            position = position.withRelativeColumn(statusLabelSize.getColumns() + 1);
-
-            int consumedSize = sportAngebotSize.getColumns() + statusLabelSize.getColumns() + 2;
-            TerminalSize buchungsCountdownSize = graphics.getSize().withRelativeColumns(-consumedSize);
-            drawBuchungsCountdown(graphics.newTextGraphics(position, buchungsCountdownSize), component);
+    private TextColor toBackgroundColor(SportBuchungsVersuchStatus status) {
+        switch (status) {
+        case BUCHUNG_GESCHLOSSEN:
+            return ANSI.BLACK_BRIGHT;
+        case BUCHUNG_WARTELISTE:
+            return ANSI.CYAN_BRIGHT;
+        case BUCHUNG_ABGELAUFEN:
+            return ANSI.YELLOW_BRIGHT;
+        case BUCHUNG_ERFOLGREICH:
+            return ANSI.GREEN_BRIGHT;
+        case BUCHUNG_FEHLER:
+            return ANSI.RED_BRIGHT;
+        default:
+            throw new IllegalArgumentException("unknown status " + status);
         }
-
-        private void drawSportAngebotInfos(TextGUIGraphics graphics, AusstehendeSportBuchungsJobItem component) {
-            if (component.isFocused()) {
-                graphics.applyThemeStyle(component.getThemeDefinition().getActive());
-            } else {
-                graphics.applyThemeStyle(component.getThemeDefinition().getNormal());
-            }
-            SportAngebot sportAngebot = component.sportBuchungsJob.getSportAngebot();
-            SportTermin sportTermin = component.sportBuchungsJob.getSportTermin();
-            graphics.putString(TOP_LEFT_CORNER, sportAngebot.getKursnummer());
-            graphics.putString(TOP_LEFT_CORNER.withRelativeColumn(9), sportTermin.formatTerminZeitraum());
-        }
-
-
-        private void drawBuchungsStatusLabel(TextGUIGraphics graphics, AusstehendeSportBuchungsJobItem component) {
-            var status = component.sportBuchungsJob.getLastBuchungsVersuchStatus();
-            String statusText = StringUtils.center(status.toString(), versuchStatusMaxLength());
-            graphics.applyThemeStyle(component.getTheme().getDefaultDefinition().getNormal())
-                    .setForegroundColor(toForegroundColor(status))
-                    .setBackgroundColor(toBackgroundColor(status))
-                    .putString(TOP_LEFT_CORNER, statusText);
-        }
-
-
-        private TextColor toForegroundColor(SportBuchungsVersuchStatus status) {
-            switch (status) {
-            case BUCHUNG_GESCHLOSSEN:
-                return ANSI.BLACK;
-            case BUCHUNG_WARTELISTE:
-                return ANSI.WHITE_BRIGHT;
-            case BUCHUNG_ABGELAUFEN:
-                return ANSI.BLACK;
-            case BUCHUNG_ERFOLGREICH:
-                return ANSI.BLACK;
-            case BUCHUNG_FEHLER:
-                return ANSI.BLACK;
-            default:
-                throw new IllegalArgumentException("unknown status " + status);
-            }
-        }
-
-        private TextColor toBackgroundColor(SportBuchungsVersuchStatus status) {
-            switch (status) {
-            case BUCHUNG_GESCHLOSSEN:
-                return ANSI.CYAN_BRIGHT;
-            case BUCHUNG_WARTELISTE:
-                return ANSI.BLACK_BRIGHT;
-            case BUCHUNG_ABGELAUFEN:
-                return ANSI.YELLOW_BRIGHT;
-            case BUCHUNG_ERFOLGREICH:
-                return ANSI.GREEN_BRIGHT;
-            case BUCHUNG_FEHLER:
-                return ANSI.RED_BRIGHT;
-            default:
-                throw new IllegalArgumentException("unknown status " + status);
-            }
-        }
-
-
-        private void drawBuchungsCountdown(TextGUIGraphics newTextGraphics, AusstehendeSportBuchungsJobItem component) {
-            component.buchungCountdownProgressBar.draw(newTextGraphics);
-        }
-
-
-        @Override
-        public TerminalPosition getCursorLocation(AusstehendeSportBuchungsJobItem component) {
-            return TOP_LEFT_CORNER;
-        }
-
     }
 
 }
