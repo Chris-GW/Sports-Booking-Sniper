@@ -1,6 +1,9 @@
 package de.chrisgw.sportsbookingsniper.gui.component;
 
-import com.googlecode.lanterna.*;
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextCharacter;
+import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.TextColor.ANSI;
 import com.googlecode.lanterna.graphics.BasicTextImage;
 import com.googlecode.lanterna.graphics.ThemeDefinition;
@@ -8,8 +11,6 @@ import com.googlecode.lanterna.gui2.AbstractComponent;
 import com.googlecode.lanterna.gui2.ComponentRenderer;
 import com.googlecode.lanterna.gui2.GUIBackdrop;
 import com.googlecode.lanterna.gui2.TextGUIGraphics;
-
-import java.util.EnumSet;
 
 
 public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo> {
@@ -46,8 +47,7 @@ public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo
         for (int row = 0; row < LOGO_STR.length; row++) {
             for (int column = 0; column < LOGO_STR[0].length(); column++) {
                 char c = LOGO_STR[row].charAt(column);
-                TextCharacter textCharacter = new TextCharacter(c, foregroundColor, backgroundColor,
-                        EnumSet.noneOf(SGR.class));
+                TextCharacter textCharacter = TextCharacter.fromCharacter(c, foregroundColor, backgroundColor)[0];
                 logoTextImage.setCharacterAt(column, row, textCharacter);
             }
         }
@@ -55,9 +55,14 @@ public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo
     }
 
 
+    public BasicTextImage getLogoTextImage() {
+        return logoTextImage;
+    }
+
+
     @Override
     protected ComponentRenderer<SportBuchungsBotLogo> createDefaultRenderer() {
-        return new ComponentRenderer<SportBuchungsBotLogo>() {
+        return new ComponentRenderer<>() {
 
             @Override
             public TerminalSize getPreferredSize(SportBuchungsBotLogo component) {
@@ -74,9 +79,5 @@ public class SportBuchungsBotLogo extends AbstractComponent<SportBuchungsBotLogo
         };
     }
 
-
-    public BasicTextImage getLogoTextImage() {
-        return logoTextImage;
-    }
 
 }

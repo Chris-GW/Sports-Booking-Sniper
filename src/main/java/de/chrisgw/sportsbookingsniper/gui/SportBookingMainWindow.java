@@ -7,14 +7,12 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.gui.buchung.PendingSportBuchungsJobComponent;
-import de.chrisgw.sportsbookingsniper.gui.component.AusstehendeSportBuchungsJobComponent;
+import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobComponent;
+import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobPanel;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
-import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +31,7 @@ public class SportBookingMainWindow extends BasicWindow {
     private AusstehendeSportBuchungsJobComponent pendingComponent;
     private FinishedSportBuchungenComponent finishedComponent;
     private FavoriteSportAngebotComponent favoriteComponent;
+    private AusstehendeSportBuchungsJobPanel ausstehendeSportBuchungsJobPanel;
 
 
     public SportBookingMainWindow(ApplicationStateDao applicationStateDao) {
@@ -63,31 +62,17 @@ public class SportBookingMainWindow extends BasicWindow {
         mainMenuBar.addViewMenuItemsFor(finishedComponent);
         mainMenuBar.addNavigationMenuItemsFor(finishedComponent);
 
+        ausstehendeSportBuchungsJobPanel = new AusstehendeSportBuchungsJobPanel(applicationStateDao);
+        ausstehendeSportBuchungsJobPanel.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
+
+        Panel pendingSportBuchungsJobPanel = new Panel(new GridLayout(1));
+        pendingSportBuchungsJobPanel.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
+
         Panel centerPanel = new Panel(new GridLayout(1));
-
-        applicationStateDao.addSportBuchungsJobListener(new SportBuchungsJobListener() {
-
-            @Override
-            public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-                var pendingSportBuchungsJobComponent = new PendingSportBuchungsJobComponent(applicationStateDao,
-                        sportBuchungsJob);
-                centerPanel.addComponent(pendingSportBuchungsJobComponent);
-            }
-
-            @Override
-            public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-
-            }
-
-            @Override
-            public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
-
-            }
-        });
-
 
         centerPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
         centerPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
+        centerPanel.addComponent(ausstehendeSportBuchungsJobPanel);
         addWindowListener(resizeVisibleTableRowListener());
         return centerPanel;
     }

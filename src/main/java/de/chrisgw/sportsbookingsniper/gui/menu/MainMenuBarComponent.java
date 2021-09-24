@@ -224,8 +224,8 @@ public class MainMenuBarComponent extends BasicPanelComponent {
 
     private void addPendingDummySportBookingJob() {
         SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
-        String sportArtName = "Aikido Level 1-2";
-        String kursnummer = "31122147";
+        String sportArtName = "Salsa Level 1";
+        String kursnummer = "53931127";
         SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);
         SportAngebot sportAngebot = sportArt.findSportAngebot(kursnummer).orElseThrow(RuntimeException::new);
         SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()

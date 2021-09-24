@@ -1,4 +1,4 @@
-package de.chrisgw.sportsbookingsniper.gui.component;
+package de.chrisgw.sportsbookingsniper.gui.buchung;
 
 import com.googlecode.lanterna.gui2.Container;
 import com.googlecode.lanterna.gui2.Direction;
@@ -10,6 +10,9 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
+import de.chrisgw.sportsbookingsniper.gui.component.ShortKeyRegistry;
+import de.chrisgw.sportsbookingsniper.gui.component.SportBuchungsJobTable;
 import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;

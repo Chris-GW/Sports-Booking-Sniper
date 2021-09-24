@@ -1,10 +1,8 @@
 package de.chrisgw.sportsbookingsniper;
 
 import de.chrisgw.sportsbookingsniper.angebot.*;
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
-import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
+import de.chrisgw.sportsbookingsniper.buchung.*;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -18,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.*;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_WARTELISTE;
 import static java.util.Collections.singletonList;
 
 
@@ -27,9 +27,10 @@ public class SportBookingModelTestUtil {
         throw new IllegalAccessError();
     }
 
+    private static Random random = new Random(1);
     private static AtomicInteger jobIdCounter = new AtomicInteger();
-    private static Supplier<LocalDateTime> futureDateTimeSupplier = newRandomDateTimeSupplier(1, true);
-    private static Supplier<LocalDateTime> pastDateTimeSupplier = newRandomDateTimeSupplier(1, false);
+    private static Supplier<LocalDateTime> futureDateTimeSupplier = newRandomDateTimeSupplier(true);
+    private static Supplier<LocalDateTime> pastDateTimeSupplier = newRandomDateTimeSupplier(false);
 
     public static SportKatalog sportKatalog = newSportKatalog();
 
@@ -107,8 +108,8 @@ public class SportBookingModelTestUtil {
     }
 
     private static String newKursnummer(SportArt sportArt, LocalDateTime firstTerminDate) {
-        String abbreviatedSportArtName = StringUtils.abbreviate(sportArt.getName(), "-", 6);
-        String terminStr = firstTerminDate.getDayOfMonth() + "-" + firstTerminDate.getMonthValue();
+        String abbreviatedSportArtName = StringUtils.abbreviate(sportArt.getName(), "-", 4);
+        String terminStr = String.format("%02d%02d", firstTerminDate.getDayOfMonth(), firstTerminDate.getMonthValue());
         return abbreviatedSportArtName + terminStr;
     }
 
@@ -172,16 +173,37 @@ public class SportBookingModelTestUtil {
     }
 
 
-    private static Supplier<LocalDateTime> newRandomDateTimeSupplier(long seed, boolean generateFutureDateTime) {
-        Random random = new Random(seed);
+    private static Supplier<LocalDateTime> newRandomDateTimeSupplier(boolean generateFutureDateTime) {
         LocalDateTime now = LocalDate.now().atTime(LocalTime.of(10, 0));
         return () -> {
+            int randomDayDelta = random.nextInt(99) + 1;
+            int randomHour = random.nextInt(60 / 15) * 15;
             if (generateFutureDateTime) {
-                return now.plusDays(random.nextInt(99) + 1).plusHours(random.nextInt(60 / 15) * 15);
+                return now.plusDays(randomDayDelta).plusHours(randomHour);
             } else {
-                return now.minusDays(random.nextInt(99) + 1).plusHours(random.nextInt(60 / 15) * 15);
+                return now.minusDays(randomDayDelta).plusHours(randomHour);
             }
         };
     }
 
+    public static SportBuchungsVersuch newBuchungsVersuch(SportBuchungsJob sportBuchungsJob) {
+        if (random.nextInt(100) > 80) {
+            return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_WARTELISTE);
+        }
+        int nextStatusIndex = random.nextInt(SportBuchungsVersuchStatus.values().length);
+        SportBuchungsVersuchStatus status = SportBuchungsVersuchStatus.values()[nextStatusIndex];
+        if (BUCHUNG_ERFOLGREICH.equals(status)) {
+            SportBuchungsBestaetigung buchungsBestaetigung = new SportBuchungsBestaetigung();
+            buchungsBestaetigung.setBuchungsJob(sportBuchungsJob);
+            String randomBuchungsNummer = String.valueOf(random.nextInt(100_000));
+            buchungsBestaetigung.setBuchungsNummer(randomBuchungsNummer);
+            String kursnummer = sportBuchungsJob.getSportAngebot().getKursnummer();
+            String buchungsBestaetigungUrl = String.format("https://example.com/sport/%s/confirmation/%s", //
+                    kursnummer, randomBuchungsNummer);
+            buchungsBestaetigung.setBuchungsBestaetigungUrl(buchungsBestaetigungUrl);
+            return SportBuchungsVersuch.newErfolgreicherBuchungsVersuch(buchungsBestaetigung);
+        } else {
+            return SportBuchungsVersuch.newBuchungsVersuch(status);
+        }
+    }
 }

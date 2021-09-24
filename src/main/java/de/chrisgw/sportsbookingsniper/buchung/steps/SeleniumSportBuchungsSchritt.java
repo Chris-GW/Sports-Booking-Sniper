@@ -1,5 +1,6 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
+import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
 @Log4j2
@@ -34,6 +36,9 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
 
 
     public static SportBuchungsVersuch newVerbindlicherBuchungsVersuch(SportBuchungsJob buchungsJob) {
+        if (buchungsJob.getSportArt().getUrl().contains("example.com")) {
+            return SportBookingModelTestUtil.newBuchungsVersuch(buchungsJob);
+        }
         WebDriver driver = null;
         try {
             driver = newWebDriver();
@@ -42,7 +47,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
             return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
         } catch (Exception e) {
             log.error("Could not book", e);
-            return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
+            return newBuchungsVersuch(BUCHUNG_FEHLER);
         } finally {
             if (driver != null) {
                 driver.quit();
@@ -59,7 +64,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
             return new GetSportAngebotWebpageSchritt(driver).executeBuchungsSchritt(buchungsJob);
         } catch (Exception e) {
             log.error("Could not book", e);
-            return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
+            return newBuchungsVersuch(BUCHUNG_FEHLER);
         }
     }
 
@@ -79,7 +84,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
                 .map(nextBuchungsSchritt -> nextBuchungsSchritt.executeBuchungsSchritt(buchungsJob))
                 .orElseGet(() -> {
                     log.warn("Could not find next BuchungsSchritt on page:\n{}", driver.getPageSource());
-                    return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_FEHLER);
+                    return newBuchungsVersuch(BUCHUNG_FEHLER);
                 });
     }
 

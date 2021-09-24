@@ -1,6 +1,5 @@
 package de.chrisgw.sportsbookingsniper.buchung;
 
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 import lombok.extern.log4j.Log4j2;
 
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
 import static java.util.Collections.unmodifiableList;
@@ -80,7 +80,7 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
         } catch (Exception e) {
             log.warn("This SportBuchungsJob complete exceptionally and will be no longer reschedule {}", this);
             futureBuchungsBestaetigung.completeExceptionally(e);
-            return newBuchungsVersuch(SportBuchungsVersuchStatus.BUCHUNG_FEHLER);
+            return newBuchungsVersuch(BUCHUNG_FEHLER);
         }
     }
 

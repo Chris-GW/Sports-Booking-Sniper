@@ -3,6 +3,7 @@ package de.chrisgw.sportsbookingsniper.gui.state;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
+import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
@@ -47,6 +48,17 @@ public class ApplicationStateDao {
         this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
         this.objectMapper = requireNonNull(objectMapper);
         this.applicationState = loadApplicationData();
+
+        // TODO remove test sportKatalog
+        this.sportKatalog = SportBookingModelTestUtil.newSportKatalog();
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
     }
 
 

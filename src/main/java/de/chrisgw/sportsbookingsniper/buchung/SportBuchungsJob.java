@@ -18,11 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
-import static de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie.defaultKonfiguration;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
+import static de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie.defaultKonfiguration;
 
 
 @Data
@@ -42,7 +43,7 @@ public class SportBuchungsJob {
 
 
     public SportBuchungsJob() {
-        buchungsVersuche.add(newBuchungsVersuch(SportBuchungsVersuchStatus.BUCHUNG_GESCHLOSSEN));
+        buchungsVersuche.add(newBuchungsVersuch(BUCHUNG_GESCHLOSSEN));
     }
 
 
@@ -109,10 +110,12 @@ public class SportBuchungsJob {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof SportBuchungsJob))
+        }
+        if (!(o instanceof SportBuchungsJob)) {
             return false;
+        }
 
         SportBuchungsJob that = (SportBuchungsJob) o;
         return new EqualsBuilder().append(getJobId(), that.getJobId()).isEquals();

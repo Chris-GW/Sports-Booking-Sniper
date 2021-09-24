@@ -62,8 +62,7 @@ public class SportBookingSniperApplication {
             if (applicationStateDao.isFirstVisite()) {
                 showFirstVisiteDialog(multiWindowTextGUI);
             }
-            var sportBookingMainWindow = createSportBookingMainWindow();
-            multiWindowTextGUI.addWindowAndWait(sportBookingMainWindow);
+            multiWindowTextGUI.addWindowAndWait(createSportBookingMainWindow());
         }
     }
 
@@ -131,6 +130,7 @@ public class SportBookingSniperApplication {
             log.trace("start SportBookingSniperApplication gui");
             new SportBookingSniperApplication().showGui();
             log.trace("finish SportBookingSniperApplication gui");
+            System.exit(0);
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
             e.printStackTrace();

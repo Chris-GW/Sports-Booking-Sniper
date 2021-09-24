@@ -12,6 +12,7 @@ public class CountdownProgressBar extends ProgressBar {
 
     private LocalDateTime countdownStartTime;
     private Duration countdownDuration;
+    private long lastDrawnSecond;
 
 
     public CountdownProgressBar() {
@@ -21,15 +22,15 @@ public class CountdownProgressBar extends ProgressBar {
 
 
     public CountdownProgressBar startCountdown(LocalDateTime targetDateTime) {
-        startCountdown(Duration.between(LocalDateTime.now(), targetDateTime));
-        return self();
+        Duration countdownDuration = Duration.between(LocalDateTime.now(), targetDateTime);
+        return startCountdown(countdownDuration);
     }
 
     public CountdownProgressBar startCountdown(Duration countdownDuration) {
         this.countdownStartTime = LocalDateTime.now();
         this.countdownDuration = requireNonNull(countdownDuration).abs();
-        setMin(0);
-        setMax((int) countdownDuration.getSeconds());
+        this.lastDrawnSecond = 0;
+        invalidate();
         return self();
     }
 
@@ -47,9 +48,9 @@ public class CountdownProgressBar extends ProgressBar {
         int minutes = (int) ((effectiveTotalSecs % (24 * 60)) / 60);
         int secs = (int) (effectiveTotalSecs % 60);
         if (days > 0) {
-            return String.format("%dd %02dh", days, hours);
+            return String.format("%02dd %02dh", days, hours);
         } else if (hours > 0) {
-            return String.format("%dh %02dm", hours, minutes);
+            return String.format("%02dh %02dm", hours, minutes);
         } else {
             return String.format("%02dm %02ds", minutes, secs);
         }
@@ -70,10 +71,21 @@ public class CountdownProgressBar extends ProgressBar {
 
 
     @Override
+    protected void onBeforeDrawing() {
+        super.onBeforeDrawing();
+        lastDrawnSecond = remainingDuration().getSeconds();
+    }
+
+    @Override
+    public synchronized float getProgress() {
+        long elapsedSeconds = elapsedDuration().withNanos(0).getSeconds();
+        long durationSeconds = countdownDuration.withNanos(0).getSeconds();
+        return (elapsedSeconds * 1.0f) / durationSeconds;
+    }
+
+    @Override
     public boolean isInvalid() {
-        Duration elapsedDuration = elapsedDuration().withNanos(0);
-        setValue((int) elapsedDuration.getSeconds());
-        return super.isInvalid();
+        return super.isInvalid() || lastDrawnSecond != remainingDuration().getSeconds();
     }
 
 
