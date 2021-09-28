@@ -3,8 +3,10 @@ package de.chrisgw.sportsbookingsniper;
 import de.chrisgw.sportsbookingsniper.angebot.*;
 import de.chrisgw.sportsbookingsniper.buchung.*;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus;
+import de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -169,6 +171,9 @@ public class SportBookingModelTestUtil {
         buchungsJob.setTeilnehmerListe(singletonList(newTeilnehmer()));
         buchungsJob.setSportAngebot(sportAngebot);
         buchungsJob.setSportTermin(sportTermin);
+        var sportBuchungsStrategie = new KonfigurierbareSportBuchungsStrategie();
+        sportBuchungsStrategie.setDefaultDelay(Duration.ofMinutes(1));
+        buchungsJob.setBuchungsWiederholungsStrategie(sportBuchungsStrategie);
         return buchungsJob;
     }
 
@@ -187,7 +192,7 @@ public class SportBookingModelTestUtil {
     }
 
     public static SportBuchungsVersuch newBuchungsVersuch(SportBuchungsJob sportBuchungsJob) {
-        if (random.nextInt(100) > 80) {
+        if (sportBuchungsJob.getBuchungsVersuche().size() < 4 || random.nextInt(100) > 90) {
             return SportBuchungsVersuch.newBuchungsVersuch(BUCHUNG_WARTELISTE);
         }
         int nextStatusIndex = random.nextInt(SportBuchungsVersuchStatus.values().length);

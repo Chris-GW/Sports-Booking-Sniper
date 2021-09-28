@@ -43,21 +43,12 @@ public class SportBuchungsJob {
 
 
     public SportBuchungsJob() {
-        buchungsVersuche.add(newBuchungsVersuch(BUCHUNG_GESCHLOSSEN));
+        addBuchungsVersuch(newBuchungsVersuch(BUCHUNG_GESCHLOSSEN));
     }
 
 
     public boolean canContinue() {
-        return !pausiert && getBuchungsVersuche() != null && lastSportBuchungsVersuch().getStatus()
-                .canContinueNextBuchungsVersuch();
-    }
-
-
-    public LocalDateTime getBevorstehenderBuchungsVersuch() {
-        if (bevorstehenderBuchungsVersuch == null || bevorstehenderBuchungsVersuch.isAfter(LocalDateTime.now())) {
-            bevorstehenderBuchungsVersuch = buchungsWiederholungsStrategie.getNextTimeForCheck(this);
-        }
-        return bevorstehenderBuchungsVersuch;
+        return !pausiert && getLastBuchungsVersuchStatus().canContinueNextBuchungsVersuch();
     }
 
 
@@ -91,6 +82,18 @@ public class SportBuchungsJob {
 
     public void addBuchungsVersuch(SportBuchungsVersuch buchungsVersuch) {
         buchungsVersuche.add(Objects.requireNonNull(buchungsVersuch));
+        if (buchungsVersuch.getStatus().canContinueNextBuchungsVersuch()) {
+            bevorstehenderBuchungsVersuch = buchungsWiederholungsStrategie.getNextTimeForCheck(this);
+        }
+    }
+
+
+    public void setBuchungsWiederholungsStrategie(SportBuchungsStrategie buchungsWiederholungsStrategie) {
+        if (buchungsWiederholungsStrategie == null) {
+            buchungsWiederholungsStrategie = defaultKonfiguration();
+        }
+        this.buchungsWiederholungsStrategie = buchungsWiederholungsStrategie;
+        this.bevorstehenderBuchungsVersuch = buchungsWiederholungsStrategie.getNextTimeForCheck(this);
     }
 
 

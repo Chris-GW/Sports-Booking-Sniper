@@ -30,16 +30,13 @@ public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrat
 
     @Override
     public LocalDateTime getNextTimeForCheck(SportBuchungsJob sportBuchungsJob) {
-        var now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         if (isAfterLastTry(now)) {
             return null;
-        }
-        if (isFirstTry()) {
+        } else if (isFirstTry()) {
             setFirstTry(false);
-            return now.plusSeconds(1);
-        }
-
-        if (isBeforeBuchungsBeginn(sportBuchungsJob, now)) {
+            return now.plusSeconds(10);
+        } else if (isBeforeBuchungsBeginn(sportBuchungsJob, now)) {
             return sportBuchungsJob.getBuchungsBeginn();
         } else if (isBuchungsBeginn(sportBuchungsJob, now)) {
             return now.plusSeconds(30); // intensive 30s checks

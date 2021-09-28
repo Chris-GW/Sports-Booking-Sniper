@@ -51,14 +51,14 @@ public class ApplicationStateDao {
 
         // TODO remove test sportKatalog
         this.sportKatalog = SportBookingModelTestUtil.newSportKatalog();
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
     }
 
 

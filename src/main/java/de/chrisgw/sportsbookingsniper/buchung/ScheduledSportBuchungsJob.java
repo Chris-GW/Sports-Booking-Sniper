@@ -24,9 +24,9 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
     private final SportBuchungsJob buchungsJob;
     private final ScheduledExecutorService executorService;
 
+    private final List<SportBuchungsVersuch> buchungsVersuche = new CopyOnWriteArrayList<>();
+    private final List<SportBuchungsJobListener> listeners = new CopyOnWriteArrayList<>();
     private final CompletableFuture<SportBuchungsBestaetigung> futureBuchungsBestaetigung;
-    private final List<SportBuchungsVersuch> buchungsVersuche;
-    private final List<SportBuchungsJobListener> listeners;
     private ScheduledFuture<SportBuchungsVersuch> scheduledBuchungsVersuch;
 
 
@@ -35,8 +35,6 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
         this.executorService = requireNonNull(executorService);
 
         this.futureBuchungsBestaetigung = new CompletableFuture<>();
-        this.buchungsVersuche = new CopyOnWriteArrayList<>();
-        this.listeners = new CopyOnWriteArrayList<>();
         this.scheduledBuchungsVersuch = scheduleBuchungsVersuch(buchungsJob.durationTillNextCheck());
     }
 
@@ -89,6 +87,7 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
                 buchungsJob, buchungsJob.getTeilnehmerListe());
         SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(buchungsJob);
         buchungsJob.addBuchungsVersuch(buchungsVersuch);
+        buchungsVersuche.add(buchungsVersuch);
         log.info("finish booking {} with SportBuchungsVersuch {}", buchungsJob, buchungsVersuch);
 
         if (BUCHUNG_ERFOLGREICH.equals(buchungsVersuch.getStatus())) {
@@ -103,30 +102,8 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
                     buchungsJob, buchungsVersuch);
             cancel(true);
         }
+        listeners.forEach(sportBuchungsJobListener -> sportBuchungsJobListener.onUpdatedSportBuchungsJob(buchungsJob));
         return buchungsVersuch;
-    }
-
-
-    public void addListener(SportBuchungsJobListener listener) {
-        listeners.add(listener);
-    }
-
-    public void removeListener(SportBuchungsJobListener listener) {
-        listeners.remove(listener);
-    }
-
-
-    public SportBuchungsJob getBuchungsJob() {
-        return buchungsJob;
-    }
-
-
-    public ScheduledFuture<SportBuchungsVersuch> getScheduledBuchungsVersuch() {
-        return scheduledBuchungsVersuch;
-    }
-
-    public List<SportBuchungsVersuch> getBuchungsVersuche() {
-        return unmodifiableList(buchungsVersuche);
     }
 
 
@@ -163,6 +140,29 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
     public SportBuchungsBestaetigung get(long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return futureBuchungsBestaetigung.get(timeout, unit);
+    }
+
+
+    public void addListener(SportBuchungsJobListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(SportBuchungsJobListener listener) {
+        listeners.remove(listener);
+    }
+
+
+    public SportBuchungsJob getBuchungsJob() {
+        return buchungsJob;
+    }
+
+
+    public ScheduledFuture<SportBuchungsVersuch> getScheduledBuchungsVersuch() {
+        return scheduledBuchungsVersuch;
+    }
+
+    public List<SportBuchungsVersuch> getBuchungsVersuche() {
+        return unmodifiableList(buchungsVersuche);
     }
 
 

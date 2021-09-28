@@ -13,10 +13,7 @@ import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
-import de.chrisgw.sportsbookingsniper.angebot.SportArt;
-import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
-import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
+import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
@@ -223,21 +220,23 @@ public class MainMenuBarComponent extends BasicPanelComponent {
     }
 
     private void addPendingDummySportBookingJob() {
-        SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
-        String sportArtName = "Salsa Level 1";
-        String kursnummer = "53931127";
-        SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);
-        SportAngebot sportAngebot = sportArt.findSportAngebot(kursnummer).orElseThrow(RuntimeException::new);
-        SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
-                .findFirst()
-                .orElseThrow(RuntimeException::new);
+        applicationStateDao.addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
 
-        SportBuchungsJob buchungsJob = new SportBuchungsJob();
-        buchungsJob.setJobId(5);
-        buchungsJob.setTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
-        buchungsJob.setSportAngebot(sportAngebot);
-        buchungsJob.setSportTermin(sportTermin);
-        applicationStateDao.addSportBuchungsJob(buchungsJob);
+//        SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
+//        String sportArtName = "Fechten Level 2 Techniktraining";
+//        String kursnummer = "33422246";
+//        SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);
+//        SportAngebot sportAngebot = sportArt.findSportAngebot(kursnummer).orElseThrow(RuntimeException::new);
+//        SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
+//                .findFirst()
+//                .orElseThrow(RuntimeException::new);
+//
+//        SportBuchungsJob buchungsJob = new SportBuchungsJob();
+//        buchungsJob.setJobId(5);
+//        buchungsJob.setTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
+//        buchungsJob.setSportAngebot(sportAngebot);
+//        buchungsJob.setSportTermin(sportTermin);
+//        applicationStateDao.addSportBuchungsJob(buchungsJob);
     }
 
     private void addFinishDummySportBookingJob() {

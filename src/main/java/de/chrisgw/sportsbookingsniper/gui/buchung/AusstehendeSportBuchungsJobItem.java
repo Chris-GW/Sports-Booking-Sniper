@@ -37,7 +37,7 @@ public class AusstehendeSportBuchungsJobItem extends Panel implements SportBuchu
 
         buchungsJobBtn = createBuchungsJobBtn();
         statusLabel.setLabelWidth(versuchStatusMaxLength());
-        buchungCountdownProgressBar.startCountdown(sportBuchungsJob.getBevorstehenderBuchungsVersuch());
+        onUpdatedSportBuchungsJob(this.sportBuchungsJob);
 
         setLayoutManager(new LinearLayout(HORIZONTAL));
         addComponent(buchungsJobBtn);
@@ -82,7 +82,7 @@ public class AusstehendeSportBuchungsJobItem extends Panel implements SportBuchu
     @Override
     public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         if (isSameSportBuchungsJob(sportBuchungsJob)) {
-            invalidate();
+            buchungCountdownProgressBar.startCountdown(sportBuchungsJob.getBevorstehenderBuchungsVersuch());
         }
     }
 
@@ -138,9 +138,6 @@ public class AusstehendeSportBuchungsJobItem extends Panel implements SportBuchu
 
         buchungsJobBtn.setLabel(kursnummer + " " + formatTerminZeitraum);
         onBeforeDrawingStatusLabel();
-        if (buchungCountdownProgressBar.remainingDuration().isZero()) {
-            buchungCountdownProgressBar.startCountdown(sportBuchungsJob.getBevorstehenderBuchungsVersuch());
-        }
     }
 
 

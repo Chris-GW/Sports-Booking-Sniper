@@ -70,8 +70,8 @@ public class SportBookingMainWindow extends BasicWindow {
 
         Panel centerPanel = new Panel(new GridLayout(1));
 
-        centerPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
-        centerPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
+//        centerPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
+//        centerPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
         centerPanel.addComponent(ausstehendeSportBuchungsJobPanel);
         addWindowListener(resizeVisibleTableRowListener());
         return centerPanel;

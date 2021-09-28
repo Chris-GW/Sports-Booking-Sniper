@@ -1,6 +1,7 @@
 package de.chrisgw.sportsbookingsniper.gui.buchung;
 
 import com.googlecode.lanterna.gui2.Borders;
+import com.googlecode.lanterna.gui2.Container;
 import com.googlecode.lanterna.gui2.LinearLayout;
 import com.googlecode.lanterna.gui2.Panel;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
@@ -56,17 +57,38 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
 
 
     @Override
+    public synchronized void onAdded(Container container) {
+        super.onAdded(container);
+        this.applicationStateDao.addSportBuchungsJobListener(this);
+    }
+
+    @Override
+    public synchronized void onRemoved(Container container) {
+        super.onRemoved(container);
+        this.applicationStateDao.removeSportBuchungsJobListener(this);
+    }
+
+
+    @Override
     public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        invalidate();
+        var ausstehendeSportBuchungsJobItem = new AusstehendeSportBuchungsJobItem(sportBuchungsJob);
+        addComponent(ausstehendeSportBuchungsJobItem);
     }
 
     @Override
     public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        invalidate();
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        if (ausstehendeSportBuchungsJobItem != null) {
+            ausstehendeSportBuchungsJobItem.onUpdatedSportBuchungsJob(sportBuchungsJob);
+        }
     }
 
     @Override
     public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        if (ausstehendeSportBuchungsJobItem != null) {
+            ausstehendeSportBuchungsJobItem.onFinishSportBuchungJob(sportBuchungsJob);
+        }
         invalidate();
     }
 

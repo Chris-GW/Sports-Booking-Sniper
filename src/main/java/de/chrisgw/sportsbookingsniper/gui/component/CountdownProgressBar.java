@@ -1,11 +1,10 @@
 package de.chrisgw.sportsbookingsniper.gui.component;
 
 import com.googlecode.lanterna.gui2.ProgressBar;
+import com.googlecode.lanterna.gui2.TextGUIGraphics;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-
-import static java.util.Objects.requireNonNull;
 
 
 public class CountdownProgressBar extends ProgressBar {
@@ -21,14 +20,17 @@ public class CountdownProgressBar extends ProgressBar {
     }
 
 
-    public CountdownProgressBar startCountdown(LocalDateTime targetDateTime) {
+    public synchronized CountdownProgressBar startCountdown(LocalDateTime targetDateTime) {
         Duration countdownDuration = Duration.between(LocalDateTime.now(), targetDateTime);
         return startCountdown(countdownDuration);
     }
 
-    public CountdownProgressBar startCountdown(Duration countdownDuration) {
+    public synchronized CountdownProgressBar startCountdown(Duration countdownDuration) {
+        if (countdownDuration == null || countdownDuration.isNegative()) {
+            countdownDuration = Duration.ZERO;
+        }
         this.countdownStartTime = LocalDateTime.now();
-        this.countdownDuration = requireNonNull(countdownDuration).abs();
+        this.countdownDuration = countdownDuration;
         this.lastDrawnSecond = 0;
         invalidate();
         return self();
@@ -58,34 +60,40 @@ public class CountdownProgressBar extends ProgressBar {
 
 
     public Duration remainingDuration() {
-        Duration remainingDuration = countdownDuration.minus(elapsedDuration());
-        if (remainingDuration.isNegative()) {
-            remainingDuration = Duration.ZERO;
-        }
-        return remainingDuration;
+        return countdownDuration.minus(elapsedDuration());
     }
 
     public Duration elapsedDuration() {
-        return Duration.between(countdownStartTime, LocalDateTime.now());
+        Duration duration = Duration.between(countdownStartTime, LocalDateTime.now());
+        if (duration.compareTo(countdownDuration) < 0) {
+            return duration;
+        } else {
+            return countdownDuration;
+        }
     }
 
-
-    @Override
-    protected void onBeforeDrawing() {
-        super.onBeforeDrawing();
-        lastDrawnSecond = remainingDuration().getSeconds();
-    }
 
     @Override
     public synchronized float getProgress() {
-        long elapsedSeconds = elapsedDuration().withNanos(0).getSeconds();
-        long durationSeconds = countdownDuration.withNanos(0).getSeconds();
+        long durationSeconds = countdownDuration.getSeconds();
+        if (durationSeconds == 0) {
+            return 1.0f;
+        }
+        long elapsedSeconds = elapsedDuration().getSeconds();
         return (elapsedSeconds * 1.0f) / durationSeconds;
     }
 
+
+    @Override
+    protected void onAfterDrawing(TextGUIGraphics graphics) {
+        super.onAfterDrawing(graphics);
+        lastDrawnSecond = elapsedDuration().getSeconds();
+    }
+
+
     @Override
     public boolean isInvalid() {
-        return super.isInvalid() || lastDrawnSecond != remainingDuration().getSeconds();
+        return super.isInvalid() || lastDrawnSecond != elapsedDuration().getSeconds();
     }
 
 
