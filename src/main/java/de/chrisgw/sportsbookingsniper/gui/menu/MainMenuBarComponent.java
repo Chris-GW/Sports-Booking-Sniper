@@ -17,7 +17,7 @@ import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
-import de.chrisgw.sportsbookingsniper.gui.dialog.SportBuchungDialog;
+import de.chrisgw.sportsbookingsniper.gui.buchung.SportBuchungDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;

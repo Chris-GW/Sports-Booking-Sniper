@@ -20,7 +20,7 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow {
 
     private final TeilnehmerListBox teilnehmerListBox;
     private final Label centerHeaderLabel = new Label("Teilnehmer Angaben");
-    private final TeilnehmerFormPanel teilnehmerFormPanel = new TeilnehmerFormPanel();
+    private final TeilnehmerForm teilnehmerForm = new TeilnehmerForm();
 
     private final Button closeBtn = new Button(LocalizedString.Close.toString(), this::close);
     private final Button saveBtn = new Button(LocalizedString.Save.toString(), this::saveTeilnehmer);
@@ -49,14 +49,14 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow {
         } else {
             centerHeaderLabel.setText("Angaben für neuen Teilnehmer/in eingeben");
         }
-        teilnehmerFormPanel.setTeilnehmer(teilnehmer);
+        teilnehmerForm.setFormValue(teilnehmer);
     }
 
     private Panel createCenterPanel() {
         Panel centerPanel = new Panel();
         centerPanel.addComponent(centerHeaderLabel);
         centerPanel.addComponent(new EmptySpace());
-        centerPanel.addComponent(teilnehmerFormPanel);
+        centerPanel.addComponent(teilnehmerForm);
         return centerPanel;
     }
 
@@ -74,13 +74,18 @@ public class TeilnehmerVerwaltungWindow extends BasicWindow {
 
 
     private void saveTeilnehmer() {
+        if (teilnehmerForm.validateForm()) {
+            return;
+        }
+
         int selectedIndex = teilnehmerListBox.getSelectedIndex();
-        Teilnehmer readTeilnehmer = teilnehmerFormPanel.readTeilnehmer();
+        Teilnehmer readTeilnehmer = teilnehmerForm.readFormValue();
         if (selectedIndex == 0) {
             applicationStateDao.addTeilnehmer(readTeilnehmer);
         } else if (selectedIndex > 0) {
             applicationStateDao.updateTeilnehmer(selectedIndex - 1, readTeilnehmer);
         }
+
         new MessageDialogBuilder() //
                 .setTitle("Teilnehmer erfolgreich gespeichert") //
                 .setText(String.format("Der Teilnehmer mit dem Namen '%s' wurde erfolgreich gespeichert!", //

@@ -22,7 +22,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
     private final AtomicBoolean saved = new AtomicBoolean(false);
     private boolean forceValidTeilnehmerForm;
 
-    private final TeilnehmerFormPanel teilnehmerFormularPanel = new TeilnehmerFormPanel();
+    private final TeilnehmerForm teilnehmerFormularPanel = new TeilnehmerForm();
     private final Button cancelBtn = new Button(LocalizedString.Cancel.toString(), this::close);
     private final Button resetBtn = new Button("Zurücksetzen", this::resetTeilnehmerForm);
     private final Button saveBtn = new Button(LocalizedString.Save.toString(), this::saveTeilnehmerForm);
@@ -60,7 +60,7 @@ public class TeilnehmerFormDialog extends DialogWindow {
     }
 
     private void saveTeilnehmerForm() {
-        if (!teilnehmerFormularPanel.validateTeilnehmerForm()) {
+        if (!teilnehmerFormularPanel.validateForm()) {
             saved.set(true);
             this.close();
         }
@@ -68,15 +68,15 @@ public class TeilnehmerFormDialog extends DialogWindow {
 
 
     public Teilnehmer readTeilnehmer() {
-        return teilnehmerFormularPanel.readTeilnehmer();
+        return teilnehmerFormularPanel.readFormValue();
     }
 
     public void setTeilnehmer(Teilnehmer teilnehmer) {
-        teilnehmerFormularPanel.setTeilnehmer(teilnehmer);
+        teilnehmerFormularPanel.setFormValue(teilnehmer);
     }
 
     public void resetTeilnehmerForm() {
-        teilnehmerFormularPanel.resetTeilnehmerForm();
+        teilnehmerFormularPanel.resetFormValue();
     }
 
 

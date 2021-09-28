@@ -1,16 +1,13 @@
 package de.chrisgw.sportsbookingsniper.gui;
 
-import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
-import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobComponent;
 import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobPanel;
 import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
-import de.chrisgw.sportsbookingsniper.gui.component.FinishedSportBuchungenComponent;
 import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
@@ -28,8 +25,6 @@ public class SportBookingMainWindow extends BasicWindow {
     private final ApplicationStateDao applicationStateDao;
 
     private MainMenuBarComponent mainMenuBar;
-    private AusstehendeSportBuchungsJobComponent pendingComponent;
-    private FinishedSportBuchungenComponent finishedComponent;
     private FavoriteSportAngebotComponent favoriteComponent;
     private AusstehendeSportBuchungsJobPanel ausstehendeSportBuchungsJobPanel;
 
@@ -52,16 +47,6 @@ public class SportBookingMainWindow extends BasicWindow {
 
 
     private Panel createCenterPanel() {
-        pendingComponent = new AusstehendeSportBuchungsJobComponent(applicationStateDao, this);
-        pendingComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
-        mainMenuBar.addViewMenuItemsFor(pendingComponent);
-        mainMenuBar.addNavigationMenuItemsFor(pendingComponent);
-
-        finishedComponent = new FinishedSportBuchungenComponent(applicationStateDao, this);
-        finishedComponent.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
-        mainMenuBar.addViewMenuItemsFor(finishedComponent);
-        mainMenuBar.addNavigationMenuItemsFor(finishedComponent);
-
         ausstehendeSportBuchungsJobPanel = new AusstehendeSportBuchungsJobPanel(applicationStateDao);
         ausstehendeSportBuchungsJobPanel.setLayoutData(GridLayout.createLayoutData(FILL, BEGINNING, true, false));
 
@@ -70,10 +55,8 @@ public class SportBookingMainWindow extends BasicWindow {
 
         Panel centerPanel = new Panel(new GridLayout(1));
 
-//        centerPanel.addComponent(pendingComponent.withBorder(singleLineReverseBevel(pendingComponent.getTitle())));
-//        centerPanel.addComponent(finishedComponent.withBorder(singleLineReverseBevel(finishedComponent.getTitle())));
-        centerPanel.addComponent(ausstehendeSportBuchungsJobPanel);
-        addWindowListener(resizeVisibleTableRowListener());
+        centerPanel.addComponent(
+                ausstehendeSportBuchungsJobPanel.withBorder(singleLineReverseBevel("Ausstehende Sport Buchungen")));
         return centerPanel;
     }
 
@@ -86,24 +69,6 @@ public class SportBookingMainWindow extends BasicWindow {
         Panel rightPanel = new Panel();
         rightPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
         return rightPanel;
-    }
-
-
-    private WindowListener resizeVisibleTableRowListener() {
-        return new WindowListenerAdapter() {
-
-            @Override
-            public void onResized(Window window, TerminalSize oldSize, TerminalSize newSize) {
-                if (oldSize == null || oldSize.getRows() != newSize.getRows()) {
-                    int avabileRows = newSize.getRows() - 2;
-                    avabileRows -= mainMenuBar.getPreferredSize().getRows() + 2;
-                    avabileRows -= finishedComponent.getPreferredSize().getRows() + 2;
-                    int tableRows = avabileRows / 2;
-                    pendingComponent.setVisibleRows(Math.max(2, tableRows));
-                }
-            }
-
-        };
     }
 
 

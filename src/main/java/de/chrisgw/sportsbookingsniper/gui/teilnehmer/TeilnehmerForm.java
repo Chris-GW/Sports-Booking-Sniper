@@ -1,28 +1,22 @@
 package de.chrisgw.sportsbookingsniper.gui.teilnehmer;
 
-import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor.ANSI;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.ComboBox;
+import com.googlecode.lanterna.gui2.EmptySpace;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.TextBox;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
-import org.apache.commons.lang3.StringUtils;
+import de.chrisgw.sportsbookingsniper.gui.component.FormPanel;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
-import static com.googlecode.lanterna.gui2.LinearLayout.GrowPolicy.CanGrow;
-import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 
-public class TeilnehmerFormPanel extends Panel {
-
-    private final Map<Interactable, Label> fieldToLabelMap = new HashMap<>();
+public class TeilnehmerForm extends FormPanel<Teilnehmer> {
 
     private final TextBox vornameTextBox = new TextBox();
     private final TextBox nachnameTextBox = new TextBox();
@@ -42,11 +36,11 @@ public class TeilnehmerFormPanel extends Panel {
     private final TextBox kontoInhaberTextBox = new TextBox();
 
 
-    public TeilnehmerFormPanel() {
+    public TeilnehmerForm() {
         this(null);
     }
 
-    public TeilnehmerFormPanel(Teilnehmer teilnehmer) {
+    public TeilnehmerForm(Teilnehmer teilnehmer) {
         super();
         addFormularField("Vorname*", vornameTextBox);
         addFormularField("Nachname*", nachnameTextBox);
@@ -69,27 +63,7 @@ public class TeilnehmerFormPanel extends Panel {
         addFormularField("IBAN*", ibanTextBox);
         addFormularField("Kontoinhaber", kontoInhaberTextBox);
         addFormularComponent(new Label("nur ändern, falls nicht mit Teilnehmer/in identisch"));
-
-        int maxLabelLength = fieldToLabelMap.values()
-                .stream()
-                .map(Label::getText)
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
-        fieldToLabelMap.values().forEach(label -> label.setPreferredSize(new TerminalSize(maxLabelLength, 1)));
-        setTeilnehmer(teilnehmer);
-    }
-
-
-    private <T extends Interactable> void addFormularField(String labelText, T interactable) {
-        interactable.setLayoutData(createLayoutData(Fill, CanGrow));
-        Label label = new Label(labelText);
-        fieldToLabelMap.put(interactable, label);
-        this.addComponent(Panels.horizontal(label, interactable), createLayoutData(Fill, CanGrow));
-    }
-
-    private <T extends Component> void addFormularComponent(T component) {
-        this.addComponent(component, createLayoutData(Fill, CanGrow));
+        setFormValue(teilnehmer);
     }
 
 
@@ -115,15 +89,16 @@ public class TeilnehmerFormPanel extends Panel {
     }
 
 
-    public boolean validateTeilnehmerForm() {
+    @Override
+    public boolean validateForm() {
         return List.of( //
-                isEmptyTextBox(vornameTextBox), //
-                isEmptyTextBox(nachnameTextBox), //
-                isUnselectedComboBox(genderComboBox), //
-                isEmptyTextBox(streetTextBox), //
-                isEmptyTextBox(ortTextBox), //
-                isEmptyTextBox(emailTextBox), //
-                isEmptyTextBox(telefonTextBox), //
+                isEmpty(vornameTextBox), //
+                isEmpty(nachnameTextBox), //
+                isUnselected(genderComboBox), //
+                isEmpty(streetTextBox), //
+                isEmpty(ortTextBox), //
+                isEmpty(emailTextBox), //
+                isEmpty(telefonTextBox), //
                 validateTeilnehmerKategorieForm() //
         ).contains(true);
     }
@@ -136,35 +111,15 @@ public class TeilnehmerFormPanel extends Panel {
         boolean requiresMatrikelnummer = selectedKategorie != null && selectedKategorie.requiresMatrikelnummer();
         boolean requiresMitarbeiterNummer = selectedKategorie != null && selectedKategorie.requiresMitarbeiterNummer();
         return List.of( //
-                isUnselectedComboBox(kategorieComboBox), //
-                requiresMatrikelnummer && isEmptyTextBox(matrikelNummerTextBox), //
-                requiresMitarbeiterNummer && isEmptyTextBox(mitarbeiterNummerTextBox) //
+                isUnselected(kategorieComboBox), //
+                requiresMatrikelnummer && isEmpty(matrikelNummerTextBox), //
+                requiresMitarbeiterNummer && isEmpty(mitarbeiterNummerTextBox) //
         ).contains(true);
     }
 
-    private boolean isEmptyTextBox(TextBox textBox) {
-        boolean hasError = StringUtils.isEmpty(trimToNull(textBox.getText()));
-        setFieldFeedback(textBox, hasError);
-        return hasError;
-    }
 
-    private <T> boolean isUnselectedComboBox(ComboBox<T> comboBox) {
-        boolean hasError = comboBox.getSelectedItem() == null;
-        setFieldFeedback(comboBox, hasError);
-        return hasError;
-    }
-
-    private void setFieldFeedback(Interactable interactable, boolean hasError) {
-        Label label = fieldToLabelMap.get(interactable);
-        if (label != null && hasError) {
-            label.setForegroundColor(ANSI.RED).setBackgroundColor(ANSI.WHITE);
-        } else if (label != null) {
-            label.setForegroundColor(null).setBackgroundColor(null);
-        }
-    }
-
-
-    public Teilnehmer readTeilnehmer() {
+    @Override
+    public Teilnehmer readFormValue() {
         Teilnehmer teilnehmer = new Teilnehmer();
         teilnehmer.setVorname(trimToNull(vornameTextBox.getText()));
         teilnehmer.setNachname(trimToNull(nachnameTextBox.getText()));
@@ -185,7 +140,8 @@ public class TeilnehmerFormPanel extends Panel {
     }
 
 
-    public void setTeilnehmer(Teilnehmer teilnehmer) {
+    @Override
+    public void setFormValue(Teilnehmer teilnehmer) {
         if (teilnehmer == null) {
             teilnehmer = new Teilnehmer();
         }
@@ -204,10 +160,6 @@ public class TeilnehmerFormPanel extends Panel {
 
         ibanTextBox.setText(defaultString(teilnehmer.getIban()));
         kontoInhaberTextBox.setText(defaultString(teilnehmer.getKontoInhaber()));
-    }
-
-    public void resetTeilnehmerForm() {
-        setTeilnehmer(null);
     }
 
 }

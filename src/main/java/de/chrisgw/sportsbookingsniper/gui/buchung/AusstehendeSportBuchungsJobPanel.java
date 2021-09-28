@@ -1,22 +1,18 @@
 package de.chrisgw.sportsbookingsniper.gui.buchung;
 
-import com.googlecode.lanterna.gui2.Borders;
-import com.googlecode.lanterna.gui2.Container;
-import com.googlecode.lanterna.gui2.LinearLayout;
-import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.*;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
+import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Center;
 import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Fill;
 import static com.googlecode.lanterna.gui2.LinearLayout.GrowPolicy.CanGrow;
+import static com.googlecode.lanterna.gui2.LinearLayout.createLayoutData;
 
 
 public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuchungsJobListener {
@@ -24,20 +20,28 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     private final ApplicationStateDao applicationStateDao;
     private final Map<SportAngebot, Panel> sportAngebotPanelMap = new ConcurrentHashMap<>();
     private final Map<Integer, AusstehendeSportBuchungsJobItem> buchungsJobComponentMap = new ConcurrentHashMap<>();
+    private final Panel noContentPanel = createNoContentPanel();
 
 
     public AusstehendeSportBuchungsJobPanel(ApplicationStateDao applicationStateDao) {
         this.applicationStateDao = applicationStateDao;
+        addComponent(noContentPanel);
+        this.applicationStateDao.getPendingBuchungsJobs().forEach(this::onNewPendingSportBuchungsJob);
+    }
 
-        Map<SportAngebot, List<SportBuchungsJob>> sportAngebotListMap = applicationStateDao.getPendingBuchungsJobs()
-                .stream()
-                .collect(Collectors.groupingBy(SportBuchungsJob::getSportAngebot));
-        sportAngebotListMap.forEach((sportAngebot, sportBuchungsJobs) -> {
-            sportBuchungsJobs.stream()
-                    .sorted(Comparator.comparing(SportBuchungsJob::getSportTermin))
-                    .map(AusstehendeSportBuchungsJobItem::new)
-                    .forEachOrdered(this::addComponent);
-        });
+    private Panel createNoContentPanel() {
+        Label infoLabel = new Label("Im Moment sind keine Sport Buchungen vorhanden");
+
+        Button newSportBuchungBtn = new Button("new SportBuchung");
+        newSportBuchungBtn.setRenderer(new Button.BorderedButtonRenderer());
+        newSportBuchungBtn.setLayoutData(createLayoutData(Center));
+
+        Panel noContentPanel = new Panel();
+        noContentPanel.setLayoutData(createLayoutData(Fill, CanGrow));
+        noContentPanel.addComponent(new EmptySpace());
+        noContentPanel.addComponent(infoLabel, createLayoutData(Center));
+        noContentPanel.addComponent(newSportBuchungBtn);
+        return noContentPanel;
     }
 
 
@@ -47,10 +51,10 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
 
         SportAngebot sportAngebot = sportBuchungsJob.getSportAngebot();
         Panel angebotPanel = sportAngebotPanelMap.computeIfAbsent(sportAngebot, sportAngebot1 -> new Panel());
-        angebotPanel.addComponent(component, LinearLayout.createLayoutData(Fill, CanGrow));
+        angebotPanel.addComponent(component, createLayoutData(Fill, CanGrow));
         if (!containsComponent(angebotPanel)) {
             addComponent(angebotPanel.withBorder(Borders.singleLine(sportAngebot.getName())),
-                    LinearLayout.createLayoutData(Fill, CanGrow));
+                    createLayoutData(Fill, CanGrow));
         }
         return self();
     }
@@ -68,6 +72,12 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         this.applicationStateDao.removeSportBuchungsJobListener(this);
     }
 
+
+    @Override
+    protected void onBeforeDrawing() {
+        super.onBeforeDrawing();
+        noContentPanel.setVisible(getChildCount() <= 1);
+    }
 
     @Override
     public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
