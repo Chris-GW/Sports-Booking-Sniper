@@ -1,7 +1,5 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +12,6 @@ import static java.util.Objects.requireNonNull;
 
 
 @Data
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportArt implements Comparable<SportArt> {
 
     private SportKatalog sportKatalog;

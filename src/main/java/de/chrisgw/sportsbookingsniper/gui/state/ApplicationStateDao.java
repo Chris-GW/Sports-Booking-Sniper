@@ -17,9 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,10 +35,12 @@ public class ApplicationStateDao {
     private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
-    private final ScheduledExecutorService executorService;
 
-    private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
-    private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
+    private final ScheduledExecutorService executorService;
+    private final Map<Integer, ScheduledSportBuchungsJob> scheduledSportBuchungsJobMap = new ConcurrentHashMap<>();
+
+    private final List<TeilnehmerListeListener> teilnehmerListeListeners = new CopyOnWriteArrayList<>();
+    private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new CopyOnWriteArrayList<>();
 
     private final ReentrantLock fileLock = new ReentrantLock();
     private SavedApplicationState applicationState;
@@ -127,11 +131,11 @@ public class ApplicationStateDao {
     }
 
 
-    public void addTeilnehmerListeListener(TeilnehmerListeListener teilnehmerListeListener) {
+    public void addTeilnehmerListener(TeilnehmerListeListener teilnehmerListeListener) {
         teilnehmerListeListeners.add(teilnehmerListeListener);
     }
 
-    public void removeTeilnehmerListeListener(TeilnehmerListeListener teilnehmerListeListener) {
+    public void removeTeilnehmerListener(TeilnehmerListeListener teilnehmerListeListener) {
         teilnehmerListeListeners.remove(teilnehmerListeListener);
     }
 
@@ -156,10 +160,21 @@ public class ApplicationStateDao {
         return unmodifiableList(applicationState.getPendingBuchungsJobs());
     }
 
+
     public ScheduledSportBuchungsJob addSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        var scheduledSportBuchungsJob = getScheduledSportBuchungsJob(sportBuchungsJob);
+        if (scheduledSportBuchungsJob != null) {
+            return scheduledSportBuchungsJob;
+        }
+        if (sportBuchungsJob.getJobId() == 0) {
+            synchronized (this) {
+                sportBuchungsJob.setJobId(applicationState.nextJobId());
+            }
+        }
         applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
-        saveApplicationData();
         var scheduledBuchungsJob = new ScheduledSportBuchungsJob(sportBuchungsJob, executorService);
+        scheduledSportBuchungsJobMap.put(sportBuchungsJob.getJobId(), scheduledBuchungsJob);
+        saveApplicationData();
 
         for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
             scheduledBuchungsJob.addListener(sportBuchungsJobListener);
@@ -167,6 +182,16 @@ public class ApplicationStateDao {
         }
         return scheduledBuchungsJob;
     }
+
+
+    public ScheduledSportBuchungsJob getScheduledSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        return getScheduledSportBuchungsJob(sportBuchungsJob.getJobId());
+    }
+
+    public ScheduledSportBuchungsJob getScheduledSportBuchungsJob(int jobId) {
+        return scheduledSportBuchungsJobMap.get(jobId);
+    }
+
 
     public ScheduledSportBuchungsJob retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
         var scheduledBuchungsJob = new ScheduledSportBuchungsJob(buchungsJob, executorService);
@@ -190,6 +215,7 @@ public class ApplicationStateDao {
 
     public void removeSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationState.getPendingBuchungsJobs().remove(sportBuchungsJob);
+        scheduledSportBuchungsJobMap.remove(sportBuchungsJob.getJobId());
         saveApplicationData();
         for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
             sportBuchungsJobListener.onFinishSportBuchungJob(sportBuchungsJob);
@@ -256,6 +282,7 @@ public class ApplicationStateDao {
             var saveFile = savedApplicationDataPath.toFile();
             var savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
             log.trace("read savedApplicationData {} from {}", savedApplicationState, saveFile);
+            savedApplicationState.getPendingBuchungsJobs().forEach(this::addSportBuchungsJob);
             return savedApplicationState;
         } catch (IOException e) {
             throw new RuntimeException("Could not read savedApplicationData from " + savedApplicationDataPath, e);

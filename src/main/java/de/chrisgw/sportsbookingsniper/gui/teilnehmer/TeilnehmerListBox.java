@@ -59,13 +59,13 @@ public class TeilnehmerListBox extends AbstractWatchableListBox<Teilnehmer, Teil
     @Override
     public synchronized void onAdded(Container container) {
         super.onAdded(container);
-        applicationStateDao.addTeilnehmerListeListener(this);
+        applicationStateDao.addTeilnehmerListener(this);
     }
 
     @Override
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
-        applicationStateDao.removeTeilnehmerListeListener(this);
+        applicationStateDao.removeTeilnehmerListener(this);
     }
 
 

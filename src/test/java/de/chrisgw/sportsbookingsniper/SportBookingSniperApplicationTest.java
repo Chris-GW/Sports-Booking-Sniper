@@ -89,7 +89,7 @@ public class SportBookingSniperApplicationTest {
         sportBuchungsJob.setPasswort("test1234");
 
         ApplicationStateDao applicationStateDao = sportBookingSniperApplication.getApplicationStateDao();
-        ScheduledSportBuchungsJob scheduledBuchungsJob = applicationStateDao.retrySportBuchungsJob(sportBuchungsJob);
+        ScheduledSportBuchungsJob scheduledBuchungsJob = applicationStateDao.addSportBuchungsJob(sportBuchungsJob);
         SportBuchungsBestaetigung sportBuchungsBestaetigung = scheduledBuchungsJob.get();
         System.out.println(sportBuchungsBestaetigung);
     }

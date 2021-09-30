@@ -14,7 +14,6 @@ import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportB
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
 
@@ -24,9 +23,8 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
     private final SportBuchungsJob buchungsJob;
     private final ScheduledExecutorService executorService;
 
-    private final List<SportBuchungsVersuch> buchungsVersuche = new CopyOnWriteArrayList<>();
     private final List<SportBuchungsJobListener> listeners = new CopyOnWriteArrayList<>();
-    private final CompletableFuture<SportBuchungsBestaetigung> futureBuchungsBestaetigung;
+    private final CompletableFuture<SportBuchungsBestaetigung> futureBuchungsBestaetigung = new CompletableFuture<>();
     private ScheduledFuture<SportBuchungsVersuch> scheduledBuchungsVersuch;
 
 
@@ -34,7 +32,6 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
         this.buchungsJob = requireNonNull(buchungsJob);
         this.executorService = requireNonNull(executorService);
 
-        this.futureBuchungsBestaetigung = new CompletableFuture<>();
         this.scheduledBuchungsVersuch = scheduleBuchungsVersuch(buchungsJob.durationTillNextCheck());
     }
 
@@ -87,7 +84,6 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
                 buchungsJob, buchungsJob.getTeilnehmerListe());
         SportBuchungsVersuch buchungsVersuch = newVerbindlicherBuchungsVersuch(buchungsJob);
         buchungsJob.addBuchungsVersuch(buchungsVersuch);
-        buchungsVersuche.add(buchungsVersuch);
         log.info("finish booking {} with SportBuchungsVersuch {}", buchungsJob, buchungsVersuch);
 
         if (BUCHUNG_ERFOLGREICH.equals(buchungsVersuch.getStatus())) {
@@ -156,13 +152,8 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
         return buchungsJob;
     }
 
-
     public ScheduledFuture<SportBuchungsVersuch> getScheduledBuchungsVersuch() {
         return scheduledBuchungsVersuch;
-    }
-
-    public List<SportBuchungsVersuch> getBuchungsVersuche() {
-        return unmodifiableList(buchungsVersuche);
     }
 
 

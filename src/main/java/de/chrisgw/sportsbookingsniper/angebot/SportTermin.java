@@ -1,9 +1,7 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Data;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
@@ -18,7 +16,6 @@ import static java.util.Objects.requireNonNull;
 
 
 @Data
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportTermin implements Comparable<SportTermin> {
 
     private final LocalDateTime startZeit;
