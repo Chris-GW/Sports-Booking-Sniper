@@ -1,12 +1,15 @@
 package de.chrisgw.sportsbookingsniper.gui.buchung;
 
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.state.SportBuchungsJobListener;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.googlecode.lanterna.gui2.LinearLayout.Alignment.Center;
@@ -48,15 +51,101 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     public Panel addComponent(AusstehendeSportBuchungsJobItem component) {
         SportBuchungsJob sportBuchungsJob = component.getSportBuchungsJob();
         buchungsJobComponentMap.put(sportBuchungsJob.getJobId(), component);
+        component.addListener(button -> showBuchungsJobActionListDialog(sportBuchungsJob));
 
         SportAngebot sportAngebot = sportBuchungsJob.getSportAngebot();
         Panel angebotPanel = sportAngebotPanelMap.computeIfAbsent(sportAngebot, sportAngebot1 -> new Panel());
         angebotPanel.addComponent(component, createLayoutData(Fill, CanGrow));
         if (!containsComponent(angebotPanel)) {
-            addComponent(angebotPanel.withBorder(Borders.singleLine(sportAngebot.getName())),
-                    createLayoutData(Fill, CanGrow));
+            Border border = Borders.singleLine(sportAngebot.getName());
+            addComponent(angebotPanel.withBorder(border), createLayoutData(Fill, CanGrow));
         }
         return self();
+    }
+
+    public Panel removeComponent(AusstehendeSportBuchungsJobItem component) {
+        super.removeComponent(component);
+        SportBuchungsJob sportBuchungsJob = component.getSportBuchungsJob();
+        Panel angebotPanel = sportAngebotPanelMap.get(sportBuchungsJob.getSportAngebot());
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        if (ausstehendeSportBuchungsJobItem == null || angebotPanel == null) {
+            return self();
+        }
+        buchungsJobComponentMap.remove(sportBuchungsJob.getJobId());
+        angebotPanel.removeComponent(ausstehendeSportBuchungsJobItem);
+        getBasePane().setFocusedInteractable(nextFocus(null));
+
+        if (angebotPanel.getChildCount() == 0) {
+            sportAngebotPanelMap.remove(sportBuchungsJob.getSportAngebot());
+            removeComponent(angebotPanel.getParent());
+            noContentPanel.setVisible(getChildCount() <= 1);
+        }
+        return this;
+    }
+
+
+    private void showBuchungsJobActionListDialog(SportBuchungsJob sportBuchungsJob) {
+        SportAngebot sportAngebot = sportBuchungsJob.getSportAngebot();
+        SportTermin sportTermin = sportBuchungsJob.getSportTermin();
+        new ActionListDialogBuilder() //
+                .setTitle("Ausgewählter Sport Buchungs Job ...")
+                .setDescription(sportAngebot.getName() + "\n" + sportTermin)
+                .setCanCancel(true)
+                .setCloseAutomaticallyOnAction(true)
+                .addAction("Bearbeiten <c-b>", () -> editSportBuchungsJob(sportBuchungsJob))
+                .addAction("Jetzt Versuchen zu buchen <F5>", () -> retrySportBuchungsJob(sportBuchungsJob))
+                .addAction("Buchung kopieren <S-c>", () -> copySportBuchungsJob(sportBuchungsJob))
+                .addAction("Löschen <Entf>", () -> removeSportBuchungsJob(sportBuchungsJob))
+                .build()
+                .showDialog((WindowBasedTextGUI) getTextGUI());
+    }
+
+    private void editSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
+                .setSportBuchungsJob(sportBuchungsJob) //
+                .showDialog((WindowBasedTextGUI) getTextGUI());
+        savedSportBuchungsJob.ifPresent(applicationStateDao::refreshSportBuchungsJob);
+    }
+
+    private void retrySportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        applicationStateDao.retrySportBuchungsJob(sportBuchungsJob);
+    }
+
+    private void copySportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
+                .setSportBuchungsJob(sportBuchungsJob) //
+                .showDialog((WindowBasedTextGUI) getTextGUI());
+        savedSportBuchungsJob.ifPresent(applicationStateDao::addSportBuchungsJob);
+    }
+
+    private void removeSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        applicationStateDao.removeSportBuchungsJob(sportBuchungsJob);
+    }
+
+
+    @Override
+    protected void onBeforeDrawing() {
+        super.onBeforeDrawing();
+        noContentPanel.setVisible(getChildCount() <= 1);
+    }
+
+
+    @Override
+    public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        var ausstehendeSportBuchungsJobItem = new AusstehendeSportBuchungsJobItem(sportBuchungsJob);
+        addComponent(ausstehendeSportBuchungsJobItem);
+    }
+
+    @Override
+    public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        ausstehendeSportBuchungsJobItem.invalidate();
+    }
+
+    @Override
+    public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        removeComponent(ausstehendeSportBuchungsJobItem);
     }
 
 
@@ -70,36 +159,6 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     public synchronized void onRemoved(Container container) {
         super.onRemoved(container);
         this.applicationStateDao.removeSportBuchungsJobListener(this);
-    }
-
-
-    @Override
-    protected void onBeforeDrawing() {
-        super.onBeforeDrawing();
-        noContentPanel.setVisible(getChildCount() <= 1);
-    }
-
-    @Override
-    public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        var ausstehendeSportBuchungsJobItem = new AusstehendeSportBuchungsJobItem(sportBuchungsJob);
-        addComponent(ausstehendeSportBuchungsJobItem);
-    }
-
-    @Override
-    public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
-        if (ausstehendeSportBuchungsJobItem != null) {
-            ausstehendeSportBuchungsJobItem.onUpdatedSportBuchungsJob(sportBuchungsJob);
-        }
-    }
-
-    @Override
-    public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
-        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
-        if (ausstehendeSportBuchungsJobItem != null) {
-            ausstehendeSportBuchungsJobItem.onFinishSportBuchungJob(sportBuchungsJob);
-        }
-        invalidate();
     }
 
 }

@@ -33,7 +33,34 @@ public class CountdownProgressBar extends ProgressBar {
         this.countdownDuration = countdownDuration;
         this.lastDrawnSecond = 0;
         invalidate();
-        return self();
+        return this;
+    }
+
+
+    public LocalDateTime getCountdownStartTime() {
+        return countdownStartTime;
+    }
+
+    public LocalDateTime getCountdownEndTime() {
+        return countdownStartTime.plus(countdownDuration);
+    }
+
+    public Duration getCountdownDuration() {
+        return countdownDuration;
+    }
+
+
+    public Duration remainingDuration() {
+        return countdownDuration.minus(elapsedDuration());
+    }
+
+    public Duration elapsedDuration() {
+        Duration duration = Duration.between(countdownStartTime, LocalDateTime.now());
+        if (duration.compareTo(countdownDuration) < 0) {
+            return duration;
+        } else {
+            return countdownDuration;
+        }
     }
 
 
@@ -59,20 +86,6 @@ public class CountdownProgressBar extends ProgressBar {
     }
 
 
-    public Duration remainingDuration() {
-        return countdownDuration.minus(elapsedDuration());
-    }
-
-    public Duration elapsedDuration() {
-        Duration duration = Duration.between(countdownStartTime, LocalDateTime.now());
-        if (duration.compareTo(countdownDuration) < 0) {
-            return duration;
-        } else {
-            return countdownDuration;
-        }
-    }
-
-
     @Override
     public synchronized float getProgress() {
         long durationSeconds = countdownDuration.getSeconds();
@@ -94,12 +107,6 @@ public class CountdownProgressBar extends ProgressBar {
     @Override
     public boolean isInvalid() {
         return super.isInvalid() || lastDrawnSecond != elapsedDuration().getSeconds();
-    }
-
-
-    @Override
-    protected CountdownProgressBar self() {
-        return (CountdownProgressBar) super.self();
     }
 
 }

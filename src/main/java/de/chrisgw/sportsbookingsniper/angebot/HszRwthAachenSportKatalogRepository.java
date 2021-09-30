@@ -34,7 +34,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public static final int REQUEST_TIMEOUT_MS = 8 * 1000;
-    public static final String SPORT_KATALOG_URL = "http://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/index.html";
+    public static final String SPORT_KATALOG_URL = "https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/index.html";
 
 
     @Override

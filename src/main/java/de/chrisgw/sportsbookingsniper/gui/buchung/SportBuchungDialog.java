@@ -21,9 +21,14 @@ public class SportBuchungDialog extends DialogWindow {
 
 
     public SportBuchungDialog(ApplicationStateDao applicationStateDao) {
+        this(applicationStateDao, null);
+    }
+
+    public SportBuchungDialog(ApplicationStateDao applicationStateDao, SportBuchungsJob sportBuchungsJob) {
         super("Sportbuchung");
         this.applicationStateDao = applicationStateDao;
         this.sportBuchungForm = new SportBuchungForm(applicationStateDao);
+        setSportBuchungsJob(sportBuchungsJob);
         setHints(Arrays.asList(Hint.MODAL, Hint.CENTERED));
         setCloseWindowWithEscape(true);
         setComponent(createContentPane());
@@ -54,7 +59,7 @@ public class SportBuchungDialog extends DialogWindow {
         setSportBuchungsJob(null);
     }
 
-    public void saveSportBuchungsJob() {
+    protected void saveSportBuchungsJob() {
         if (!sportBuchungForm.validateForm()) {
             saved.set(true);
             this.close();
@@ -66,8 +71,9 @@ public class SportBuchungDialog extends DialogWindow {
         return sportBuchungForm.readFormValue();
     }
 
-    public void setSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+    public SportBuchungDialog setSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         sportBuchungForm.setFormValue(sportBuchungsJob);
+        return this;
     }
 
 

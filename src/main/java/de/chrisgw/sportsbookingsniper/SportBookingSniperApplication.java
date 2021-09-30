@@ -27,6 +27,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 
 @Log4j2
@@ -34,14 +36,16 @@ import java.util.Properties;
 public class SportBookingSniperApplication {
 
     private final SportKatalogRepository sportKatalogRepository;
-    private final ApplicationStateDao applicationStateDao;
     private final ObjectMapper objectMapper;
+    private final ScheduledExecutorService executorService;
+    private final ApplicationStateDao applicationStateDao;
 
 
     public SportBookingSniperApplication() {
         this.sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
         this.objectMapper = createObjectMapper();
-        this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, objectMapper);
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
+        this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, objectMapper, executorService);
     }
 
 
@@ -128,8 +132,10 @@ public class SportBookingSniperApplication {
                 System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
             }
             log.trace("start SportBookingSniperApplication gui");
-            new SportBookingSniperApplication().showGui();
+            var sportBookingSniperApplication = new SportBookingSniperApplication();
+            sportBookingSniperApplication.showGui();
             log.trace("finish SportBookingSniperApplication gui");
+            sportBookingSniperApplication.getExecutorService().shutdown();
             System.exit(0);
         } catch (Exception e) {
             log.error("Unexpected Exception", e);

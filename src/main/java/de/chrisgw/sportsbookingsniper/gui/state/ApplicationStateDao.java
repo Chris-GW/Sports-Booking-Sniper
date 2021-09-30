@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -34,7 +33,7 @@ public class ApplicationStateDao {
     private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executorService;
 
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new ArrayList<>();
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new ArrayList<>();
@@ -44,21 +43,23 @@ public class ApplicationStateDao {
     private SportKatalog sportKatalog;
 
 
-    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, ObjectMapper objectMapper) {
+    public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, ObjectMapper objectMapper,
+            ScheduledExecutorService executorService) {
         this.sportKatalogRepository = requireNonNull(sportKatalogRepository);
         this.objectMapper = requireNonNull(objectMapper);
+        this.executorService = requireNonNull(executorService);
         this.applicationState = loadApplicationData();
 
         // TODO remove test sportKatalog
         this.sportKatalog = SportBookingModelTestUtil.newSportKatalog();
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-//        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
     }
 
 
@@ -184,6 +185,14 @@ public class ApplicationStateDao {
             for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
                 sportBuchungsJobListener.onUpdatedSportBuchungsJob(sportBuchungsJob);
             }
+        }
+    }
+
+    public void removeSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+        applicationState.getPendingBuchungsJobs().remove(sportBuchungsJob);
+        saveApplicationData();
+        for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+            sportBuchungsJobListener.onFinishSportBuchungJob(sportBuchungsJob);
         }
     }
 
