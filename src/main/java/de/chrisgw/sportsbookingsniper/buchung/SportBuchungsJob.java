@@ -30,6 +30,7 @@ import static de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSp
 public class SportBuchungsJob {
 
     private int jobId;
+
     private SportAngebot sportAngebot;
     private SportTermin sportTermin;
     private String passwort;
@@ -119,7 +120,6 @@ public class SportBuchungsJob {
         if (!(o instanceof SportBuchungsJob)) {
             return false;
         }
-
         SportBuchungsJob that = (SportBuchungsJob) o;
         return new EqualsBuilder().append(getJobId(), that.getJobId()).isEquals();
     }

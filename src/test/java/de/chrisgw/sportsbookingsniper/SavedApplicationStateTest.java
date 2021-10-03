@@ -1,9 +1,6 @@
 package de.chrisgw.sportsbookingsniper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.Configuration.Defaults;
 import com.jayway.jsonpath.Option;
@@ -39,10 +36,10 @@ public class SavedApplicationStateTest {
 
     static final Logger logger = LoggerFactory.getLogger(SavedApplicationState.class);
 
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = SportBookingSniperApplication.createObjectMapper();
 
-    private Teilnehmer teilnehmer;
     private SportKatalog sportKatalog;
+    private Teilnehmer teilnehmer;
 
     private SportArt badminton;
     private SportArt volleyball;
@@ -133,12 +130,6 @@ public class SavedApplicationStateTest {
 
 
     private void setUpJackson() {
-        objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
         Configuration.setDefaults(new Defaults() {
 
             @Override

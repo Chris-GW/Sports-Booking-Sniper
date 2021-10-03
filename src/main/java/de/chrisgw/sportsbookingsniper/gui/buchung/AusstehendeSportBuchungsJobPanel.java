@@ -139,13 +139,17 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     @Override
     public void onUpdatedSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
-        ausstehendeSportBuchungsJobItem.invalidate();
+        if (ausstehendeSportBuchungsJobItem != null) {
+            ausstehendeSportBuchungsJobItem.invalidate();
+        }
     }
 
     @Override
     public void onFinishSportBuchungJob(SportBuchungsJob sportBuchungsJob) {
         var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
-        removeComponent(ausstehendeSportBuchungsJobItem);
+        if (ausstehendeSportBuchungsJobItem != null) {
+            removeComponent(ausstehendeSportBuchungsJobItem);
+        }
     }
 
 

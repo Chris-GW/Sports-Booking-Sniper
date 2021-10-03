@@ -31,7 +31,6 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
     public ScheduledSportBuchungsJob(SportBuchungsJob buchungsJob, ScheduledExecutorService executorService) {
         this.buchungsJob = requireNonNull(buchungsJob);
         this.executorService = requireNonNull(executorService);
-
         this.scheduledBuchungsVersuch = scheduleBuchungsVersuch(buchungsJob.durationTillNextCheck());
     }
 
@@ -66,14 +65,20 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
 
     public SportBuchungsVersuch newBuchungsVersuchCall() {
         try {
-            if (isDone()) {
-                log.warn("SportBookingSniperTask is already done {} {}", buchungsJob, this);
-                return null;
+            if (executorService.isShutdown()) {
+                cancel(true);
+                log.warn("CANCEL newBuchungsVersuchCall, because executionService isShutdown(): {}", this);
+            } else if (isDone()) {
+                log.warn("CANCEL newBuchungsVersuchCall, which is already done: {}", this);
+            } else if (!buchungsJob.canContinue()) {
+                cancel(true);
+                log.warn("CANCEL newBuchungsVersuchCall, which can't continue: {}", this);
             } else {
                 return executeVerbindlicherBuchungsVersuch();
             }
+            return null;
         } catch (Exception e) {
-            log.warn("This SportBuchungsJob complete exceptionally and will be no longer reschedule {}", this);
+            log.warn("This SportBuchungsJob complete exceptionally and will be no longer reschedule {}", this, e);
             futureBuchungsBestaetigung.completeExceptionally(e);
             return newBuchungsVersuch(BUCHUNG_FEHLER);
         }
@@ -96,7 +101,7 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
         } else {
             log.warn("can't continue SportBookingSniperTask for job {} after SportBuchungsVersuch {}", // 
                     buchungsJob, buchungsVersuch);
-            cancel(true);
+            futureBuchungsBestaetigung.complete(null);
         }
         listeners.forEach(sportBuchungsJobListener -> sportBuchungsJobListener.onUpdatedSportBuchungsJob(buchungsJob));
         return buchungsVersuch;

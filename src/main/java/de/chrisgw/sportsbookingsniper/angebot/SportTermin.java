@@ -1,7 +1,8 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
@@ -22,7 +23,9 @@ public class SportTermin implements Comparable<SportTermin> {
     private final LocalDateTime endZeit;
 
 
-    public SportTermin(LocalDateTime startZeit, LocalDateTime endZeit) {
+    @JsonCreator
+    public SportTermin(@JsonProperty("startZeit") LocalDateTime startZeit,
+            @JsonProperty("endZeit") LocalDateTime endZeit) {
         this.startZeit = requireNonNull(startZeit);
         this.endZeit = requireNonNull(endZeit);
         if (endZeit.isBefore(startZeit)) {
@@ -46,7 +49,6 @@ public class SportTermin implements Comparable<SportTermin> {
     }
 
 
-    @JsonIgnore
     public String formatTerminZeitraum() {
         DateTimeFormatter terminStartFormatter = DateTimeFormatter.ofPattern("ccc dd.MM. HH:mm");
         String terminStartStr = terminStartFormatter.format(startZeit);
@@ -55,17 +57,14 @@ public class SportTermin implements Comparable<SportTermin> {
     }
 
 
-    @JsonIgnore
     public LocalDate getTerminDate() {
         return getStartZeit().toLocalDate();
     }
 
-    @JsonIgnore
     public DayOfWeek getDayOfWeek() {
         return startZeit.getDayOfWeek();
     }
 
-    @JsonIgnore
     public Duration getDuration() {
         return Duration.between(getStartZeit(), getEndZeit());
     }

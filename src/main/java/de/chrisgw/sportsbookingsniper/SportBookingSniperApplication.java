@@ -1,5 +1,7 @@
 package de.chrisgw.sportsbookingsniper;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -49,12 +51,14 @@ public class SportBookingSniperApplication {
     }
 
 
-    private ObjectMapper createObjectMapper() {
+    public static ObjectMapper createObjectMapper() {
         var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
+        objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
         return objectMapper;
     }
 

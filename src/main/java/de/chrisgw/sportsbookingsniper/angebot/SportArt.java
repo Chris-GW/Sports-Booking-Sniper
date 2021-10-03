@@ -1,5 +1,6 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,11 +19,14 @@ public class SportArt implements Comparable<SportArt> {
     private final String name;
     private final String url;
 
+    @JsonIgnore
     @EqualsAndHashCode.Exclude
     private Set<SportAngebot> sportAngebote = new LinkedHashSet<>();
 
 
-    public SportArt(String name, String url) {
+
+    @JsonCreator
+    public SportArt(@JsonProperty("name") String name, @JsonProperty("url") String url) {
         this.name = requireNonNull(name);
         this.url = requireNonNull(url);
     }

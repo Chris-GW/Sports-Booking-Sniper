@@ -32,7 +32,9 @@ import static java.util.Objects.requireNonNull;
 @Log4j2
 public class ApplicationStateDao {
 
-    private final Path savedApplicationDataPath = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
+    private static final Path SAVE_PATH = Paths.get("savedSportBookingApplicationData.json").toAbsolutePath();
+    private static final ReentrantLock SAVE_FILE_LOCK = new ReentrantLock();
+
     private final ObjectMapper objectMapper;
     private final SportKatalogRepository sportKatalogRepository;
 
@@ -42,9 +44,8 @@ public class ApplicationStateDao {
     private final List<TeilnehmerListeListener> teilnehmerListeListeners = new CopyOnWriteArrayList<>();
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new CopyOnWriteArrayList<>();
 
-    private final ReentrantLock fileLock = new ReentrantLock();
-    private SavedApplicationState applicationState;
     private SportKatalog sportKatalog;
+    private SavedApplicationState applicationState;
 
 
     public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, ObjectMapper objectMapper,
@@ -54,16 +55,10 @@ public class ApplicationStateDao {
         this.executorService = requireNonNull(executorService);
         this.applicationState = loadApplicationData();
 
-        // TODO remove test sportKatalog
-        this.sportKatalog = SportBookingModelTestUtil.newSportKatalog();
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-        //        addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
+        for (SportBuchungsJob pendingBuchungsJob : this.applicationState.getPendingBuchungsJobs()) {
+            var scheduledBuchungsJob = new ScheduledSportBuchungsJob(pendingBuchungsJob, executorService);
+            scheduledSportBuchungsJobMap.put(pendingBuchungsJob.getJobId(), scheduledBuchungsJob);
+        }
     }
 
 
@@ -85,7 +80,9 @@ public class ApplicationStateDao {
 
     public synchronized SportKatalog currentSportKatalog() {
         if (sportKatalog == null) {
-            sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+            // sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+            // TODO remove test sportKatalog
+            sportKatalog = SportBookingModelTestUtil.newSportKatalog();
         }
         return sportKatalog;
     }
@@ -174,12 +171,12 @@ public class ApplicationStateDao {
         applicationState.getPendingBuchungsJobs().add(sportBuchungsJob);
         var scheduledBuchungsJob = new ScheduledSportBuchungsJob(sportBuchungsJob, executorService);
         scheduledSportBuchungsJobMap.put(sportBuchungsJob.getJobId(), scheduledBuchungsJob);
-        saveApplicationData();
 
         for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
             scheduledBuchungsJob.addListener(sportBuchungsJobListener);
             sportBuchungsJobListener.onNewPendingSportBuchungsJob(sportBuchungsJob);
         }
+        saveApplicationData();
         return scheduledBuchungsJob;
     }
 
@@ -199,6 +196,7 @@ public class ApplicationStateDao {
             scheduledBuchungsJob.addListener(sportBuchungsJobListener);
             sportBuchungsJobListener.onNewPendingSportBuchungsJob(buchungsJob);
         }
+        saveApplicationData();
         return scheduledBuchungsJob;
     }
 
@@ -206,20 +204,24 @@ public class ApplicationStateDao {
         int index = applicationState.getPendingBuchungsJobs().indexOf(sportBuchungsJob);
         if (index >= 0) {
             applicationState.getPendingBuchungsJobs().set(index, sportBuchungsJob);
-            saveApplicationData();
             for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
                 sportBuchungsJobListener.onUpdatedSportBuchungsJob(sportBuchungsJob);
             }
+            saveApplicationData();
         }
     }
 
     public void removeSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationState.getPendingBuchungsJobs().remove(sportBuchungsJob);
-        scheduledSportBuchungsJobMap.remove(sportBuchungsJob.getJobId());
-        saveApplicationData();
+        int jobId = sportBuchungsJob.getJobId();
+        ScheduledSportBuchungsJob scheduledSportBuchungsJob = scheduledSportBuchungsJobMap.remove(jobId);
+        if (scheduledSportBuchungsJob != null) {
+            scheduledSportBuchungsJob.cancel(false);
+        }
         for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
             sportBuchungsJobListener.onFinishSportBuchungJob(sportBuchungsJob);
         }
+        saveApplicationData();
     }
 
 
@@ -275,33 +277,36 @@ public class ApplicationStateDao {
 
     public SavedApplicationState loadApplicationData() {
         try {
-            fileLock.lock();
-            if (!Files.isReadable(savedApplicationDataPath)) {
+            SAVE_FILE_LOCK.lock();
+            if (!Files.isReadable(SAVE_PATH)) {
                 return new SavedApplicationState();
             }
-            var saveFile = savedApplicationDataPath.toFile();
-            var savedApplicationState = objectMapper.readValue(saveFile, SavedApplicationState.class);
-            log.trace("read savedApplicationData {} from {}", savedApplicationState, saveFile);
-            savedApplicationState.getPendingBuchungsJobs().forEach(this::addSportBuchungsJob);
+            var savedApplicationState = objectMapper.readValue(SAVE_PATH.toFile(), SavedApplicationState.class);
+            log.trace("read savedApplicationData {} from {}", savedApplicationState, SAVE_PATH);
+            SportKatalog sportKatalog = currentSportKatalog();
+            for (SportBuchungsJob pendingBuchungsJob : savedApplicationState.getPendingBuchungsJobs()) {
+                SportAngebot readSportAngebot = pendingBuchungsJob.getSportAngebot();
+                // join readSportAngebot with current SportKatalog available SportAngebot
+                sportKatalog.findSportAngebot(readSportAngebot).ifPresent(pendingBuchungsJob::setSportAngebot);
+            }
             return savedApplicationState;
         } catch (IOException e) {
-            throw new RuntimeException("Could not read savedApplicationData from " + savedApplicationDataPath, e);
+            throw new RuntimeException("Could not read savedApplicationData from " + SAVE_PATH, e);
         } finally {
-            fileLock.unlock();
+            SAVE_FILE_LOCK.unlock();
         }
     }
 
     public void saveApplicationData() {
         try {
-            fileLock.lock();
+            SAVE_FILE_LOCK.lock();
             applicationState.setSaveTime(Instant.now());
-            var saveFile = savedApplicationDataPath.toFile();
-            log.trace("write applicationState {} to {}", applicationState, saveFile);
-            objectMapper.writeValue(saveFile, applicationState);
+            log.trace("write applicationState {} to {}", applicationState, SAVE_PATH);
+            objectMapper.writeValue(SAVE_PATH.toFile(), applicationState);
         } catch (Exception e) {
-            throw new RuntimeException("Could not write applicationState to file " + savedApplicationDataPath, e);
+            throw new RuntimeException("Could not write applicationState to file " + SAVE_PATH, e);
         } finally {
-            fileLock.lock();
+            SAVE_FILE_LOCK.lock();
         }
     }
 

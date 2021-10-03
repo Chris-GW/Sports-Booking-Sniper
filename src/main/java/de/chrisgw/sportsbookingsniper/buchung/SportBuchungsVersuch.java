@@ -1,5 +1,7 @@
 package de.chrisgw.sportsbookingsniper.buchung;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.googlecode.lanterna.TerminalTextUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +17,21 @@ public class SportBuchungsVersuch {
 
     private final SportBuchungsVersuchStatus status;
     private final SportBuchungsBestaetigung buchungsBestaetigung;
-    private final LocalDateTime timestamp = LocalDateTime.now();
+    private final LocalDateTime timestamp;
+
+
+    public SportBuchungsVersuch(SportBuchungsVersuchStatus status, SportBuchungsBestaetigung buchungsBestaetigung) {
+        this(status, buchungsBestaetigung, LocalDateTime.now());
+    }
+
+    @JsonCreator
+    public SportBuchungsVersuch(@JsonProperty("status") SportBuchungsVersuchStatus status,
+            @JsonProperty("buchungsBestaetigung") SportBuchungsBestaetigung buchungsBestaetigung,
+            @JsonProperty("timestamp") LocalDateTime timestamp) {
+        this.status = status;
+        this.buchungsBestaetigung = buchungsBestaetigung;
+        this.timestamp = timestamp;
+    }
 
 
     public static SportBuchungsVersuch newErfolgreicherBuchungsVersuch(SportBuchungsBestaetigung buchungsBestaetigung) {

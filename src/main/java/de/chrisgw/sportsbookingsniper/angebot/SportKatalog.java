@@ -1,6 +1,9 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,19 +13,33 @@ import java.util.*;
 
 
 @Data
+@Builder
+@JsonDeserialize(builder = SportKatalog.SportKatalogBuilder.class)
 public class SportKatalog implements Iterable<SportArt> {
 
     private final String katalog;
     private final LocalDate zeitraumStart;
     private final LocalDate zeitraumEnde;
+    @Builder.Default
     private final LocalDateTime abrufzeitpunkt = LocalDateTime.now();
 
+    @JsonIgnore
+    @Builder.Default
     @EqualsAndHashCode.Exclude
-    private Set<SportArt> sportArten = new TreeSet<>();
+    private final Set<SportArt> sportArten = new TreeSet<>();
 
 
     public Optional<SportArt> findSportArtByName(String name) {
         return getSportArten().stream().filter(sportArt -> sportArt.getName().equalsIgnoreCase(name)).findFirst();
+    }
+
+    public Optional<SportAngebot> findSportAngebot(SportAngebot sportAngebot) {
+        return getSportArten().stream()
+                .filter(sportAngebot.getSportArt()::equals)
+                .map(SportArt::getSportAngebote)
+                .flatMap(Collection::stream)
+                .filter(sportAngebot::hasEqualKursnummer)
+                .findAny();
     }
 
     public boolean isInZeitraum(LocalDate localDate) {

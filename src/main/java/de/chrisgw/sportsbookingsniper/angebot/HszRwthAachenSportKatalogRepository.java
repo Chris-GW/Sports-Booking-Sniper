@@ -68,7 +68,11 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             String katalogName = sportKatalogMatcher.group(1);
             LocalDate zeitraumStart = LocalDate.parse(sportKatalogMatcher.group(2), DATE_FORMATTER);
             LocalDate zeitraumEnde = LocalDate.parse(sportKatalogMatcher.group(3), DATE_FORMATTER);
-            return new SportKatalog(katalogName, zeitraumStart, zeitraumEnde);
+            return SportKatalog.builder()
+                    .katalog(katalogName)
+                    .zeitraumStart(zeitraumStart)
+                    .zeitraumEnde(zeitraumEnde)
+                    .build();
         } else {
             String message = String.format("Expect top SportKatalog String to match Pattern '%s' but was: '%s'",
                     sportKatalogPattern, sportKatalogToprStr);

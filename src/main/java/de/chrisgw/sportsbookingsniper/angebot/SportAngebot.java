@@ -1,10 +1,8 @@
 package de.chrisgw.sportsbookingsniper.angebot;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +19,6 @@ import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBu
 
 
 @Data
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 public class SportAngebot implements Comparable<SportAngebot> {
 
     private SportArt sportArt;
@@ -38,6 +35,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
     private LocalDate zeitraumStart;
     private LocalDate zeitraumEnde;
 
+    @JsonIgnore
     @EqualsAndHashCode.Exclude
     private SortedSet<SportTermin> sportTermine = new TreeSet<>();
 
@@ -70,12 +68,10 @@ public class SportAngebot implements Comparable<SportAngebot> {
     }
 
 
-    @JsonIgnore
     public Stream<SportTermin> bevorstehendeSportTermine() {
         return sportTermine().filter(SportTermin::isBevorstehend).sorted();
     }
 
-    @JsonIgnore
     public Stream<SportTermin> sportTermine() {
         return sportTermine.stream();
     }

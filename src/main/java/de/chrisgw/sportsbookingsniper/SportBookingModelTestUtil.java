@@ -29,18 +29,19 @@ public class SportBookingModelTestUtil {
         throw new IllegalAccessError();
     }
 
-    private static Random random = new Random(1);
-    private static AtomicInteger jobIdCounter = new AtomicInteger();
-    private static Supplier<LocalDateTime> futureDateTimeSupplier = newRandomDateTimeSupplier(true);
-    private static Supplier<LocalDateTime> pastDateTimeSupplier = newRandomDateTimeSupplier(false);
+    private static final Random random = new Random(1);
+    private static final AtomicInteger jobIdCounter = new AtomicInteger();
+    private static final Supplier<LocalDateTime> futureDateTimeSupplier = newRandomDateTimeSupplier(true);
+    private static final Supplier<LocalDateTime> pastDateTimeSupplier = newRandomDateTimeSupplier(false);
 
-    public static SportKatalog sportKatalog = newSportKatalog();
+    private static final SportKatalog sportKatalog = newSportKatalog();
 
     public static SportKatalog newSportKatalog() {
-        String katalog = "Text Katalog";
-        LocalDate zeitraumStart = pastDateTimeSupplier.get().toLocalDate();
-        LocalDate zeitraumEnd = futureDateTimeSupplier.get().toLocalDate();
-        SportKatalog sportKatalog = new SportKatalog(katalog, zeitraumStart, zeitraumEnd);
+        SportKatalog sportKatalog = SportKatalog.builder()
+                .katalog("Text Katalog")
+                .zeitraumStart(pastDateTimeSupplier.get().toLocalDate())
+                .zeitraumEnde(futureDateTimeSupplier.get().toLocalDate())
+                .build();
 
         sportKatalog.addSportArt(newBadmintonKarteSportArt());
         sportKatalog.addSportArt(newBadmintonEinzelplatzSportArt());
@@ -67,13 +68,11 @@ public class SportBookingModelTestUtil {
     }
 
     private static SportArt newVolleyballSportArt() {
-        SportArt sportArt = newSportArt("Volleyball Level 1 Text");
-        return sportArt;
+        return newSportArt("Volleyball Level 1 Text");
     }
 
     private static SportArt newFechtenSportArt() {
-        SportArt sportArt = newSportArt("Fechten Level 2 Text");
-        return sportArt;
+        return newSportArt("Fechten Level 2 Text");
     }
 
 
@@ -93,10 +92,11 @@ public class SportBookingModelTestUtil {
         SportAngebot sportAngebot = new SportAngebot();
         sportAngebot.setSportArt(sportArt);
 
-        sportAngebot.setKursnummer(newKursnummer(sportArt, firstTerminDate));
-        sportAngebot.setDetails("Angebot Details Text für " + firstTerminDate);
-        sportAngebot.setLeitung("Leitung Text für " + firstTerminDate);
-        sportAngebot.setOrt("Ort Text für " + firstTerminDate);
+        String kursnummer = newKursnummer(sportArt, firstTerminDate);
+        sportAngebot.setKursnummer(kursnummer);
+        sportAngebot.setDetails("Angebot Details Text für " + kursnummer);
+        sportAngebot.setLeitung("Leitung Text für " + kursnummer);
+        sportAngebot.setOrt("Ort Text für " + kursnummer);
         int randomPreis = (firstTerminDate.getDayOfMonth() + 1) * 100;
         sportAngebot.setPreis(new SportAngebotPreis(randomPreis));
         sportAngebot.setBuchungsArt(ANGEBOT_TICKET_BUCHUNG);
@@ -120,7 +120,7 @@ public class SportBookingModelTestUtil {
         SortedSet<SportTermin> sportTermine = new TreeSet<>();
         for (int i = 0; i < 4; i++) {
             LocalDateTime startZeit = firstTerminDate.plusWeeks(i);
-            LocalDateTime endZeit = firstTerminDate.plusWeeks(i);
+            LocalDateTime endZeit = firstTerminDate.plusWeeks(i).plusMinutes(45);
             SportTermin sportTermin = new SportTermin(startZeit, endZeit);
             sportTermine.add(sportTermin);
         }
@@ -143,6 +143,7 @@ public class SportBookingModelTestUtil {
         teilnehmer.setMatrikelnummer("Matrikelnummer Text");
 
         teilnehmer.setIban("DE92 24012 51235 213523");
+        teilnehmer.setKontoInhaber(null);
         return teilnehmer;
     }
 
