@@ -51,7 +51,7 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             SportBuchungsBestaetigung buchungsBestaetigung = new SportBuchungsBestaetigung();
             buchungsBestaetigung.setBuchungsJob(buchungsJob);
             buchungsBestaetigung.setBuchungsNummer("12345");
-            buchungsBestaetigung.setBuchungsBestaetigungUrl("http://egal.de/test12345");
+            buchungsBestaetigung.setBuchungsBestaetigungUrl("https://example.com/test12345");
             return newErfolgreicherBuchungsVersuch(buchungsBestaetigung);
         }
     }

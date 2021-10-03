@@ -1,10 +1,10 @@
 package de.chrisgw.sportsbookingsniper.gui.buchung;
 
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.CheckBoxList;
-import com.googlecode.lanterna.gui2.ComboBox;
+import com.googlecode.lanterna.TextColor.ANSI;
+import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.ComboBox.Listener;
-import com.googlecode.lanterna.gui2.Container;
+import com.googlecode.lanterna.gui2.LinearLayout.Alignment;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
@@ -20,6 +20,10 @@ import de.chrisgw.sportsbookingsniper.gui.state.TeilnehmerListeListener;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+
+import static java.util.stream.Collectors.toList;
 
 
 public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements TeilnehmerListeListener {
@@ -30,6 +34,7 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements Tei
     private final ComboBox<SportAngebot> sportAngebotComboBox = new SearchableComboBox<>();
     private final ComboBox<SportTermin> sportTerminComboBox = new ComboBox<>();
     private final CheckBoxList<Teilnehmer> teilnehmerComboBox = new CheckBoxList<>();
+    private final Label noSportTermineLabel = new Label("");
 
     @Getter
     private int jobId;
@@ -60,8 +65,13 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements Tei
             sportAngebotComboBox.clearItems();
             SportArt sportArt = sportArtComboBox.getSelectedItem();
             if (sportArt != null) {
-                sportArt.upcomingSportAngebote().forEach(sportAngebotComboBox::addItem);
-                sportAngebotComboBox.setSelectedItem(null);
+                ForkJoinPool.commonPool().execute(() -> {
+                    Set<SportAngebot> sportAngebote = sportArt.getSportAngebote();
+                    runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
+                        sportAngebote.forEach(sportAngebotComboBox::addItem);
+                        sportAngebotComboBox.setSelectedItem(null);
+                    });
+                });
             }
         };
     }
@@ -81,8 +91,18 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements Tei
             sportTerminComboBox.clearItems();
             SportAngebot sportAngebot = sportAngebotComboBox.getSelectedItem();
             if (sportAngebot != null) {
-                sportAngebot.bevorstehendeSportTermine().forEachOrdered(sportTerminComboBox::addItem);
-                sportTerminComboBox.setSelectedItem(null);
+                ForkJoinPool.commonPool().execute(() -> {
+                    List<SportTermin> sportTermin = sportAngebot.bevorstehendeSportTermine().collect(toList());
+                    runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
+                        sportTermin.forEach(sportTerminComboBox::addItem);
+                        sportTerminComboBox.setSelectedItem(null);
+
+                        boolean noAvailableTermine = sportTerminComboBox.getItemCount() == 0;
+                        noSportTermineLabel.setVisible(noAvailableTermine);
+                        setFieldFeedback(sportTerminComboBox, noAvailableTermine);
+                        sportTerminComboBox.setEnabled(!noAvailableTermine);
+                    });
+                });
             }
         };
     }
@@ -92,6 +112,12 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements Tei
         sportTerminComboBox.setEnabled(false);
         sportTerminComboBox.setDropDownNumberOfRows(18);
         addFormularField("SportTermin:*", sportTerminComboBox);
+
+        noSportTermineLabel.setText("Ausgewähltes Sport Angebot hat leider keine buchbaren Termine");
+        noSportTermineLabel.setVisible(false);
+        noSportTermineLabel.setLayoutData(LinearLayout.createLayoutData(Alignment.End));
+        noSportTermineLabel.setForegroundColor(ANSI.RED).setBackgroundColor(ANSI.WHITE);
+        addFormularComponent(noSportTermineLabel);
     }
 
 
