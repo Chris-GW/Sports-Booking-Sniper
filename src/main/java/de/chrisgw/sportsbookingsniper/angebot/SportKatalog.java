@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -20,8 +20,10 @@ public class SportKatalog implements Iterable<SportArt> {
     private final String katalog;
     private final LocalDate zeitraumStart;
     private final LocalDate zeitraumEnde;
+
     @Builder.Default
-    private final LocalDateTime abrufzeitpunkt = LocalDateTime.now();
+    @EqualsAndHashCode.Exclude
+    private final Instant abrufzeitpunkt = Instant.now();
 
     @JsonIgnore
     @Builder.Default

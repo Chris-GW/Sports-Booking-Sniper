@@ -6,7 +6,7 @@ import com.googlecode.lanterna.TerminalTextUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_ERFOLGREICH;
@@ -17,17 +17,17 @@ public class SportBuchungsVersuch {
 
     private final SportBuchungsVersuchStatus status;
     private final SportBuchungsBestaetigung buchungsBestaetigung;
-    private final LocalDateTime timestamp;
+    private final Instant timestamp;
 
 
     public SportBuchungsVersuch(SportBuchungsVersuchStatus status, SportBuchungsBestaetigung buchungsBestaetigung) {
-        this(status, buchungsBestaetigung, LocalDateTime.now());
+        this(status, buchungsBestaetigung, Instant.now());
     }
 
     @JsonCreator
     public SportBuchungsVersuch(@JsonProperty("status") SportBuchungsVersuchStatus status,
             @JsonProperty("buchungsBestaetigung") SportBuchungsBestaetigung buchungsBestaetigung,
-            @JsonProperty("timestamp") LocalDateTime timestamp) {
+            @JsonProperty("timestamp") Instant timestamp) {
         this.status = status;
         this.buchungsBestaetigung = buchungsBestaetigung;
         this.timestamp = timestamp;

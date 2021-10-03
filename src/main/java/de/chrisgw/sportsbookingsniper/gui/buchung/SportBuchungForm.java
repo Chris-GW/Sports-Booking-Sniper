@@ -4,6 +4,7 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.CheckBoxList;
 import com.googlecode.lanterna.gui2.ComboBox;
 import com.googlecode.lanterna.gui2.ComboBox.Listener;
+import com.googlecode.lanterna.gui2.Container;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportArt;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
@@ -15,12 +16,13 @@ import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.gui.component.FormPanel;
 import de.chrisgw.sportsbookingsniper.gui.component.SearchableComboBox;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
+import de.chrisgw.sportsbookingsniper.gui.state.TeilnehmerListeListener;
 import lombok.Getter;
 
 import java.util.List;
 
 
-public class SportBuchungForm extends FormPanel<SportBuchungsJob> {
+public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements TeilnehmerListeListener {
 
     private final ApplicationStateDao applicationStateDao;
 
@@ -133,18 +135,48 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> {
             sportArtComboBox.setSelectedItem(null);
             sportAngebotComboBox.setSelectedItem(null);
             sportTerminComboBox.setSelectedItem(null);
-            teilnehmerComboBox.clearItems().setChecked(applicationStateDao.getDefaultTeilnehmer(), true);
+            Teilnehmer defaultTeilnehmer = applicationStateDao.getDefaultTeilnehmer();
+            uncheckAllTeilnehmer().setChecked(defaultTeilnehmer, true);
         } else {
             jobId = sportBuchungsJob.getJobId();
             sportArtComboBox.setSelectedItem(sportBuchungsJob.getSportArt());
             sportAngebotComboBox.setSelectedItem(sportBuchungsJob.getSportAngebot());
             sportTerminComboBox.setSelectedItem(sportBuchungsJob.getSportTermin());
 
-            teilnehmerComboBox.clearItems();
+            uncheckAllTeilnehmer();
             for (Teilnehmer teilnehmer : sportBuchungsJob.getTeilnehmerListe()) {
                 teilnehmerComboBox.setChecked(teilnehmer, true);
             }
         }
+    }
+
+    private CheckBoxList<Teilnehmer> uncheckAllTeilnehmer() {
+        teilnehmerComboBox.getItems().forEach(checkedItem -> teilnehmerComboBox.setChecked(checkedItem, false));
+        return teilnehmerComboBox;
+    }
+
+
+    @Override
+    public void onChangedTeilnehmerListe(List<Teilnehmer> changedTeilnehmerListe) {
+        List<Teilnehmer> checkedTeilnehmer = teilnehmerComboBox.getCheckedItems();
+        teilnehmerComboBox.clearItems();
+        for (Teilnehmer teilnehmer : changedTeilnehmerListe) {
+            boolean checkedState = checkedTeilnehmer.contains(teilnehmer);
+            teilnehmerComboBox.addItem(teilnehmer, checkedState);
+        }
+    }
+
+
+    @Override
+    public synchronized void onAdded(Container container) {
+        super.onAdded(container);
+        applicationStateDao.addTeilnehmerListener(this);
+    }
+
+    @Override
+    public synchronized void onRemoved(Container container) {
+        super.onRemoved(container);
+        applicationStateDao.removeTeilnehmerListener(this);
     }
 
 }

@@ -35,7 +35,7 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     private Panel createNoContentPanel() {
         Label infoLabel = new Label("Im Moment sind keine Sport Buchungen vorhanden");
 
-        Button newSportBuchungBtn = new Button("new SportBuchung");
+        Button newSportBuchungBtn = new Button("new SportBuchung", this::newSportBuchungsJobDialog);
         newSportBuchungBtn.setRenderer(new Button.BorderedButtonRenderer());
         newSportBuchungBtn.setLayoutData(createLayoutData(Center));
 
@@ -59,6 +59,7 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         if (!containsComponent(angebotPanel)) {
             Border border = Borders.singleLine(sportAngebot.getName());
             addComponent(angebotPanel.withBorder(border), createLayoutData(Fill, CanGrow));
+            noContentPanel.setVisible(getChildCount() <= 1);
         }
         return self();
     }
@@ -92,7 +93,7 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
                 .setDescription(sportAngebot.getName() + "\n" + sportTermin)
                 .setCanCancel(true)
                 .setCloseAutomaticallyOnAction(true)
-                .addAction("Bearbeiten <c-b>", () -> editSportBuchungsJob(sportBuchungsJob))
+                .addAction("Bearbeiten <c-b>", () -> editSportBuchungsJobDialog(sportBuchungsJob))
                 .addAction("Jetzt Versuchen zu buchen <F5>", () -> retrySportBuchungsJob(sportBuchungsJob))
                 .addAction("Buchung kopieren <S-c>", () -> copySportBuchungsJob(sportBuchungsJob))
                 .addAction("Löschen <Entf>", () -> removeSportBuchungsJob(sportBuchungsJob))
@@ -100,7 +101,13 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
                 .showDialog((WindowBasedTextGUI) getTextGUI());
     }
 
-    private void editSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
+    private void newSportBuchungsJobDialog() {
+        Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
+                .showDialog((WindowBasedTextGUI) getTextGUI());
+        savedSportBuchungsJob.ifPresent(applicationStateDao::addSportBuchungsJob);
+    }
+
+    private void editSportBuchungsJobDialog(SportBuchungsJob sportBuchungsJob) {
         Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
                 .setSportBuchungsJob(sportBuchungsJob) //
                 .showDialog((WindowBasedTextGUI) getTextGUI());
@@ -120,13 +127,6 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
 
     private void removeSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
         applicationStateDao.removeSportBuchungsJob(sportBuchungsJob);
-    }
-
-
-    @Override
-    protected void onBeforeDrawing() {
-        super.onBeforeDrawing();
-        noContentPanel.setVisible(getChildCount() <= 1);
     }
 
 

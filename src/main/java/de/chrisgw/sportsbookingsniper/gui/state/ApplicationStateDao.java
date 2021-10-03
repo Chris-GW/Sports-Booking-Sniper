@@ -3,7 +3,6 @@ package de.chrisgw.sportsbookingsniper.gui.state;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
-import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
@@ -80,9 +79,8 @@ public class ApplicationStateDao {
 
     public synchronized SportKatalog currentSportKatalog() {
         if (sportKatalog == null) {
-            // sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
-            // TODO remove test sportKatalog
-            sportKatalog = SportBookingModelTestUtil.newSportKatalog();
+            sportKatalog = sportKatalogRepository.findCurrentSportKatalog();
+            // sportKatalog = SportBookingModelTestUtil.newSportKatalog();
         }
         return sportKatalog;
     }
