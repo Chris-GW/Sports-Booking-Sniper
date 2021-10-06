@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
   <Appenders>
-    <Console name="Console" target="SYSTEM_OUT">
+    <Console name="stdout" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{30} - %msg%n"/>
+    </Console>
+    <Console name="stderr" target="SYSTEM_ERR">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{30} - %msg%n"/>
+
     </Console>
     <RollingRandomAccessFile name="LogToFile" fileName="sports-booking-sniper.log"
                              filePattern="logs/sports-booking-sniper-%d{yyyy-MM-dd}.log.gz">

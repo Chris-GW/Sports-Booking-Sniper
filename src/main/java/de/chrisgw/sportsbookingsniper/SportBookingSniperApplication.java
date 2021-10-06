@@ -22,9 +22,11 @@ import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.io.IoBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -131,6 +133,8 @@ public class SportBookingSniperApplication {
 
     public static void main(String[] args) {
         try {
+            PrintStream errStream = IoBuilder.forLogger(SportBookingSniperApplication.class).buildPrintStream();
+            System.setErr(errStream);
             var chromedriverPath = Paths.get("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
             if (Files.exists(chromedriverPath)) {
                 System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
