@@ -313,7 +313,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
     }
 
     private void generateAllSportPlatzTermine(SportAngebot sportAngebot, Element sportTerminCell) {
-        Pattern zeitfensterPattern = Pattern.compile("(\\d+:\\d+)\\s*-\\s*(\\d+:\\d+)(\\s+Uhr)?");
+        Pattern zeitfensterPattern = Pattern.compile("(\\d+[:.]\\d+)\\s*-\\s*(\\d+[:.]\\d+)(\\s+Uhr)?");
         String zeitfensterTitle = sportTerminCell.firstElementSibling().text();
         Matcher zeitfensterMatcher = zeitfensterPattern.matcher(zeitfensterTitle);
         if (!zeitfensterMatcher.matches()) {
@@ -377,7 +377,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         LocalDateTime startZeit = terminDatum.atTime(0, 0);
         LocalDateTime endZeit = terminDatum.atTime(0, 0);
         log.trace("uhrzeit cell[2] '{}'", uhrzeitStr);
-        if (uhrzeitStr.matches("\\d{1,2}:\\d{1,2}\\s*-\\s*\\d{1,2}:\\d{1,2}")) {
+        if (uhrzeitStr.matches("\\d{1,2}[:.]\\d{1,2}\\s*-\\s*\\d{1,2}[:.]\\d{1,2}")) {
             String[] splitUhrzeitStr = uhrzeitStr.split("-");
             String startZeitStr = splitUhrzeitStr[0].replace(".", ":").trim();
             String endZeitStr = splitUhrzeitStr[1].replace(".", ":").trim();

@@ -92,9 +92,9 @@ public class SportBuchungForm extends FormPanel<SportBuchungsJob> implements Tei
             SportAngebot sportAngebot = sportAngebotComboBox.getSelectedItem();
             if (sportAngebot != null) {
                 ForkJoinPool.commonPool().execute(() -> {
-                    List<SportTermin> sportTermin = sportAngebot.bevorstehendeSportTermine().collect(toList());
+                    List<SportTermin> sportTermine = sportAngebot.bevorstehendeSportTermine().collect(toList());
                     runOnGUIThreadIfExistsOtherwiseRunDirect(() -> {
-                        sportTermin.forEach(sportTerminComboBox::addItem);
+                        sportTermine.forEach(sportTerminComboBox::addItem);
                         sportTerminComboBox.setSelectedItem(null);
 
                         boolean noAvailableTermine = sportTerminComboBox.getItemCount() == 0;
