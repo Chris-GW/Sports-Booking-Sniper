@@ -16,7 +16,7 @@ public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrat
 
     private boolean firstTry = true;
     private LocalDateTime lastTry = null;
-    private Duration defaultDelay = Duration.ofMinutes(15);
+    private Duration defaultDelay = Duration.ofMinutes(10);
     private List<DefinedDelayIntervall> definedDelayIntervalls = new ArrayList<>();
 
 

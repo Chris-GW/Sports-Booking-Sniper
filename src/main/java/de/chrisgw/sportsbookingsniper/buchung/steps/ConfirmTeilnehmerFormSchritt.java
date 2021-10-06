@@ -1,6 +1,5 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
-import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsBestaetigung;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.extern.log4j.Log4j2;
@@ -12,8 +11,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newErfolgreicherBuchungsVersuch;
 
 
 @Log4j2
@@ -40,20 +37,10 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
         WebElement verbindlichBuchenBtn = findFormSubmitBtn().orElseThrow(() -> new IllegalStateException(
                 "No 'verbindlich buchen' or 'kostenpflichtig buchen' submit Button found"));
-        // TODO remove if and always submit
-        if (buchungsJob.getJobId() == Integer.MAX_VALUE) {
-            for (int i = 0; !trySubmitTillStaleness(verbindlichBuchenBtn); i++) {
-                log.trace(i + " submit");
-            }
-            return super.executeBuchungsSchritt(buchungsJob);
-        } else {
-            // TODO remove dummy SportBuchungsBestaetigung
-            SportBuchungsBestaetigung buchungsBestaetigung = new SportBuchungsBestaetigung();
-            buchungsBestaetigung.setBuchungsJob(buchungsJob);
-            buchungsBestaetigung.setBuchungsNummer("12345");
-            buchungsBestaetigung.setBuchungsBestaetigungUrl("https://example.com/test12345");
-            return newErfolgreicherBuchungsVersuch(buchungsBestaetigung);
+        for (int i = 0; !trySubmitTillStaleness(verbindlichBuchenBtn); i++) {
+            log.trace(i + " submit");
         }
+        return super.executeBuchungsSchritt(buchungsJob);
     }
 
     private Optional<WebElement> findFormSubmitBtn() {
