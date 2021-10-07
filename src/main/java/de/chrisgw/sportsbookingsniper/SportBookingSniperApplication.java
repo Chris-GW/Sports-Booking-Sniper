@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -69,6 +70,8 @@ public class SportBookingSniperApplication {
         try (var terminalScreen = createTerminalScreen()) {
             terminalScreen.startScreen();
             var multiWindowTextGUI = createMultiWindowTextGUI(terminalScreen);
+            Locale.setDefault(applicationStateDao.getLanguage());
+            multiWindowTextGUI.setTheme(applicationStateDao.getSelectedTheme());
             if (applicationStateDao.isFirstVisite()) {
                 showFirstVisiteDialog(multiWindowTextGUI);
             }
