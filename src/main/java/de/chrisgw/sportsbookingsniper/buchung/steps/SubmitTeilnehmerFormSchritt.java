@@ -10,10 +10,13 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository.DATE_FORMATTER;
 
 
 @Log4j2
@@ -74,11 +77,25 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
                 fillInput("ort", teilnehmer.getOrt());
                 selectTeilnehmerKategorie();
                 fillInput("email", teilnehmer.getEmail());
+                fillOptionalGeburtsdatum(teilnehmer);
                 fillInput("telefon", teilnehmer.getTelefon());
                 fillOptionalPaymentAngaben();
             }
             bsForm.findElement(By.name("tnbed")).click();
             submitTeilnehmerForm();
+        }
+
+        private void fillOptionalGeburtsdatum(Teilnehmer teilnehmer) {
+            List<WebElement> geburtsdatumInputs = bsForm.findElements(byNameX("geburtsdatum"));
+            if (geburtsdatumInputs.isEmpty()) {
+                return;
+            }
+            LocalDate geburtsDatum = teilnehmer.getGeburtsDatum();
+            if (geburtsDatum != null) {
+                fillInput("geburtsdatum", DATE_FORMATTER.format(geburtsDatum));
+            } else {
+                fillInput("geburtsdatum", null);
+            }
         }
 
         private boolean cantEnterMoreTeilnehmer() {
@@ -113,30 +130,30 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             teilnehmerKategorieSelect.selectByValue(teilnehmerKategorie.getValue());
 
             switch (teilnehmerKategorie) {
-            case STUDENT_FH:
-            case STUDENT_RWTH:
-            case STUDENT_NRW:
-            case STUDENT_ANDERE_HOCHSCHULE:
-                String matrikelnummer = teilnehmer.getMatrikelnummer();
-                log.trace("enter additional matrikelnummer={} for {}", matrikelnummer, teilnehmerKategorie);
-                fillInput("matnr", matrikelnummer);
-                break;
+                case STUDENT_FH:
+                case STUDENT_RWTH:
+                case STUDENT_NRW:
+                case STUDENT_ANDERE_HOCHSCHULE:
+                    String matrikelnummer = teilnehmer.getMatrikelnummer();
+                    log.trace("enter additional matrikelnummer={} for {}", matrikelnummer, teilnehmerKategorie);
+                    fillInput("matnr", matrikelnummer);
+                    break;
 
-            case MITARBEITER_FH:
-            case MITARBEITER_RWTH:
-            case MITARBEITER_KLINIKUM:
-                String mitarbeiterNummer = teilnehmer.getMitarbeiterNummer();
-                log.trace("enter additional mitarbeiterNummer={} for {}", mitarbeiterNummer, teilnehmerKategorie);
-                fillInput("mitnr", mitarbeiterNummer);
-                break;
+                case MITARBEITER_FH:
+                case MITARBEITER_RWTH:
+                case MITARBEITER_KLINIKUM:
+                    String mitarbeiterNummer = teilnehmer.getMitarbeiterNummer();
+                    log.trace("enter additional mitarbeiterNummer={} for {}", mitarbeiterNummer, teilnehmerKategorie);
+                    fillInput("mitnr", mitarbeiterNummer);
+                    break;
 
-            case SCHUELER:
-            case AZUBI_RWTH_UKA:
-            case EXTERN:
-                log.trace("no additional data entered for {}", teilnehmerKategorie);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown TeilnehmerKategorie " + teilnehmerKategorie);
+                case SCHUELER:
+                case AZUBI_RWTH_UKA:
+                case EXTERN:
+                    log.trace("no additional data entered for {}", teilnehmerKategorie);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown TeilnehmerKategorie " + teilnehmerKategorie);
             }
         }
 

@@ -36,7 +36,7 @@ public class SavedApplicationStateTest {
 
     static final Logger logger = LoggerFactory.getLogger(SavedApplicationState.class);
 
-    private ObjectMapper objectMapper = SportBookingSniperApplication.createObjectMapper();
+    private final ObjectMapper objectMapper = SportBookingSniperApplication.createObjectMapper();
 
     private SportKatalog sportKatalog;
     private Teilnehmer teilnehmer;
@@ -69,6 +69,7 @@ public class SavedApplicationStateTest {
         assertThat(json, hasJsonPath("$.ort", is(teilnehmer.getOrt())));
         assertThat(json, hasJsonPath("$.email", is(teilnehmer.getEmail())));
         assertThat(json, hasJsonPath("$.telefon", is(teilnehmer.getTelefon())));
+        assertThat(json, hasJsonPath("$.geburtsDatum", jsonValue(teilnehmer.getGeburtsDatum())));
         assertThat(json, hasJsonPath("$.gender", jsonValue(teilnehmer.getGender())));
 
         assertThat(json, hasJsonPath("$.teilnehmerKategorie", jsonValue(teilnehmer.getTeilnehmerKategorie())));
@@ -105,6 +106,7 @@ public class SavedApplicationStateTest {
 
         var readApplicationState = objectMapper.readValue(json, SavedApplicationState.class);
         logger.debug("{}", readApplicationState);
+        assertThat(readApplicationState, hasProperty("versionUID", is(applicationState.getVersionUID())));
         assertThat(readApplicationState, hasProperty("nextJobId", is(applicationState.getNextJobId())));
         assertThat(readApplicationState, hasProperty("firstVisite", is(applicationState.isFirstVisite())));
         assertThat(readApplicationState, hasProperty("saveTime", is(applicationState.getSaveTime())));

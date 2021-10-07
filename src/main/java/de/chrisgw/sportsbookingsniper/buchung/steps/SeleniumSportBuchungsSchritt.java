@@ -5,6 +5,7 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.jsoup.Jsoup;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
@@ -68,7 +69,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         }
     }
 
-    private static WebDriver newWebDriver() {
+    public static WebDriver newWebDriver() {
         if (System.getProperty("webdriver.chrome.driver") != null) {
             return new ChromeDriver();
         }
@@ -83,7 +84,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
                 .findAny()
                 .map(nextBuchungsSchritt -> nextBuchungsSchritt.executeBuchungsSchritt(buchungsJob))
                 .orElseGet(() -> {
-                    log.warn("Could not find next BuchungsSchritt on page:\n{}", driver.getPageSource());
+                    log.warn(() -> "Could not find next BuchungsSchritt on page:\n" + Jsoup.parse(driver.getPageSource()));
                     return newBuchungsVersuch(BUCHUNG_FEHLER);
                 });
     }

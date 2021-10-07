@@ -35,12 +35,19 @@ public class SportKatalog implements Iterable<SportArt> {
         return getSportArten().stream().filter(sportArt -> sportArt.getName().equalsIgnoreCase(name)).findFirst();
     }
 
+
     public Optional<SportAngebot> findSportAngebot(SportAngebot sportAngebot) {
+        String sportArtName = sportAngebot.getSportArt().getName();
+        String kursnummer = sportAngebot.getKursnummer();
+        return findSportAngebot(sportArtName, kursnummer);
+    }
+
+    public Optional<SportAngebot> findSportAngebot(String sportArtName, String kursnummer) {
         return getSportArten().stream()
-                .filter(sportAngebot.getSportArt()::equals)
+                .filter(sportArt -> sportArt.getName().equals(sportArtName))
                 .map(SportArt::getSportAngebote)
                 .flatMap(Collection::stream)
-                .filter(sportAngebot::hasEqualKursnummer)
+                .filter(sportAngebot -> sportAngebot.hasEqualKursnummer(kursnummer))
                 .findAny();
     }
 

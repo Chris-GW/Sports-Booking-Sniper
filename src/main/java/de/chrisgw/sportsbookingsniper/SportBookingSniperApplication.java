@@ -34,11 +34,14 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @Log4j2
 @Data
 public class SportBookingSniperApplication {
+
+    public static final AtomicBoolean finalBooking = new AtomicBoolean(false);
 
     private final SportKatalogRepository sportKatalogRepository;
     private final ObjectMapper objectMapper;
@@ -138,11 +141,12 @@ public class SportBookingSniperApplication {
         try {
             PrintStream errStream = IoBuilder.forLogger(SportBookingSniperApplication.class).buildPrintStream();
             System.setErr(errStream);
-            var chromedriverPath = Paths.get("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver.exe");
+            var chromedriverPath = Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
             if (Files.exists(chromedriverPath)) {
                 System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
             }
             log.trace("start SportBookingSniperApplication gui");
+            finalBooking.set(true);
             var sportBookingSniperApplication = new SportBookingSniperApplication();
             sportBookingSniperApplication.showGui();
             log.trace("finish SportBookingSniperApplication gui");

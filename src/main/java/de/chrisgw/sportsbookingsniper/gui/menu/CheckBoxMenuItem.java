@@ -17,7 +17,7 @@ import static com.googlecode.lanterna.TerminalPosition.TOP_LEFT_CORNER;
 
 public class CheckBoxMenuItem extends MenuItem {
 
-    private CheckBox checkBox;
+    private final CheckBox checkBox;
 
 
     public CheckBoxMenuItem(String label) {

@@ -22,8 +22,8 @@ public enum TeilnehmerKategorie {
     ;
 
 
-    private String name;
-    private String value;
+    private final String name;
+    private final String value;
 
     TeilnehmerKategorie(String name, String value) {
         this.name = name;

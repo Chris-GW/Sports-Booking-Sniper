@@ -6,6 +6,8 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.LinearLayout.Alignment;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,6 +78,20 @@ public abstract class FormPanel<V> extends Panel {
     protected <T> boolean isUnselected(CheckBoxList<T> checkBoxList) {
         boolean hasError = checkBoxList.getCheckedItems().isEmpty();
         setFieldFeedback(checkBoxList, hasError);
+        return hasError;
+    }
+
+    protected boolean isInvalidDateTimeFormat(TextBox textBox, DateTimeFormatter dateTimeFormatter) {
+        boolean hasError = false;
+        String text = trimToNull(textBox.getText());
+        if (text != null) {
+            try {
+                dateTimeFormatter.parse(text);
+            } catch (DateTimeParseException e) {
+                hasError = true;
+            }
+        }
+        setFieldFeedback(textBox, hasError);
         return hasError;
     }
 

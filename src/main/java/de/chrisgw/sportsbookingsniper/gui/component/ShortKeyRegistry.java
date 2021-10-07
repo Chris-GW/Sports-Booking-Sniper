@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ShortKeyRegistry implements WindowListener, TextGUI.Listener {
 
-    private Map<KeyStroke, List<Runnable>> keyStrokeToActions = new HashMap<>();
+    private final Map<KeyStroke, List<Runnable>> keyStrokeToActions = new HashMap<>();
 
 
     public ShortKeyRegistry registerAction(KeyStroke keyStroke, Runnable runnable) {

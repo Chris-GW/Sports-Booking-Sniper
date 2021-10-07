@@ -9,9 +9,13 @@ import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
 import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import de.chrisgw.sportsbookingsniper.gui.component.FormPanel;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import static de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository.DATE_FORMATTER;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
@@ -25,6 +29,7 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
     private final TextBox streetTextBox = new TextBox();
     private final TextBox ortTextBox = new TextBox();
     private final TextBox emailTextBox = new TextBox();
+    private final TextBox geburtsdatumTextBox = new TextBox();
     private final TextBox telefonTextBox = new TextBox();
 
     private final ComboBox<TeilnehmerKategorie> kategorieComboBox = createTeilnehmerKategorieComboBox();
@@ -42,6 +47,8 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
 
     public TeilnehmerForm(Teilnehmer teilnehmer) {
         super();
+        geburtsdatumTextBox.setValidationPattern(Pattern.compile("[0-9.]{0,10}"));
+
         addFormularField("Vorname*", vornameTextBox);
         addFormularField("Nachname*", nachnameTextBox);
         addFormularField("Geschlecht*", genderComboBox);
@@ -51,6 +58,7 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
         addFormularField("Ort*", ortTextBox);
         addFormularField("E-Mail*", emailTextBox);
         addFormularField("Telefon*", telefonTextBox);
+        addFormularField("Geburtsdatum", geburtsdatumTextBox);
         addFormularComponent(new EmptySpace());
 
         addFormularField("Kategorie*", kategorieComboBox);
@@ -99,9 +107,11 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
                 isEmpty(ortTextBox), //
                 isEmpty(emailTextBox), //
                 isEmpty(telefonTextBox), //
+                isInvalidDateTimeFormat(geburtsdatumTextBox, DATE_FORMATTER), //
                 validateTeilnehmerKategorieForm() //
         ).contains(true);
     }
+
 
     private boolean validateTeilnehmerKategorieForm() {
         setFieldFeedback(matrikelNummerTextBox, false);
@@ -129,6 +139,7 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
         teilnehmer.setOrt(trimToNull(ortTextBox.getText()));
         teilnehmer.setEmail(trimToNull(emailTextBox.getText()));
         teilnehmer.setTelefon(trimToNull(telefonTextBox.getText()));
+        setTeilnehmerGeburtsDatum(teilnehmer);
 
         teilnehmer.setTeilnehmerKategorie(kategorieComboBox.getSelectedItem());
         teilnehmer.setMatrikelnummer(trimToNull(matrikelNummerTextBox.getText()));
@@ -137,6 +148,13 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
         teilnehmer.setIban(trimToNull(ibanTextBox.getText()));
         teilnehmer.setKontoInhaber(trimToNull(kontoInhaberTextBox.getText()));
         return teilnehmer;
+    }
+
+    private void setTeilnehmerGeburtsDatum(Teilnehmer teilnehmer) {
+        String geburtsdatumStr = trimToNull(geburtsdatumTextBox.getText());
+        if (geburtsdatumStr != null) {
+            teilnehmer.setGeburtsDatum(LocalDate.parse(geburtsdatumStr, DATE_FORMATTER));
+        }
     }
 
 
@@ -153,6 +171,7 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
         ortTextBox.setText(defaultString(teilnehmer.getOrt()));
         emailTextBox.setText(defaultString(teilnehmer.getEmail()));
         telefonTextBox.setText(defaultString(teilnehmer.getTelefon()));
+        setGeburtsDatum(teilnehmer.getGeburtsDatum());
 
         kategorieComboBox.setSelectedItem(teilnehmer.getTeilnehmerKategorie());
         matrikelNummerTextBox.setText(defaultString(teilnehmer.getMatrikelnummer()));
@@ -160,6 +179,14 @@ public class TeilnehmerForm extends FormPanel<Teilnehmer> {
 
         ibanTextBox.setText(defaultString(teilnehmer.getIban()));
         kontoInhaberTextBox.setText(defaultString(teilnehmer.getKontoInhaber()));
+    }
+
+    private void setGeburtsDatum(LocalDate geburtsDatum) {
+        if (geburtsDatum != null) {
+            geburtsdatumTextBox.setText(DATE_FORMATTER.format(geburtsDatum));
+        } else {
+            geburtsdatumTextBox.setText("");
+        }
     }
 
 }

@@ -58,8 +58,13 @@ public class SportAngebot implements Comparable<SportAngebot> {
         return preis.preisFor(teilnehmerKategorie);
     }
 
+
     public boolean hasEqualKursnummer(SportAngebot otherSportAngebot) {
-        return this.getKursnummer().equals(otherSportAngebot.getKursnummer());
+        return hasEqualKursnummer(otherSportAngebot.getKursnummer());
+    }
+
+    public boolean hasEqualKursnummer(String kursnummer) {
+        return this.getKursnummer().equals(kursnummer);
     }
 
 
@@ -108,7 +113,7 @@ public class SportAngebot implements Comparable<SportAngebot> {
         UNBEKANNTE_BUCHUNGSART, //
         ANGEBOT_TICKET_BUCHUNG, //
         EINZEL_TERMIN_BUCHUNG, //
-        EINZEL_PLATZ_BUCHUNG; //
+        EINZEL_PLATZ_BUCHUNG //
 
     }
 

@@ -3,6 +3,8 @@ package de.chrisgw.sportsbookingsniper.buchung;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 
 @Data
 public class Teilnehmer {
@@ -13,6 +15,7 @@ public class Teilnehmer {
     private String ort;
     private String email;
     private String telefon;
+    private LocalDate geburtsDatum;
     private TeilnehmerGender gender = TeilnehmerGender.KEINE_ANGABE;
 
     private TeilnehmerKategorie teilnehmerKategorie;
@@ -31,6 +34,7 @@ public class Teilnehmer {
         setOrt(teilnehmer.getOrt());
         setEmail(teilnehmer.getEmail());
         setTelefon(teilnehmer.getTelefon());
+        setGeburtsDatum(teilnehmer.getGeburtsDatum());
         setGender(teilnehmer.getGender());
 
         setTeilnehmerKategorie(teilnehmer.getTeilnehmerKategorie());

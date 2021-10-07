@@ -29,7 +29,7 @@ public class ClickSportTerminBuchenBtnSchritt extends SeleniumSportBuchungsSchri
     @Override
     public boolean isNextBuchungsSchritt(SportBuchungsJob buchungsJob) {
         Optional<WebElement> bs_etvgElement = findElement(driver, By.className("bs_etvg"));
-        // TODO differenciate between radio termin option and buchen btn
+        // TODO differentiate between radio termin option and buchen btn
         return bs_etvgElement.isPresent();
     }
 

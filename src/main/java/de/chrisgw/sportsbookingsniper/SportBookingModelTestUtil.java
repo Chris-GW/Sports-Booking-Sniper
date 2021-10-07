@@ -130,19 +130,20 @@ public class SportBookingModelTestUtil {
 
     public static Teilnehmer newTeilnehmer() {
         Teilnehmer teilnehmer = new Teilnehmer();
-        teilnehmer.setVorname("Vorname Text");
-        teilnehmer.setNachname("Nachname Test");
-        teilnehmer.setStreet("Street Test");
-        teilnehmer.setOrt("Ort Test");
-        teilnehmer.setEmail("Email@text.de");
-        teilnehmer.setTelefon("telefonnummer");
-        teilnehmer.setGender(TeilnehmerGender.FEMALE);
+        teilnehmer.setVorname("Martin");
+        teilnehmer.setNachname("Shuster");
+        teilnehmer.setStreet("Hoheluftchaussee 70");
+        teilnehmer.setOrt("06638 Karsdorf");
+        teilnehmer.setEmail("MartinShuster@teleworm.us");
+        teilnehmer.setTelefon("034461 13 90");
+        teilnehmer.setGeburtsDatum(LocalDate.of(1991, 12, 24));
+        teilnehmer.setGender(TeilnehmerGender.MALE);
 
         teilnehmer.setTeilnehmerKategorie(TeilnehmerKategorie.MITARBEITER_FH);
-        teilnehmer.setMitarbeiterNummer("MitarbeiterNummer Text");
-        teilnehmer.setMatrikelnummer("Matrikelnummer Text");
+        teilnehmer.setMitarbeiterNummer("2355 4099");
+        teilnehmer.setMatrikelnummer("2355 4099");
 
-        teilnehmer.setIban("DE92 24012 51235 213523");
+        teilnehmer.setIban("DE87 3706 0590 0000 9393 06");
         teilnehmer.setKontoInhaber(null);
         return teilnehmer;
     }

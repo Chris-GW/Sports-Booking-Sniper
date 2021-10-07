@@ -1,5 +1,8 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
+import de.chrisgw.sportsbookingsniper.SportBookingSniperApplication;
+import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsBestaetigung;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.extern.log4j.Log4j2;
@@ -12,9 +15,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newErfolgreicherBuchungsVersuch;
+
 
 @Log4j2
 public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
+
 
     public ConfirmTeilnehmerFormSchritt(WebDriver driver) {
         super(driver);
@@ -35,6 +41,9 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
 
     @Override
     public SportBuchungsVersuch executeBuchungsSchritt(SportBuchungsJob buchungsJob) {
+        if (!SportBookingSniperApplication.finalBooking.get()) {
+            return dummyBuchungsBestaetigung(buchungsJob);
+        }
         WebElement verbindlichBuchenBtn = findFormSubmitBtn().orElseThrow(() -> new IllegalStateException(
                 "No 'verbindlich buchen' or 'kostenpflichtig buchen' submit Button found"));
         for (int i = 0; !trySubmitTillStaleness(verbindlichBuchenBtn); i++) {
@@ -55,6 +64,19 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
         } catch (TimeoutException e) {
             return false;
         }
+    }
+
+
+    private SportBuchungsVersuch dummyBuchungsBestaetigung(SportBuchungsJob buchungsJob) {
+        int jobId = buchungsJob.getJobId();
+        SportAngebot sportAngebot = buchungsJob.getSportAngebot();
+        String buchungsNummer = sportAngebot.getKursnummer() + "-" + jobId;
+        String buchungsBestaetigungUrl = sportAngebot.getKursinfoUrl() + "/bestaetigung_" + jobId;
+        var buchungsBestaetigung = new SportBuchungsBestaetigung();
+        buchungsBestaetigung.setBuchungsJob(buchungsJob);
+        buchungsBestaetigung.setBuchungsNummer(buchungsNummer);
+        buchungsBestaetigung.setBuchungsBestaetigungUrl(buchungsBestaetigungUrl);
+        return newErfolgreicherBuchungsVersuch(buchungsBestaetigung);
     }
 
 }

@@ -44,7 +44,7 @@ public class ApplicationStateDao {
     private final List<SportBuchungsJobListener> sportBuchungsJobListeners = new CopyOnWriteArrayList<>();
 
     private SportKatalog sportKatalog;
-    private SavedApplicationState applicationState;
+    private final SavedApplicationState applicationState;
 
 
     public ApplicationStateDao(SportKatalogRepository sportKatalogRepository, ObjectMapper objectMapper,

@@ -8,8 +8,8 @@ public enum TeilnehmerGender {
     DIVERS("D", "divers"), //
     ;
 
-    private String shortName;
-    private String name;
+    private final String shortName;
+    private final String name;
 
 
     TeilnehmerGender(String shortName, String name) {

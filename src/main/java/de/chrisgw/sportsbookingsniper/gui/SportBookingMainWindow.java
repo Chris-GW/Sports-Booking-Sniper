@@ -24,7 +24,7 @@ public class SportBookingMainWindow extends BasicWindow {
 
     private final ApplicationStateDao applicationStateDao;
 
-    private MainMenuBarComponent mainMenuBar;
+    private final MainMenuBarComponent mainMenuBar;
     private FavoriteSportAngebotComponent favoriteComponent;
     private AusstehendeSportBuchungsJobPanel ausstehendeSportBuchungsJobPanel;
 
