@@ -23,7 +23,8 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     private final ApplicationStateDao applicationStateDao;
     private final Map<SportAngebot, Panel> sportAngebotPanelMap = new ConcurrentHashMap<>();
     private final Map<Integer, AusstehendeSportBuchungsJobItem> buchungsJobComponentMap = new ConcurrentHashMap<>();
-    private final Panel noContentPanel = createNoContentPanel();
+    private final Button newSportBuchungBtn = newSportBuchungBtn();
+    private final Panel noContentPanel = newNoContentPanel();
 
 
     public AusstehendeSportBuchungsJobPanel(ApplicationStateDao applicationStateDao) {
@@ -32,12 +33,8 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         this.applicationStateDao.getPendingBuchungsJobs().forEach(this::onNewPendingSportBuchungsJob);
     }
 
-    private Panel createNoContentPanel() {
+    private Panel newNoContentPanel() {
         Label infoLabel = new Label("Im Moment sind keine Sport Buchungen vorhanden");
-
-        Button newSportBuchungBtn = new Button("new SportBuchung", this::newSportBuchungsJobDialog);
-        newSportBuchungBtn.setRenderer(new Button.BorderedButtonRenderer());
-        newSportBuchungBtn.setLayoutData(createLayoutData(Center));
 
         Panel noContentPanel = new Panel();
         noContentPanel.setLayoutData(createLayoutData(Fill, CanGrow));
@@ -45,6 +42,13 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         noContentPanel.addComponent(infoLabel, createLayoutData(Center));
         noContentPanel.addComponent(newSportBuchungBtn);
         return noContentPanel;
+    }
+
+    private Button newSportBuchungBtn() {
+        Button newSportBuchungBtn = new Button("new SportBuchung", this::newSportBuchungsJobDialog);
+        newSportBuchungBtn.setRenderer(new Button.BorderedButtonRenderer());
+        newSportBuchungBtn.setLayoutData(createLayoutData(Center));
+        return newSportBuchungBtn;
     }
 
 
@@ -74,18 +78,18 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         }
         buchungsJobComponentMap.remove(sportBuchungsJob.getJobId());
         angebotPanel.removeComponent(ausstehendeSportBuchungsJobItem);
-        getBasePane().setFocusedInteractable(nextFocus(null));
 
         if (angebotPanel.getChildCount() == 0) {
             sportAngebotPanelMap.remove(sportBuchungsJob.getSportAngebot());
             removeComponent(angebotPanel.getParent());
             setVisibleNoContentPanel();
         }
+        getBasePane().setFocusedInteractable(nextFocus(null));
         return this;
     }
 
     private void setVisibleNoContentPanel() {
-        boolean visible = getChildCount() <= 1;
+        boolean visible = getChildCount() < 1;
         noContentPanel.setVisible(visible);
         if (visible) {
             addComponent(0, noContentPanel);
@@ -114,7 +118,9 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     private void newSportBuchungsJobDialog() {
         Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
                 .showDialog((WindowBasedTextGUI) getTextGUI());
+        savedSportBuchungsJob.ifPresent(this::onNewPendingSportBuchungsJob);
         savedSportBuchungsJob.ifPresent(applicationStateDao::addSportBuchungsJob);
+        getBasePane().setFocusedInteractable(nextFocus(null));
     }
 
     private void editSportBuchungsJobDialog(SportBuchungsJob sportBuchungsJob) {
@@ -142,8 +148,12 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
 
     @Override
     public void onNewPendingSportBuchungsJob(SportBuchungsJob sportBuchungsJob) {
-        var ausstehendeSportBuchungsJobItem = new AusstehendeSportBuchungsJobItem(sportBuchungsJob);
-        addComponent(ausstehendeSportBuchungsJobItem);
+        var ausstehendeSportBuchungsJobItem = buchungsJobComponentMap.get(sportBuchungsJob.getJobId());
+        if (ausstehendeSportBuchungsJobItem == null) {
+            ausstehendeSportBuchungsJobItem = new AusstehendeSportBuchungsJobItem(sportBuchungsJob);
+            addComponent(ausstehendeSportBuchungsJobItem);
+        }
+        ausstehendeSportBuchungsJobItem.invalidate();
     }
 
     @Override
