@@ -109,7 +109,7 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
 
 
     public void retryNow() {
-        boolean cancel = scheduledBuchungsVersuch.cancel(false);
+        boolean cancel = scheduledBuchungsVersuch == null || scheduledBuchungsVersuch.cancel(false);
         if (cancel) {
             scheduledBuchungsVersuch = scheduleBuchungsVersuch(Duration.ZERO);
         }
@@ -118,7 +118,9 @@ public class ScheduledSportBuchungsJob implements Future<SportBuchungsBestaetigu
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        scheduledBuchungsVersuch.cancel(mayInterruptIfRunning);
+        if (scheduledBuchungsVersuch != null) {
+            scheduledBuchungsVersuch.cancel(mayInterruptIfRunning);
+        }
         return futureBuchungsBestaetigung.cancel(mayInterruptIfRunning);
     }
 

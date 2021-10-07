@@ -20,7 +20,7 @@ public class AnimatedClock extends AnimatedLabel {
     public AnimatedClock(DateTimeFormatter timeFormatter) {
         super(timeFormatter.format(LocalDateTime.now().withNano(0)));
         this.timeFormatter = timeFormatter;
-        startAnimation(200);
+        startAnimation(1000);
     }
 
 

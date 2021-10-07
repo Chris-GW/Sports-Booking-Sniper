@@ -118,7 +118,6 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
     private void newSportBuchungsJobDialog() {
         Optional<SportBuchungsJob> savedSportBuchungsJob = new SportBuchungDialog(applicationStateDao) //
                 .showDialog((WindowBasedTextGUI) getTextGUI());
-        savedSportBuchungsJob.ifPresent(this::onNewPendingSportBuchungsJob);
         savedSportBuchungsJob.ifPresent(applicationStateDao::addSportBuchungsJob);
         getBasePane().setFocusedInteractable(nextFocus(null));
     }

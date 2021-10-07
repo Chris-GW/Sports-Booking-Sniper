@@ -16,8 +16,9 @@ import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
 import de.chrisgw.sportsbookingsniper.gui.buchung.SportBuchungDialog;
+import de.chrisgw.sportsbookingsniper.gui.component.AnimatedClock;
+import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;
@@ -53,7 +54,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
                 .add(languageMenu());
 
         addComponent(menuBar, Location.CENTER);
-        // addComponent(new AnimatedClock(), Location.RIGHT);
+        addComponent(new AnimatedClock(), Location.RIGHT);
     }
 
     private MenuItem createSwitchThemeMenuItem() {

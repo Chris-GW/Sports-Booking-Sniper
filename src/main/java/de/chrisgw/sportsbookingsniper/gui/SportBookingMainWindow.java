@@ -79,7 +79,7 @@ public class SportBookingMainWindow extends BasicWindow {
             public void onUnhandledInput(Window basePane, KeyStroke keyStroke, AtomicBoolean hasBeenHandled) {
                 if (KeyType.Escape.equals(keyStroke.getKeyType()) //
                         || (keyStroke.isAltDown() && KeyType.F4.equals(keyStroke.getKeyType())) //
-                        || (keyStroke.isCtrlDown() && keyStroke.getCharacter() == 'c')) {
+                        || (keyStroke.isCtrlDown() && Character.valueOf('c').equals(keyStroke.getCharacter()))) {
                     MessageDialogButton selectedButton = new MessageDialogBuilder() //
                             .setTitle("SportBookingSniper wirklich beenden?")
                             .setText("Wenn Sie den SportBookingSniper beenden, können keine\n"

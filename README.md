@@ -2,28 +2,40 @@
 
 
 # Sports Booking Sniper
+
+[![Latest-Release](https://img.shields.io/github/v/release/Chris-GW/Sports-Booking-Sniper?include_prereleases)](https://github.com/Chris-GW/Sports-Booking-Sniper/releases)
+[![Java CI with Maven](https://github.com/Chris-GW/Sports-Booking-Sniper/actions/workflows/maven.yml/badge.svg)](https://github.com/Chris-GW/Sports-Booking-Sniper/actions/workflows/maven.yml)
+[![GitHub issues](https://img.shields.io/github/issues/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/stargazers)
+[![GitHub license](https://img.shields.io/github/license/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/blob/main/LICENSE)
+
 > Console GUI with selenium web booking agent for [HSZ RWTH Aachen](https://hochschulsport.rwth-aachen.de/cms/~icgi/HSZ/) sports offer
 
-
-[![Java CI with Maven](https://github.com/Chris-GW/Sports-Booking-Sniper/actions/workflows/maven.yml/badge.svg)](https://github.com/Chris-GW/Sports-Booking-Sniper/actions/workflows/maven.yml) [![GitHub issues](https://img.shields.io/github/issues/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/issues) [![GitHub stars](https://img.shields.io/github/stars/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/stargazers) [![GitHub license](https://img.shields.io/github/license/Chris-GW/Sports-Booking-Sniper)](https://github.com/Chris-GW/Sports-Booking-Sniper/blob/main/LICENSE)
-
 [![Sports-Booking-Sniper](img/Main%20GUI%20Screenshot%20.png)](https://github.com/Chris-GW/Sports-Booking-Sniper)
+[![Sports-Booking-Sniper](img/Sport%20Buchung%20Personenangaben%20Formular.gif)](https://github.com/Chris-GW/Sports-Booking-Sniper)
 ---
 
 ## Installation
-Sports Booking Sniper requires Maven to be running on JRE 11+.
+Sports Booking Sniper requires Maven to be running on JRE 11+.  
+Releases are available on the [Sports Booking Sniper release page](https://github.com/Chris-GW/Sports-Booking-Sniper/releases).
 
 ```shell
 mvn package
-java -jar sportbooking-2.0.0-SNAPSHOT-jar-with-dependencies.jar
+java -jar sportbooking-{version}-jar-with-dependencies.jar
 ```
 
 ---
 
 ## Features
 
-- Simple console GUI with lanterna
--  
+- Simple console GUI with [Lanterna](https://github.com/mabe02/lanterna)  
+Lanterna is a Java library allowing you to write easy semi-graphical user interfaces in a text-only environment, very similar to the C library curses but with more functionality.
+- Selenium Agent automatically performs the sports bookings for you in the background.
+- Supports the booking of many different [HSZ RWTH Aachen](https://hochschulsport.rwth-aachen.de/cms/~icgi/HSZ/) sports offers. 
+  - Sports tickets for a whole semester
+  - single date sport bookings 
+  - single sport place bookings
+- Works great on raspberry pi or any other single board computers
 
 ---
 
