@@ -12,7 +12,7 @@
 > Console GUI with selenium web booking agent for [HSZ RWTH Aachen](https://hochschulsport.rwth-aachen.de/cms/~icgi/HSZ/) sports offer
 
 [![Sports-Booking-Sniper](img/Main%20GUI%20Screenshot%20.png)](https://github.com/Chris-GW/Sports-Booking-Sniper)
-[![Sports-Booking-Sniper](img/Sport%20Buchung%20Personenangaben%20Formular.gif)](https://github.com/Chris-GW/Sports-Booking-Sniper)
+![Sport Buchung Personenangaben Formular.gif](img/Sport%20Buchung%20Personenangaben%20Formular.gif)
 ---
 
 ## Installation

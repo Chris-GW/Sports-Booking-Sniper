@@ -5,7 +5,6 @@ import de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsA
 import lombok.extern.log4j.Log4j2;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.LazyLoader;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,6 +22,7 @@ import java.util.regex.Pattern;
 
 import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.*;
 import static java.lang.Integer.parseInt;
+import static org.apache.commons.lang3.StringUtils.*;
 
 
 @Log4j2
@@ -259,36 +259,31 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
             return Collections.emptySet();
         }
         String anbeotName = doc.selectFirst("#bs_content .bs_head").text().trim();
-        String leitung = doc.selectFirst("#bs_content .bs_verantw").text().trim();
-        if (leitung.startsWith("verantwortlich: ")) {
-            leitung = leitung.substring("verantwortlich: ".length());
-        }
+        String leitung = readLeitung(doc);
 
         List<SportAngebot> sportAngebote = new ArrayList<>();
         Elements sportAngebotBlocks = doc.select("#bs_content form .bs_angblock");
         for (Element sportAngebotBlock : sportAngebotBlocks) {
-            Element kursBeschreibungDiv = sportAngebotBlock.selectFirst(".bs_kursbeschreibung").child(0);
-            List<String> kursBeschreibungTexte = kursBeschreibungDiv.children().eachText();
-            String beschreibung = StringUtils.capitalize(StringUtils.lowerCase(kursBeschreibungTexte.get(0)));
-            String ort = kursBeschreibungTexte.get(1);
+            String beschreibung = readBeschreibung(sportAngebotBlock);
+            String ort = readOrt(sportAngebotBlock);
 
             Elements terminZeitfensterCells = sportAngebotBlock.select("table.bs_platz tr td.bs_sbuch");
             for (Element sportTerminCell : terminZeitfensterCells) {
                 if (sportTerminCell.text().equalsIgnoreCase("keine Buchung") || !sportTerminCell.hasAttr("title")) {
                     continue;
                 }
+                String kursnummer = sportTerminCell.selectFirst("a").id();
+                String details = beschreibung + " - " + sportTerminCell.attr("title");
                 SportAngebot sportAngebot = new SportAngebot();
                 sportAngebot.setSportArt(sportArt);
-                sportAngebot.setKursnummer(sportTerminCell.selectFirst("a").id());
+                sportAngebot.setKursnummer(kursnummer);
                 sportAngebot.setKursinfoUrl(null);
                 sportAngebot.setBuchungsArt(EINZEL_PLATZ_BUCHUNG);
                 sportAngebot.setPreis(new SportAngebotPreis());
-                sportAngebot.setSportArt(sportArt);
                 sportAngebot.setLeitung(leitung);
                 sportAngebot.setOrt(ort);
-                generateAllSportPlatzTermine(sportAngebot, sportTerminCell);
-                String details = beschreibung + " - " + sportTerminCell.attr("title");
                 sportAngebot.setDetails(details);
+                generateAllSportPlatzTermine(sportAngebot, sportTerminCell);
                 if (isNewPlatzAngebotTimeSlot(sportAngebote, sportAngebot)) {
                     sportAngebote.add(sportAngebot);
                 }
@@ -297,6 +292,39 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         sportAngebote.sort(Comparator.comparing(SportAngebot::getZeitraumStart));
         return new LinkedHashSet<>(sportAngebote);
     }
+
+
+    private String readLeitung(Document doc) {
+        String leitung = doc.selectFirst("#bs_content .bs_verantw").text().trim();
+        if (leitung.startsWith("verantwortlich: ")) {
+            leitung = leitung.substring("verantwortlich: ".length());
+        }
+        return leitung;
+    }
+
+    private String readBeschreibung(Element sportAngebotBlock) {
+        Element kursBeschreibungDiv = sportAngebotBlock.selectFirst(".bs_kursbeschreibung");
+        List<String> strongTexts = kursBeschreibungDiv.select("strong").eachText();
+        if (strongTexts.isEmpty()) {
+            Element bsHeadElement = sportAngebotBlock.ownerDocument().selectFirst("#bs_content .bs_head");
+            return bsHeadElement.text();
+        } else {
+            String firstStrongText = strongTexts.get(0);
+            return capitalize(lowerCase(firstStrongText));
+        }
+    }
+
+    private String readOrt(Element sportAngebotBlock) {
+        Element kursbeschreibungDiv = sportAngebotBlock.selectFirst(".bs_kursbeschreibung");
+        List<String> strongTexts = kursbeschreibungDiv.select("strong").eachText();
+        if (strongTexts.size() >= 2) {
+            String lastStrongText = strongTexts.get(strongTexts.size() - 1);
+            return trim(lastStrongText);
+        } else {
+            return null;
+        }
+    }
+
 
     private boolean isNewPlatzAngebotTimeSlot(Collection<SportAngebot> sportAngebote, SportAngebot sportAngebot) {
         SportTermin firstTermin = sportAngebot.getSportTermine().first();
