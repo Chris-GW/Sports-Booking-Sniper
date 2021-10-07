@@ -11,7 +11,7 @@ public class CountdownProgressBar extends ProgressBar {
 
     private LocalDateTime countdownStartTime;
     private Duration countdownDuration;
-    private long lastDrawnSecond;
+    private String lastDrawnFormattedLabel;
 
 
     public CountdownProgressBar() {
@@ -31,7 +31,7 @@ public class CountdownProgressBar extends ProgressBar {
         }
         this.countdownStartTime = LocalDateTime.now();
         this.countdownDuration = countdownDuration;
-        this.lastDrawnSecond = 0;
+        this.lastDrawnFormattedLabel = "";
         invalidate();
         return this;
     }
@@ -78,7 +78,7 @@ public class CountdownProgressBar extends ProgressBar {
         int secs = (int) (effectiveTotalSecs % 60);
         if (days > 0) {
             return String.format("%02dd %02dh", days, hours);
-        } else if (hours > 0) {
+        } else if (hours > 0 || minutes > 0) {
             return String.format("%02dh %02dm", hours, minutes);
         } else {
             return String.format("%02dm %02ds", minutes, secs);
@@ -100,13 +100,13 @@ public class CountdownProgressBar extends ProgressBar {
     @Override
     protected void onAfterDrawing(TextGUIGraphics graphics) {
         super.onAfterDrawing(graphics);
-        lastDrawnSecond = elapsedDuration().getSeconds();
+        lastDrawnFormattedLabel = getFormattedLabel();
     }
 
 
     @Override
     public boolean isInvalid() {
-        return super.isInvalid() || lastDrawnSecond != elapsedDuration().getSeconds();
+        return super.isInvalid() || !lastDrawnFormattedLabel.equals(getFormattedLabel());
     }
 
 }

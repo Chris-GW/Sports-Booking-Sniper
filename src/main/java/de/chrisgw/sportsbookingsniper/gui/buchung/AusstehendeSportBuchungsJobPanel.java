@@ -59,7 +59,7 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         if (!containsComponent(angebotPanel)) {
             Border border = Borders.singleLine(sportAngebot.getName());
             addComponent(angebotPanel.withBorder(border), createLayoutData(Fill, CanGrow));
-            noContentPanel.setVisible(getChildCount() <= 1);
+            setVisibleNoContentPanel();
         }
         return self();
     }
@@ -79,9 +79,19 @@ public class AusstehendeSportBuchungsJobPanel extends Panel implements SportBuch
         if (angebotPanel.getChildCount() == 0) {
             sportAngebotPanelMap.remove(sportBuchungsJob.getSportAngebot());
             removeComponent(angebotPanel.getParent());
-            noContentPanel.setVisible(getChildCount() <= 1);
+            setVisibleNoContentPanel();
         }
         return this;
+    }
+
+    private void setVisibleNoContentPanel() {
+        boolean visible = getChildCount() <= 1;
+        noContentPanel.setVisible(visible);
+        if (visible) {
+            addComponent(0, noContentPanel);
+        } else {
+            removeComponent(noContentPanel);
+        }
     }
 
 

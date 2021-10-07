@@ -45,13 +45,15 @@ public class AusstehendeSportBuchungsJobItem extends Panel {
         super.onBeforeDrawing();
         updateBuchungsJobBtnLabel();
         updateStatusLabel();
-        startCountdownProgressBarIfNeeded();
     }
 
     private void updateBuchungsJobBtnLabel() {
         String kursnummer = sportBuchungsJob.getSportAngebot().getKursnummer();
         String formatTerminZeitraum = sportBuchungsJob.getSportTermin().formatTerminZeitraum();
-        buchungsJobBtn.setLabel(kursnummer + " " + formatTerminZeitraum);
+        String label = kursnummer + " " + formatTerminZeitraum;
+        if (!buchungsJobBtn.getLabel().equals(label)) {
+            buchungsJobBtn.setLabel(label);
+        }
     }
 
 
@@ -67,9 +69,11 @@ public class AusstehendeSportBuchungsJobItem extends Panel {
     private void updateStatusLabel() {
         SportBuchungsVersuchStatus lastBuchungsVersuchStatus = sportBuchungsJob.getLastBuchungsVersuchStatus();
         String statusText = StringUtils.rightPad(lastBuchungsVersuchStatus.toString(), versuchStatusMaxLength());
-        statusLabel.setText(statusText);
-        statusLabel.setForegroundColor(toForegroundColor(lastBuchungsVersuchStatus));
-        statusLabel.setBackgroundColor(toBackgroundColor(lastBuchungsVersuchStatus));
+        if (!statusLabel.getText().equals(statusText)) {
+            statusLabel.setText(statusText);
+            statusLabel.setForegroundColor(toForegroundColor(lastBuchungsVersuchStatus));
+            statusLabel.setBackgroundColor(toBackgroundColor(lastBuchungsVersuchStatus));
+        }
     }
 
     private TextColor toForegroundColor(SportBuchungsVersuchStatus status) {
@@ -141,7 +145,8 @@ public class AusstehendeSportBuchungsJobItem extends Panel {
 
     @Override
     public boolean isInvalid() {
-        return super.isInvalid() || buchungCountdownProgressBar.isInvalid();
+        startCountdownProgressBarIfNeeded();
+        return super.isInvalid();
     }
 
 }
