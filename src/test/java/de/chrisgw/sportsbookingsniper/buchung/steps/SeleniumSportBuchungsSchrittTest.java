@@ -77,6 +77,7 @@ public class SeleniumSportBuchungsSchrittTest {
         String sportArtName = sportAngebot.getSportArt().getName();
         boolean skip = sportAngebot.isPasswortGesichert();
         skip = skip || sportArtName.startsWith("Extratouren ");
+        skip = skip || sportArtName.endsWith(" Sucht");
         skip = skip || sportAngebot.bevorstehendeSportTermine().findFirst().isEmpty();
         return skip;
     }

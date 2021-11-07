@@ -8,7 +8,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -57,10 +56,9 @@ public class SelectSportAngebotSchritt extends SeleniumSportBuchungsSchritt {
         Optional<WebElement> buchungsBeginnSpan = angebotRow.flatMap(findElement(By.className("bs_btn_autostart")));
         if (buchungsBeginnSpan.isPresent()) {
             String buchungsBeginnText = buchungsBeginnSpan.get().getText();
-            Optional<LocalDateTime> buchungsBeginn = readBuchungsBeginn(buchungsBeginnText);
-            buchungsBeginn.ifPresent(buchungsJob::setBuchungsBeginn);
+            readBuchungsBeginn(buchungsBeginnText).ifPresent(buchungsJob::setBuchungsBeginn);
             log.info("{}: only found <input.bs_btn_autostart> for SportAngebot {} with text={}", //
-                    buchungsJob, sportAngebot, buchungsBeginn.map(LocalDateTime::toString).orElse(buchungsBeginnText));
+                    buchungsJob, sportAngebot, buchungsBeginnText);
             return newBuchungsVersuch(BUCHUNG_GESCHLOSSEN);
         } else {
             log.info("{}: only Warteliste found for SportAngebot {}", buchungsJob, sportAngebot);

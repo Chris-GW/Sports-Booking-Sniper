@@ -53,7 +53,7 @@ public class KonfigurierbareSportBuchungsStrategie implements SportBuchungsStrat
 
     private boolean isBeforeBuchungsBeginn(SportBuchungsJob sportBuchungsJob, LocalDateTime now) {
         LocalDateTime buchungsBeginn = sportBuchungsJob.getBuchungsBeginn();
-        return buchungsBeginn != null && buchungsBeginn.isBefore(now);
+        return buchungsBeginn != null && now.isBefore(buchungsBeginn);
     }
 
     private boolean isBuchungsBeginn(SportBuchungsJob sportBuchungsJob, LocalDateTime now) {

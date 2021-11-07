@@ -5,6 +5,7 @@ import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.jsoup.Jsoup;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
@@ -26,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
+import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_WARTELISTE;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.newBuchungsVersuch;
 
 
@@ -65,6 +67,9 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
             return new GetSportAngebotWebpageSchritt(driver).executeBuchungsSchritt(buchungsJob);
         } catch (Exception e) {
             log.error("Could not book", e);
+            if (e.getCause() instanceof ConnectTimeoutException) {
+                return newBuchungsVersuch(BUCHUNG_WARTELISTE);
+            }
             return newBuchungsVersuch(BUCHUNG_FEHLER);
         }
     }
@@ -111,7 +116,8 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         MonthDay monthDay = MonthDay.parse(buchungsBeginnText, buchungsBeginnFormatter);
         LocalTime localTime = LocalTime.parse(buchungsBeginnText, buchungsBeginnFormatter);
         LocalDateTime buchungsBeginn = LocalDate.now().with(monthDay).atTime(localTime);
-        if (buchungsBeginn.isAfter(LocalDateTime.now())) {
+        if (buchungsBeginn.isBefore(LocalDateTime.now())) {
+            // add one year because read buchungsBeginn must be in future
             buchungsBeginn = buchungsBeginn.plusYears(1);
         }
         log.trace("readBuchungsBeginn from .bs_btn_autostart {} -> {}", buchungsBeginnText, buchungsBeginn);
