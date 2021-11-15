@@ -85,7 +85,7 @@ public class SportBookingMainWindow extends BasicWindow {
                             .setText("Wenn Sie den SportBookingSniper beenden, können keine\n"
                                     + "Buchungsversuche im Hintergrund ausgeführt werden.\n"
                                     + "Wollen Sie den SportBookingSniper wirklich beenden?")
-                            .addButton(MessageDialogButton.Abort)
+                            .addButton(MessageDialogButton.Cancel)
                             .addButton(MessageDialogButton.Yes)
                             .build()
                             .showDialog(getTextGUI());

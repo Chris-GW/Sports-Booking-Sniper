@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Cache Gradle packages
+    - name: Cache Maven packages
       uses: actions/cache@v2
       with:
         path: ~/.m2/repository
@@ -31,8 +31,8 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: upload fat sports-booking-sniper.jar artifact
+    - name: upload sports-booking-sniper.jar artifact
       uses: actions/upload-artifact@v2
       with:
-        name: sports-booking-sniper.jar
-        path: target/sports-booking-sniper*-jar-with-dependencies.jar
+        name: sports-booking-sniper
+        path: target/sports-booking-sniper*.jar
