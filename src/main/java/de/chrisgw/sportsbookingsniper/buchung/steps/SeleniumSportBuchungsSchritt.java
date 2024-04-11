@@ -1,6 +1,7 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
 import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
+import de.chrisgw.sportsbookingsniper.SportBookingSniperApplication;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -46,7 +48,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
         try {
             driver = newWebDriver();
             driver.manage().window().maximize();
-            driver.manage().timeouts().implicitlyWait(500, TimeUnit.MILLISECONDS);
+            driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
             return newVerbindlicherBuchungsVersuch(driver, buchungsJob);
         } catch (Exception e) {
             log.error("Could not book", e);
@@ -75,7 +77,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
     }
 
     public static WebDriver newWebDriver() {
-        if (System.getProperty("webdriver.chrome.driver") != null) {
+        if (!SportBookingSniperApplication.finalBooking.get() || System.getProperty("webdriver.chrome.driver") != null) {
             return new ChromeDriver();
         }
         return new HtmlUnitDriver(true);

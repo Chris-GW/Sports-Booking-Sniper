@@ -12,6 +12,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -60,7 +61,8 @@ public class ConfirmTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
     private boolean trySubmitTillStaleness(WebElement verbindlichBuchenBtn) {
         try {
             verbindlichBuchenBtn.submit();
-            return new WebDriverWait(driver, 1).until(ExpectedConditions.stalenessOf(verbindlichBuchenBtn));
+            return new WebDriverWait(driver, Duration.ofMillis(1000))
+                    .until(ExpectedConditions.stalenessOf(verbindlichBuchenBtn));
         } catch (TimeoutException e) {
             return false;
         }

@@ -1,6 +1,10 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
-import de.chrisgw.sportsbookingsniper.buchung.*;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch;
+import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
@@ -10,6 +14,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -186,7 +191,8 @@ public class SubmitTeilnehmerFormSchritt extends SeleniumSportBuchungsSchritt {
             try {
                 weiterZurBuchungBtn.submit();
                 validateTeilnehmerForm();
-                return new WebDriverWait(driver, 1).until(ExpectedConditions.stalenessOf(weiterZurBuchungBtn));
+                return new WebDriverWait(driver, Duration.ofMillis(1000))
+                        .until(ExpectedConditions.stalenessOf(weiterZurBuchungBtn));
             } catch (TimeoutException e) {
                 return false;
             }

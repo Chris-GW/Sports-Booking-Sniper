@@ -34,7 +34,7 @@ public class SportTermin implements Comparable<SportTermin> {
     }
 
 
-    public boolean overlapseWith(SportTermin otherSportTermin) {
+    public boolean overlapsWith(SportTermin otherSportTermin) {
         LocalDateTime otherStartZeit = otherSportTermin.getStartZeit();
         LocalDateTime otherEndZeit = otherSportTermin.getEndZeit();
         return getStartZeit().isBefore(otherEndZeit) && getEndZeit().isAfter(otherStartZeit);

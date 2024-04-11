@@ -1,8 +1,17 @@
 package de.chrisgw.sportsbookingsniper;
 
-import de.chrisgw.sportsbookingsniper.angebot.*;
+import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportsbookingsniper.angebot.SportAngebotPreis;
+import de.chrisgw.sportsbookingsniper.angebot.SportArt;
+import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
+import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
+import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.ScheduledSportBuchungsJob;
-import de.chrisgw.sportsbookingsniper.buchung.*;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsBestaetigung;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
+import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerGender;
+import de.chrisgw.sportsbookingsniper.buchung.TeilnehmerKategorie;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.KonfigurierbareSportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.buchung.strategie.SportBuchungsStrategie;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
@@ -21,8 +30,8 @@ import java.util.concurrent.ExecutionException;
 
 public class SportBookingSniperApplicationTest {
 
-    private final static String SPORT_ART = "Spinning Online Level 2";
-    private final static String KURSNUMMER = "38815124";
+    private final static String SPORT_ART = "Tischtennis Spielbetrieb";
+    private final static String KURSNUMMER = "11431849";
 
     private final SportBookingSniperApplication sportBookingSniperApplication;
 
@@ -46,8 +55,11 @@ public class SportBookingSniperApplicationTest {
                     .findFirst()
                     .orElseThrow(RuntimeException::new);
             testApplication.bucheSportTermin(sportAngebot, sportTermin);
+            testApplication.sportBookingSniperApplication.getExecutorService().shutdown();
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 
