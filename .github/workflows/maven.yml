@@ -29,4 +29,4 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: sports-booking-sniper
-        path: target/sports-booking-sniper*.jar
+        path: target/sports-booking-sniper*jar-with-dependencies.jar
