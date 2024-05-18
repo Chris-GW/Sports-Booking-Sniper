@@ -17,8 +17,8 @@ import de.chrisgw.sportsbookingsniper.gui.state.SavedApplicationState;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +29,14 @@ import java.util.Set;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil.newSportKatalog;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 
-public class SavedApplicationStateTest {
+class SavedApplicationStateTest {
 
     static final Logger logger = LoggerFactory.getLogger(SavedApplicationState.class);
 
@@ -45,7 +49,7 @@ public class SavedApplicationStateTest {
     private SportArt volleyball;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         setUpJackson();
 
@@ -57,7 +61,7 @@ public class SavedApplicationStateTest {
 
 
     @Test
-    public void shouldSeralizeTeilnehmer() throws Exception {
+    void shouldSeralizeTeilnehmer() throws Exception {
         Teilnehmer teilnehmer = SportBookingModelTestUtil.newTeilnehmer();
 
         String json = objectMapper.writeValueAsString(teilnehmer);
@@ -81,7 +85,7 @@ public class SavedApplicationStateTest {
     }
 
     @Test
-    public void shouldReadTeilnehmer() throws Exception {
+    void shouldReadTeilnehmer() throws Exception {
         Teilnehmer teilnehmer = this.teilnehmer;
         String json = objectMapper.writeValueAsString(teilnehmer);
         logger.debug(json);
@@ -93,7 +97,7 @@ public class SavedApplicationStateTest {
 
 
     @Test
-    public void shouldSeralizeSavedApplicationState() throws Exception {
+    void shouldSeralizeSavedApplicationState() throws Exception {
         var applicationState = new SavedApplicationState();
         applicationState.setNextJobId(52);
         applicationState.getTeilnehmerListe().add(teilnehmer);
@@ -121,7 +125,7 @@ public class SavedApplicationStateTest {
 
 
     @Test
-    public void shouldSeralizeSportBuchungsStrategie() throws Exception {
+    void shouldSeralizeSportBuchungsStrategie() throws Exception {
         SportBuchungsStrategie buchungsStrategie = KonfigurierbareSportBuchungsStrategie.defaultKonfiguration();
         String json = objectMapper.writeValueAsString(buchungsStrategie);
         logger.debug(json);

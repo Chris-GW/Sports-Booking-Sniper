@@ -155,7 +155,7 @@ public class SportBookingSniperApplication {
             System.exit(0);
         } catch (Exception e) {
             log.error("Unexpected Exception", e);
-            e.printStackTrace();
+            e.printStackTrace(System.out);
             System.exit(1);
         }
     }

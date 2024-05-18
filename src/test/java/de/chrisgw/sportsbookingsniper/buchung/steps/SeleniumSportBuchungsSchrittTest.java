@@ -1,10 +1,17 @@
 package de.chrisgw.sportsbookingsniper.buchung.steps;
 
 import de.chrisgw.sportsbookingsniper.SportBookingModelTestUtil;
-import de.chrisgw.sportsbookingsniper.angebot.*;
+import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
+import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
+import de.chrisgw.sportsbookingsniper.angebot.SportArt;
+import de.chrisgw.sportsbookingsniper.angebot.SportKatalog;
+import de.chrisgw.sportsbookingsniper.angebot.SportTermin;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
 import java.nio.file.Files;
@@ -14,17 +21,18 @@ import java.util.List;
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
 import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newVerbindlicherBuchungsVersuch;
 import static de.chrisgw.sportsbookingsniper.buchung.steps.SeleniumSportBuchungsSchritt.newWebDriver;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class SeleniumSportBuchungsSchrittTest {
+
+class SeleniumSportBuchungsSchrittTest {
 
     private HszRwthAachenSportKatalogRepository sportKatalogRepository;
     private static WebDriver webDriver;
 
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
+    @BeforeEach
+    public void beforeEach() throws Exception {
         var chromedriverPath = Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
         if (Files.exists(chromedriverPath)) {
             System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
@@ -32,22 +40,22 @@ public class SeleniumSportBuchungsSchrittTest {
         webDriver = newWebDriver();
     }
 
-    @AfterClass
-    public static void afterClass() throws Exception {
+    @AfterEach
+    public void afterEach() throws Exception {
         if (webDriver != null) {
             webDriver.close();
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
     }
 
 
     @Test
-    @Ignore
-    public void tryToBookEverySportAvailable() {
+    @Disabled("only for testing manual with debugger")
+    void tryToBookEverySportAvailable() {
         int jobId = 0;
         Teilnehmer teilnehmer = SportBookingModelTestUtil.newTeilnehmer();
         SportKatalog currentSportKatalog = sportKatalogRepository.findCurrentSportKatalog();
@@ -67,8 +75,8 @@ public class SeleniumSportBuchungsSchrittTest {
                 System.out.printf("\t%s\t%s%n", sportBuchungsJob, sportAngebot.getKursinfoUrl());
 
                 var sportBuchungsVersuch = newVerbindlicherBuchungsVersuch(webDriver, sportBuchungsJob);
-                assertNotNull("sportBuchungsVersuch", sportBuchungsVersuch);
-                assertNotEquals("BUCHUNG_FEHLER", BUCHUNG_FEHLER, sportBuchungsVersuch.getStatus());
+                assertNotNull(sportBuchungsVersuch, "sportBuchungsVersuch");
+                assertNotEquals(BUCHUNG_FEHLER, sportBuchungsVersuch.getStatus(), "BUCHUNG_FEHLER");
             }
         }
     }

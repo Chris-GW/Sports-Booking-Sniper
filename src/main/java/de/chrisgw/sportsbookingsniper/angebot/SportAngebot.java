@@ -78,12 +78,12 @@ public class SportAngebot implements Comparable<SportAngebot> {
     }
 
     public Stream<SportTermin> sportTermine() {
-        return sportTermine.stream();
+        return getSportTermine().stream();
     }
 
 
     public void addSportTermin(SportTermin sportTermin) {
-        this.sportTermine.add(sportTermin);
+        getSportTermine().add(sportTermin);
     }
 
 

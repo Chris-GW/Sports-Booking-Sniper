@@ -33,18 +33,18 @@ public class SportArt implements Comparable<SportArt> {
 
 
     public Stream<SportAngebot> upcomingSportAngebote() {
-        return sportAngebote.stream().filter(SportAngebot::isBevorstehend);
+        return getSportAngebote().stream().filter(SportAngebot::isBevorstehend);
     }
 
 
     public Optional<SportAngebot> findSportAngebot(String kursnummer) {
-        return sportAngebote.stream().filter(sportAngebot -> sportAngebot.getKursnummer().equals(kursnummer)).findAny();
+        return getSportAngebote().stream().filter(sportAngebot -> sportAngebot.getKursnummer().equals(kursnummer)).findAny();
     }
 
 
     public void addSportAngebot(SportAngebot sportAngebot) {
         requireNonNull(sportAngebot).setSportArt(this);
-        this.sportAngebote.add(sportAngebot);
+        getSportAngebote().add(sportAngebot);
     }
 
 

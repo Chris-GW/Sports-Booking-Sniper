@@ -21,7 +21,9 @@ Releases are available on the [Sports Booking Sniper release page](https://githu
 
 ```shell
 mvn package
-java -jar sportbooking-{version}-jar-with-dependencies.jar
+java -jar sports-booking-sniper-{version}-jar-with-dependencies.jar
+# for windows use javaw instead (see https://github.com/mabe02/lanterna/issues/335)
+javaw -jar sports-booking-sniper-{version}-jar-with-dependencies.jar
 ```
 
 ---

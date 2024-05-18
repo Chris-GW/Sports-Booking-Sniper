@@ -3,8 +3,6 @@ package de.chrisgw.sportsbookingsniper.angebot;
 
 import de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt;
 import lombok.extern.log4j.Log4j2;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.LazyLoader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,16 +11,32 @@ import org.jsoup.select.Elements;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.*;
+import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.ANGEBOT_TICKET_BUCHUNG;
+import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.EINZEL_PLATZ_BUCHUNG;
+import static de.chrisgw.sportsbookingsniper.angebot.SportAngebot.SportAngebotBuchungsArt.EINZEL_TERMIN_BUCHUNG;
 import static java.lang.Integer.parseInt;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 
 @Log4j2
@@ -85,17 +99,23 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         String sportUrlStr = sportLink.attr("href");
         URL absoluteSportUrl = new URL(new URL(SPORT_KATALOG_URL), sportUrlStr);
 
-        SportArt sportArt = new SportArt(sportName, absoluteSportUrl.toString());
-        sportArt.setSportAngebote(newLazySportAngebotLoader(sportArt));
-        return sportArt;
-    }
+        SportArt sportArt = new SportArt(sportName, absoluteSportUrl.toString()) {
 
-    @SuppressWarnings("unchecked")
-    private Set<SportAngebot> newLazySportAngebotLoader(final SportArt sportArt) {
-        return (Set<SportAngebot>) Enhancer.create(Set.class, (LazyLoader) () -> {
-            log.trace("lazy load SportAngebote for {}", sportArt);
-            return findSportAngeboteFor(sportArt);
-        });
+            @Override
+            public Set<SportAngebot> getSportAngebote() {
+                if (super.getSportAngebote() == null) {
+                    synchronized (this) {
+                        if (super.getSportAngebote() == null) {
+                            log.trace("lazy load SportAngebote for {}", this);
+                            setSportAngebote(findSportAngeboteFor(this));
+                        }
+                    }
+                }
+                return super.getSportAngebote();
+            }
+        };
+        sportArt.setSportAngebote(null); // lazy init
+        return sportArt;
     }
 
 
@@ -120,15 +140,29 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         Set<SportAngebot> sportAngebote = new TreeSet<>();
         Elements kursRows = doc.select("#bs_content table.bs_kurse tbody tr");
         for (Element sportTerminRow : kursRows) {
-            SportAngebot sportAngebot = parseSportKursanbebotRow(sportTerminRow);
+            SportAngebot sportAngebot = parseSportKursangebotRow(sportTerminRow);
             sportAngebot.setSportArt(sportArt);
             sportAngebote.add(sportAngebot);
         }
         return sportAngebote;
     }
 
-    private SportAngebot parseSportKursanbebotRow(Element tableRow) {
-        SportAngebot sportAngebot = new SportAngebot();
+    private SportAngebot parseSportKursangebotRow(Element tableRow) {
+        SportAngebot sportAngebot = new SportAngebot() {
+
+            @Override
+            public SortedSet<SportTermin> getSportTermine() {
+                if (super.getSportTermine() == null) {
+                    synchronized (this) {
+                        if (super.getSportTermine() == null) {
+                            log.debug("lazy load SportTermine for {}", this);
+                            setSportTermine(findSportTermineFor(this));
+                        }
+                    }
+                }
+                return super.getSportTermine();
+            }
+        };
         String kursnr = tableRow.child(0).text();
         String details = tableRow.child(1).text();
         SportAngebotBuchungsArt buchungsArt = ANGEBOT_TICKET_BUCHUNG;
@@ -155,7 +189,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         sportAngebot.setLeitung(leitung);
         sportAngebot.setPreis(preis);
         sportAngebot.setPasswortGesichert(isPasswortGesichert(tableRow));
-        sportAngebot.setSportTermine(newTerminLazyLoader(sportAngebot));
+        sportAngebot.setSportTermine(null); // lazy init
         return sportAngebot;
     }
 
@@ -421,13 +455,5 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         return sportTermin;
     }
 
-
-    @SuppressWarnings("unchecked")
-    private SortedSet<SportTermin> newTerminLazyLoader(final SportAngebot sportAngebot) {
-        return (SortedSet<SportTermin>) Enhancer.create(SortedSet.class, (LazyLoader) () -> {
-            log.debug("lazy load SportTermine for {}", sportAngebot);
-            return findSportTermineFor(sportAngebot);
-        });
-    }
 
 }
