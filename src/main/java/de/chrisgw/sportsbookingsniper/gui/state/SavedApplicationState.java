@@ -1,6 +1,5 @@
 package de.chrisgw.sportsbookingsniper.gui.state;
 
-import de.chrisgw.sportsbookingsniper.angebot.SportAngebot;
 import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import lombok.Data;
@@ -25,7 +24,6 @@ public class SavedApplicationState implements Serializable {
     private String selectedTheme = "default";
 
     private List<Teilnehmer> teilnehmerListe = new ArrayList<>();
-    private List<SportAngebot> watchedSportAngebote = new ArrayList<>();
     private List<SportBuchungsJob> pendingBuchungsJobs = new ArrayList<>();
     private List<SportBuchungsJob> finishedBuchungsJobs = new ArrayList<>();
 

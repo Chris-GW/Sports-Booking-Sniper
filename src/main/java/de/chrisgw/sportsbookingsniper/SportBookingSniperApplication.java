@@ -7,9 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.PropertyTheme;
-import com.googlecode.lanterna.gui2.AbstractTextGUI;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
@@ -27,12 +24,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.io.IoBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -108,7 +103,6 @@ public class SportBookingSniperApplication {
 
     private MultiWindowTextGUI createMultiWindowTextGUI(TerminalScreen guiScreen) {
         var windowTextGUI = new MultiWindowTextGUI(guiScreen);
-        registerLanternaThemes();
         windowTextGUI.setTheme(applicationStateDao.getSelectedTheme());
         return windowTextGUI;
     }
@@ -130,35 +124,11 @@ public class SportBookingSniperApplication {
     }
 
 
-    private void registerLanternaThemes() {
-        registerLanternaPropertyTheme("default", "/default-theme.properties");
-        registerLanternaPropertyTheme("bigsnake", "/bigsnake-theme.properties");
-        registerLanternaPropertyTheme("businessmachine", "/businessmachine-theme.properties");
-        registerLanternaPropertyTheme("conqueror", "/conqueror-theme.properties");
-        registerLanternaPropertyTheme("defrost", "/defrost-theme.properties");
-        registerLanternaPropertyTheme("blaster", "/blaster-theme.properties");
-    }
-
-    private void registerLanternaPropertyTheme(String themeName, String resourceName) {
-        if (LanternaThemes.getRegisteredTheme(themeName) != null) {
-            return;
-        }
-        try (InputStream resourceAsStream = AbstractTextGUI.class.getResourceAsStream(resourceName)) {
-            var properties = new Properties();
-            properties.load(resourceAsStream);
-            var propertyTheme = new PropertyTheme(properties);
-            LanternaThemes.registerTheme(themeName, propertyTheme);
-        } catch (IOException e) {
-            throw new RuntimeException("could not load PropertyTheme", e);
-        }
-    }
-
-
     public static void main(String[] args) {
         try {
             PrintStream errStream = IoBuilder.forLogger(LogManager.getRootLogger()).buildPrintStream();
             System.setErr(errStream);
-            finalBooking.set(args.length == 0 || !Boolean.parseBoolean(args[0]));
+            finalBooking.set(args.length == 0 || !"--disabledFinalBooking".equalsIgnoreCase(args[0]));
             log.trace("start SportBookingSniperApplication gui with finalBooking: " + finalBooking.get());
             var sportBookingSniperApplication = new SportBookingSniperApplication();
             sportBookingSniperApplication.showGui();

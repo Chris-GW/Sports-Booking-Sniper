@@ -15,8 +15,8 @@ public class CountdownProgressBar extends ProgressBar {
 
 
     public CountdownProgressBar() {
-        startCountdown(Duration.ZERO);
         setPreferredWidth(9);
+        startCountdown(Duration.ZERO);
     }
 
 
@@ -67,18 +67,13 @@ public class CountdownProgressBar extends ProgressBar {
     @Override
     public synchronized String getFormattedLabel() {
         Duration remainingDuration = remainingDuration().withNanos(0);
-        long seconds = remainingDuration.getSeconds();
-        if (remainingDuration.toHours() > 0) {
-            remainingDuration = remainingDuration.withSeconds(seconds - (seconds % 60));
-        }
-        long effectiveTotalSecs = remainingDuration.getSeconds();
-        int days = (int) (remainingDuration.toHours() / 24);
-        int hours = (int) (remainingDuration.toHours() % 24);
-        int minutes = (int) ((effectiveTotalSecs % (24 * 60)) / 60);
-        int secs = (int) (effectiveTotalSecs % 60);
+        long days = remainingDuration.toDaysPart();
+        int hours = remainingDuration.toHoursPart();
+        int minutes = remainingDuration.toMinutesPart();
+        int secs = remainingDuration.toSecondsPart();
         if (days > 0) {
             return String.format("%02dd %02dh", days, hours);
-        } else if (hours > 0 || minutes > 0) {
+        } else if (hours > 0) {
             return String.format("%02dh %02dm", hours, minutes);
         } else {
             return String.format("%02dm %02ds", minutes, secs);
@@ -99,7 +94,6 @@ public class CountdownProgressBar extends ProgressBar {
 
     @Override
     protected void onAfterDrawing(TextGUIGraphics graphics) {
-        super.onAfterDrawing(graphics);
         lastDrawnFormattedLabel = getFormattedLabel();
     }
 

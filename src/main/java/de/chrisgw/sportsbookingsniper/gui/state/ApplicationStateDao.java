@@ -142,13 +142,6 @@ public class ApplicationStateDao {
     }
 
 
-    // watched SportAngebote
-
-    public List<SportAngebot> getWatchedSportAngebote() {
-        return unmodifiableList(applicationState.getWatchedSportAngebote());
-    }
-
-
     // pending SportBuchungsJob
 
     public List<SportBuchungsJob> getPendingBuchungsJobs() {

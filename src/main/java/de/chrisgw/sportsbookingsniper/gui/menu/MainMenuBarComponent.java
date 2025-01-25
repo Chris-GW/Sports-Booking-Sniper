@@ -35,7 +35,6 @@ public class MainMenuBarComponent extends BasicPanelComponent {
 
     private final MenuBar menuBar = new MenuBar();
     private final Menu viewMenu = new Menu("View");
-    private final Menu navigationMenu = new Menu("Navigation");
 
 
     public MainMenuBarComponent(ApplicationStateDao applicationStateDao, Window window) {
@@ -46,11 +45,8 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         viewMenu.add(createSwitchThemeMenuItem());
         addViewMenuItemsFor(this);
 
-        addNavigationMenuItemsFor(this);
-
         menuBar.add(sportBuchungMenu())
                 .add(viewMenu)
-                .add(navigationMenu)
                 .add(debugMenu())
                 .add(personenAngabenMenu())
                 .add(languageMenu());
@@ -109,18 +105,6 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         viewMenu.add(checkBoxMenuItem);
     }
 
-    public void addNavigationMenuItemsFor(BasicPanelComponent basicPanelComponent) {
-        KeyType shortKey = basicPanelComponent.getShortKeyType();
-        String label = basicPanelComponent.getTitle();
-        if (shortKey != null) {
-            label += " <" + shortKey + ">";
-        }
-        MenuItem navigationMenuItem = new MenuItem(label, () -> {
-            window.setFocusedInteractable(basicPanelComponent.nextFocus(null));
-        });
-        navigationMenu.add(navigationMenuItem);
-    }
-
 
     private Menu personenAngabenMenu() {
         Menu menu = new Menu("Teilnehmer") {
@@ -132,7 +116,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
             }
         };
 
-        menu.add(new MenuItem("Teilnehmer Dialog",
+        menu.add(new MenuItem("Teilnehmer Verwalten",
                 () -> getTextGUI().addWindow(new TeilnehmerVerwaltungWindow(applicationStateDao))));
         menu.add(new MenuItem("add einen neuen Teilnehmer", this::showAddNewTeilnehmerDialog));
         menu.add(new MenuItem("bearbeite einen Teilnehmer", this::showEditTeilnehmerActionDialog));

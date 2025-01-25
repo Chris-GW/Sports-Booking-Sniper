@@ -24,7 +24,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -77,7 +76,7 @@ public abstract class SeleniumSportBuchungsSchritt implements SportBuchungsSchri
     }
 
     public static WebDriver newWebDriver() {
-        if (!SportBookingSniperApplication.finalBooking.get() || System.getProperty("webdriver.chrome.driver") != null) {
+        if (!SportBookingSniperApplication.finalBooking.get()) {
             return new ChromeDriver();
         }
         return new HtmlUnitDriver(true);
