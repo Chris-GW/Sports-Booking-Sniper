@@ -9,6 +9,7 @@ import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialog;
 import com.googlecode.lanterna.gui2.dialogs.ListSelectDialogBuilder;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.gui2.menu.Menu;
 import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
@@ -19,6 +20,7 @@ import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.buchung.SportBuchungDialog;
 import de.chrisgw.sportsbookingsniper.gui.component.AnimatedClock;
 import de.chrisgw.sportsbookingsniper.gui.component.BasicPanelComponent;
+import de.chrisgw.sportsbookingsniper.gui.dialog.ExitApplicationDialog;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerFormDialog;
 import de.chrisgw.sportsbookingsniper.gui.teilnehmer.TeilnehmerVerwaltungWindow;
@@ -40,7 +42,7 @@ public class MainMenuBarComponent extends BasicPanelComponent {
         super(applicationStateDao, window, "top Navigation", KeyType.F1);
         setLayoutManager(new BorderLayout());
 
-        viewMenu.add(new MenuItem("Exit", () -> getTextGUI().getActiveWindow().close()));
+        viewMenu.add(createExitApplicationMenuItem());
         viewMenu.add(createSwitchThemeMenuItem());
         addViewMenuItemsFor(this);
 
@@ -55,6 +57,15 @@ public class MainMenuBarComponent extends BasicPanelComponent {
 
         addComponent(menuBar, Location.CENTER);
         addComponent(new AnimatedClock(), Location.RIGHT);
+    }
+
+    private MenuItem createExitApplicationMenuItem() {
+        return new MenuItem("Exit", () -> {
+            MessageDialogButton selectedButton = ExitApplicationDialog.build().showDialog(getTextGUI());
+            if (MessageDialogButton.Yes.equals(selectedButton)) {
+                getTextGUI().getWindows().forEach(Window::close);
+            }
+        });
     }
 
     private MenuItem createSwitchThemeMenuItem() {
@@ -222,26 +233,10 @@ public class MainMenuBarComponent extends BasicPanelComponent {
 
     private void addPendingDummySportBookingJob() {
         applicationStateDao.addSportBuchungsJob(SportBookingModelTestUtil.newSportBuchungsJob());
-
-//        SportKatalog sportKatalog = applicationStateDao.currentSportKatalog();
-//        String sportArtName = "Fechten Level 2 Techniktraining";
-//        String kursnummer = "33422246";
-//        SportArt sportArt = sportKatalog.findSportArtByName(sportArtName).orElseThrow(RuntimeException::new);
-//        SportAngebot sportAngebot = sportArt.findSportAngebot(kursnummer).orElseThrow(RuntimeException::new);
-//        SportTermin sportTermin = sportAngebot.bevorstehendeSportTermine()
-//                .findFirst()
-//                .orElseThrow(RuntimeException::new);
-//
-//        SportBuchungsJob buchungsJob = new SportBuchungsJob();
-//        buchungsJob.setJobId(5);
-//        buchungsJob.setTeilnehmerListe(applicationStateDao.getTeilnehmerListe());
-//        buchungsJob.setSportAngebot(sportAngebot);
-//        buchungsJob.setSportTermin(sportTermin);
-//        applicationStateDao.addSportBuchungsJob(buchungsJob);
     }
 
     private void addFinishDummySportBookingJob() {
-
+        // TODO
     }
 
 }

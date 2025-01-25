@@ -15,6 +15,7 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import de.chrisgw.sportsbookingsniper.angebot.HszRwthAachenSportKatalogRepository;
 import de.chrisgw.sportsbookingsniper.angebot.SportKatalogRepository;
+import de.chrisgw.sportsbookingsniper.buchung.SportBuchungsJob;
 import de.chrisgw.sportsbookingsniper.buchung.Teilnehmer;
 import de.chrisgw.sportsbookingsniper.gui.SportBookingMainWindow;
 import de.chrisgw.sportsbookingsniper.gui.dialog.WelcomeDialog;
@@ -28,13 +29,13 @@ import org.apache.logging.log4j.io.IoBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -53,7 +54,9 @@ public class SportBookingSniperApplication {
     public SportBookingSniperApplication() {
         this.sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
         this.objectMapper = createObjectMapper();
-        this.executorService = Executors.newSingleThreadScheduledExecutor();
+        ScheduledThreadPoolExecutor threadPoolExecutor = new ScheduledThreadPoolExecutor(1);
+        threadPoolExecutor.setRemoveOnCancelPolicy(true);
+        this.executorService = threadPoolExecutor;
         this.applicationStateDao = new ApplicationStateDao(sportKatalogRepository, objectMapper, executorService);
     }
 
@@ -80,6 +83,19 @@ public class SportBookingSniperApplication {
                 showFirstVisiteDialog(multiWindowTextGUI);
             }
             multiWindowTextGUI.addWindowAndWait(createSportBookingMainWindow());
+            executorService.shutdown();
+            applicationStateDao.getPendingBuchungsJobs()
+                    .stream()
+                    .map(SportBuchungsJob::getJobId)
+                    .map(applicationStateDao::getScheduledSportBuchungsJob)
+                    .forEach(scheduledBuchungsJob -> scheduledBuchungsJob.cancel(false));
+            if (!executorService.awaitTermination(4, TimeUnit.SECONDS)) {
+                List<Runnable> runnables = executorService.shutdownNow();
+                log.warn("there are still running background jobs after 4s: " + runnables);
+            }
+        } catch (InterruptedException e) {
+            log.trace("interrupted while showing gui");
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -142,16 +158,11 @@ public class SportBookingSniperApplication {
         try {
             PrintStream errStream = IoBuilder.forLogger(LogManager.getRootLogger()).buildPrintStream();
             System.setErr(errStream);
-            var chromedriverPath = Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
-            if (Files.exists(chromedriverPath)) {
-                System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
-            }
-            log.trace("start SportBookingSniperApplication gui");
-            finalBooking.set(true);
+            finalBooking.set(args.length == 0 || !Boolean.parseBoolean(args[0]));
+            log.trace("start SportBookingSniperApplication gui with finalBooking: " + finalBooking.get());
             var sportBookingSniperApplication = new SportBookingSniperApplication();
             sportBookingSniperApplication.showGui();
             log.trace("finish SportBookingSniperApplication gui");
-            sportBookingSniperApplication.getExecutorService().shutdown();
             System.exit(0);
         } catch (Exception e) {
             log.error("Unexpected Exception", e);

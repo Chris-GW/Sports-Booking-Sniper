@@ -8,11 +8,11 @@ import com.googlecode.lanterna.gui2.GridLayout;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobPanel;
+import de.chrisgw.sportsbookingsniper.gui.dialog.ExitApplicationDialog;
 import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
@@ -72,15 +72,7 @@ public class SportBookingMainWindow extends BasicWindow {
                 if (KeyType.Escape.equals(keyStroke.getKeyType()) //
                         || (keyStroke.isAltDown() && KeyType.F4.equals(keyStroke.getKeyType())) //
                         || (keyStroke.isCtrlDown() && Character.valueOf('c').equals(keyStroke.getCharacter()))) {
-                    MessageDialogButton selectedButton = new MessageDialogBuilder() //
-                            .setTitle("SportBookingSniper wirklich beenden?")
-                            .setText("Wenn Sie den SportBookingSniper beenden, können keine\n"
-                                    + "Buchungsversuche im Hintergrund ausgeführt werden.\n"
-                                    + "Wollen Sie den SportBookingSniper wirklich beenden?")
-                            .addButton(MessageDialogButton.Cancel)
-                            .addButton(MessageDialogButton.Yes)
-                            .build()
-                            .showDialog(getTextGUI());
+                    MessageDialogButton selectedButton = ExitApplicationDialog.build().showDialog(getTextGUI());
                     hasBeenHandled.set(true);
                     if (MessageDialogButton.Yes.equals(selectedButton)) {
                         close();
