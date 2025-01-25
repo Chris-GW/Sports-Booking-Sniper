@@ -1,13 +1,18 @@
 package de.chrisgw.sportsbookingsniper.gui;
 
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.BasePaneListener;
+import com.googlecode.lanterna.gui2.BasicWindow;
+import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.BorderLayout.Location;
+import com.googlecode.lanterna.gui2.GridLayout;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import de.chrisgw.sportsbookingsniper.gui.buchung.AusstehendeSportBuchungsJobPanel;
-import de.chrisgw.sportsbookingsniper.gui.component.FavoriteSportAngebotComponent;
 import de.chrisgw.sportsbookingsniper.gui.menu.MainMenuBarComponent;
 import de.chrisgw.sportsbookingsniper.gui.state.ApplicationStateDao;
 
@@ -25,7 +30,6 @@ public class SportBookingMainWindow extends BasicWindow {
     private final ApplicationStateDao applicationStateDao;
 
     private final MainMenuBarComponent mainMenuBar;
-    private FavoriteSportAngebotComponent favoriteComponent;
     private AusstehendeSportBuchungsJobPanel ausstehendeSportBuchungsJobPanel;
 
 
@@ -41,7 +45,6 @@ public class SportBookingMainWindow extends BasicWindow {
 
         contentPanel.addComponent(mainMenuBar, Location.TOP);
         contentPanel.addComponent(createCenterPanel(), Location.CENTER);
-        contentPanel.addComponent(createRightPanel(), Location.RIGHT);
         addBasePaneListener(newCloseWindowInputListener());
     }
 
@@ -58,17 +61,6 @@ public class SportBookingMainWindow extends BasicWindow {
         centerPanel.addComponent(
                 ausstehendeSportBuchungsJobPanel.withBorder(singleLineReverseBevel("Ausstehende Sport Buchungen")));
         return centerPanel;
-    }
-
-
-    private Panel createRightPanel() {
-        favoriteComponent = new FavoriteSportAngebotComponent(applicationStateDao, this);
-        mainMenuBar.addViewMenuItemsFor(favoriteComponent);
-        mainMenuBar.addNavigationMenuItemsFor(favoriteComponent);
-
-        Panel rightPanel = new Panel();
-        rightPanel.addComponent(favoriteComponent.withBorder(singleLineReverseBevel(favoriteComponent.getTitle())));
-        return rightPanel;
     }
 
 

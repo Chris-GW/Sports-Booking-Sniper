@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static de.chrisgw.sportsbookingsniper.buchung.SportBuchungsVersuch.SportBuchungsVersuchStatus.BUCHUNG_FEHLER;
@@ -32,23 +30,19 @@ class SeleniumSportBuchungsSchrittTest {
 
 
     @BeforeEach
-    public void beforeEach() throws Exception {
-        var chromedriverPath = Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe");
-        if (Files.exists(chromedriverPath)) {
-            System.setProperty("webdriver.chrome.driver", chromedriverPath.toString());
-        }
+    public void beforeEach() {
         webDriver = newWebDriver();
     }
 
     @AfterEach
-    public void afterEach() throws Exception {
+    public void afterEach() {
         if (webDriver != null) {
             webDriver.close();
         }
     }
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         sportKatalogRepository = new HszRwthAachenSportKatalogRepository();
     }
 

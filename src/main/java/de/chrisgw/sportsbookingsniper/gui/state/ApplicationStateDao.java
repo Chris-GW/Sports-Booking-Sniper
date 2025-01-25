@@ -189,11 +189,17 @@ public class ApplicationStateDao {
 
 
     public ScheduledSportBuchungsJob retrySportBuchungsJob(SportBuchungsJob buchungsJob) {
-        var scheduledBuchungsJob = new ScheduledSportBuchungsJob(buchungsJob, executorService);
-        for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
-            scheduledBuchungsJob.addListener(sportBuchungsJobListener);
-            sportBuchungsJobListener.onNewPendingSportBuchungsJob(buchungsJob);
+        int jobId = buchungsJob.getJobId();
+        var scheduledBuchungsJob = scheduledSportBuchungsJobMap.get(jobId);
+        if (scheduledBuchungsJob == null) {
+            scheduledBuchungsJob = new ScheduledSportBuchungsJob(buchungsJob, executorService);
+            for (SportBuchungsJobListener sportBuchungsJobListener : sportBuchungsJobListeners) {
+                scheduledBuchungsJob.addListener(sportBuchungsJobListener);
+                sportBuchungsJobListener.onNewPendingSportBuchungsJob(buchungsJob);
+            }
+            scheduledSportBuchungsJobMap.put(jobId, scheduledBuchungsJob);
         }
+        scheduledBuchungsJob.retryNow();
         saveApplicationData();
         return scheduledBuchungsJob;
     }
