@@ -6,7 +6,6 @@ import lombok.extern.log4j.Log4j2;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.net.MalformedURLException;
@@ -138,7 +137,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
 
     private Set<SportAngebot> parseSportKursangebotTabelle(SportArt sportArt, Document doc) {
         Set<SportAngebot> sportAngebote = new TreeSet<>();
-        Elements kursRows = doc.select("#bs_content table.bs_kurse tbody tr");
+        Elements kursRows = doc.select("#bs_content table.bs_kurse > tbody > tr");
         for (Element sportTerminRow : kursRows) {
             SportAngebot sportAngebot = parseSportKursangebotRow(sportTerminRow);
             sportAngebot.setSportArt(sportArt);
@@ -163,21 +162,21 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
                 return super.getSportTermine();
             }
         };
-        String kursnr = tableRow.child(0).text();
-        String details = tableRow.child(1).text();
+        String kursnr = tableRow.selectFirst(".bs_sknr").text();
+        String details = tableRow.selectFirst(".bs_sdet span").ownText();
         SportAngebotBuchungsArt buchungsArt = ANGEBOT_TICKET_BUCHUNG;
         if (details.equalsIgnoreCase("Ein Termin")) {
             buchungsArt = EINZEL_TERMIN_BUCHUNG;
         }
 
         // only use first text
-        String tag = tableRow.child(2).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
-        String zeit = tableRow.child(3).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
-        String ort = tableRow.child(4).textNodes().stream().findFirst().map(TextNode::getWholeText).orElse(null);
+        String tag = tableRow.selectFirst(".bs_stzo .bs_stag").text();
+        String zeit = tableRow.selectFirst(".bs_stzo .bs_szeit").text();
+        String ort = tableRow.selectFirst(".bs_stzo .bs_sort").text();
 
-        Element zeitraumTd = tableRow.child(5);
-        String kursinfoUrl = readKursinfoUrl(zeitraumTd);
-        String leitung = tableRow.child(6).text();
+        Element zeitraumTd = tableRow.selectFirst(".bs_szr");
+        String kursinfoUrl = zeitraumTd.selectFirst("a").attr("abs:href");
+        String leitung = tableRow.selectFirst(".bs_skl").text();
         SportAngebotPreis preis = readSportAngebotPreis(tableRow);
 
         sportAngebot.setKursnummer(kursnr);
@@ -233,10 +232,6 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
         }
     }
 
-    private String readKursinfoUrl(Element zeitraumTd) {
-        return zeitraumTd.select("a").first().attr("abs:href");
-    }
-
     private SportAngebotPreis readSportAngebotPreis(Element tableRow) {
         Elements preisForKategorie = tableRow.select(".bs_spreis .bs_tt1, .bs_spreis .bs_tt2");
 
@@ -277,7 +272,7 @@ public class HszRwthAachenSportKatalogRepository implements SportKatalogReposito
            12 EUR für Beschäftigte
            12 EUR für Externe
            12 EUR für Alumni */
-        Pattern preisPattern = Pattern.compile("(?<preis>\\d+(,\\d+)?)\\s+EUR");
+        Pattern preisPattern = Pattern.compile("(?<preis>\\d+(,\\d+)?)\\s+(EUR|€)");
         Matcher preisMatcher = preisPattern.matcher(preisText);
         if (preisMatcher.matches()) {
             String preisStr = preisMatcher.group("preis").replace(",", ".");
