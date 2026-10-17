@@ -68,7 +68,7 @@ public class SelectSportAngebotSchritt extends SeleniumSportBuchungsSchritt {
 
     private Optional<WebElement> findAngebotBuchenCell(SportAngebot sportAngebot) {
         String kursnummer = sportAngebot.getKursnummer();
-        return driver.findElements(By.cssSelector("#bs_content table.bs_kurse tbody tr"))
+        return driver.findElements(By.cssSelector("#bs_content table.bs_kurse > tbody > tr"))
                 .stream()
                 .filter(angebotRow -> {
                     WebElement kursnummerCell = angebotRow.findElement(By.className("bs_sknr"));
